@@ -41,7 +41,7 @@ Estado: `pendente` → `feito` → `verificado`. Cada item fecha com a verifica�
 | 8 | `codigo/mini.py`: `atualizar` (main por fast-forward) e `instalar` (launchd: rodada a cada 10 min, atualizar a cada 5) | as agendas montam o plist com o python do .venv; testado em `testes.py` sem chamar o launchctl | verificado |
 | 9 | `codigo/testes.py`: a prancha sintética de ponta a ponta e a aferição (regra 17: órfã, duplicata, comprimento, profundidade) | `python codigo/testes.py` sem falha; linha nova em `codigo/afericao.jsonl` | verificado |
 | 10 | Extrator deixa de extrair projeto (2v94): `ler_prancha` vira triagem + entrega; sai a `ler_prancha_ia`, a cota diária, a tabela `nao_prancha` e a reconferência; prompts e notas de prancha saem (ponteiro para cá) | `testes.py` do extrator sem falha; prancha sintética chega a `para_projeto/` com a linha no manifesto; PDF A4 não chega | verificado |
-| 11 | Maestro (0v44): `ialocal.projeto` no cadastro (pasta, status, GPU, prioridade 5, depende do extrator, launchd, ambiente), papel do extrator atualizado, MASTER-PLAN §2 e §6.5, LEIA | `testes.py` do maestro sem falha; o levantamento mostra o projeto `sem_dados` (pasta ausente na máquina de teste) | pendente |
+| 11 | Maestro (0v44): `ialocal.projeto` no cadastro (pasta, status, GPU, prioridade 5, depende do extrator, launchd, ambiente), papel do extrator atualizado, MASTER-PLAN §2 e §6.5, LEIA | `testes.py` do maestro sem falha; o levantamento mostra o projeto `sem_dados` (pasta ausente na máquina de teste) | verificado |
 | 12 | `LEIA.md` do projeto: o que é, como rodo, onde está o quê, o que não é óbvio | lido contra a árvore real | verificado |
 
 ## Fica para depois (do `plano_projeto.md` §9, na ordem dele)
