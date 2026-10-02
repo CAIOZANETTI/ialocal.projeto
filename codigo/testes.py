@@ -172,11 +172,30 @@ def testar_leitura(primitivas):
     conferir(leitura.familia('012-SAA-0017-7471-PBHI-DE-AAT06PTPER-R1.pdf', carimbo['texto'])
              == {'familia': 'adutora', 'grupo': 'linear', 'familia_origem': 'regra', 'desenho': 'planta_e_perfil'},
              'leitura: família adutora, grupo linear e desenho planta e perfil pela regra')
-    conferir(leitura.familia('LAYOUT-CAMBE.pdf', 'REDE DE DISTRIBUIÇÃO RDA rua CORTEZ')['desenho'] == 'locacao'
-             and leitura.familia('x.pdf', 'OSE075 ' + 'GAS ' * 40)['familia'] == 'indefinida'
-             and leitura.familia('PLANTA_GERAL_SONDAGEM_CAMBÉ_01.pdf', '')['grupo'] == 'apoio',
-             'leitura: LAYOUT é locação (a rua CORTEZ não é corte); GAS GAS GAS é interferência; sondagem é apoio')
+    conferir_familias_do_acervo()
     return carimbo, tabelas
+
+
+def conferir_familias_do_acervo():
+    """As famílias que a auditoria de 26/09 pegou erradas no acervo (testes do extrator até a 2v75): cada uma é regra em
+    conceitos/prancha.json, e a regra não pode voltar atrás."""
+    import leitura
+    familia = lambda nome, texto='': leitura.familia(nome, texto)
+    layout = 'SISTEMA DE ABASTECIMENTO DE ÁGUA REDE DE DISTRIBUIÇÃO DE ÁGUA REMANEJAMENTOS LAYOUT RUA CORTEZ DATA: AGO/25 ESCALA: 1:7.500'
+    conferir((familia('LAYOUT-CAMBE.pdf', layout)['familia'], familia('LAYOUT-CAMBE.pdf', layout)['desenho']) == ('rede_agua', 'locacao'),
+             'família: o LAYOUT de Cambé é rede de água e locação (a rua CORTEZ não é corte)')
+    conferir((familia('PLANTA_GERAL_SONDAGEM_CAMBÉ_01.pdf', 'PLANTA DE LOCAÇÃO DOS FUROS')['grupo'], familia('012-SAA-0017-7471-PBHI-DE-AAT06PTPER-R1.pdf', 'ver boletim de sondagem')['familia'])
+             == ('apoio', 'adutora'), 'família: planta de sondagem é apoio; a adutora que cita sondagem continua adutora')
+    cambe = '05V-SAA-0153-8127-PULI-DE-0000RDA00REMANEJ-R0.pdf'
+    ose = 'OSE075 ' + 'GAS ' * 40 + 'PV CT.943.544 PV CT.945.343 REDE DE GÁS\nSISTEMA DE ABASTECIMENTO DE ÁGUA 002-SAA-0001-6745-PULI-DE-RDA00TATCADBL01-R0'
+    conferir((familia(cambe)['familia'], familia(cambe)['grupo']) == ('rede_agua', 'linear') and familia('05_OSE-075.pdf', ose)['familia'] == 'rede_agua'
+             and familia('x.pdf', 'OSE075 ' + 'GAS ' * 40)['familia'] == 'indefinida',
+             'família: RDA no meio do nome é rede de água; o código do desenho decide antes do GAS GAS GAS da interferência e dos PV da rede existente')
+    ose102 = 'Adutora: RDA CFA JNE JDA FUNDOS AV. COMENDADOR FRANCO Declividade da\nAdutora SENTIDO DE FLUXO DA ADUTORA'
+    eet = 'DRENAGEM - EXISTENTE ESTAÇÃO ELEVATÓRIA TRATADA - EET 003-SAA-0001-6745-PEXE-DE-EET00TATUQUAPL-A0'
+    conferir((familia('10_OSE-102.pdf', ose102)['familia'], familia('x.pdf', eet)['familia'], familia('03_003-SAA-0001-6745-PEXE-DE-EET00TATUQUACT-A0.pdf')['familia'],
+              familia('01_056-SAA-0001-7739-PBHI-DE-0708RAP01CX1INTDN900-R0F.pdf')['familia']) == ('rede_agua', 'elevatoria', 'elevatoria', 'reservatorio'),
+             'família: o campo "Adutora:" da OSE e a legenda "DRENAGEM - EXISTENTE" não decidem; EET e RAP colados ao número')
 
 
 def testar_linear(primitivas):
@@ -278,7 +297,7 @@ def testar_rodada(pasta):
     sha = hashlib.sha256(conteudo).hexdigest()
     (entregas / f'{sha}.pdf').write_bytes(conteudo)
     linha = {'id': 'ARQ-000812', 'caminho': 'obras/foz.zip/012-SAA-0017-7471-PBHI-DE-AAT06PTPER-R1.pdf', 'nome': '012-SAA-0017-7471-PBHI-DE-AAT06PTPER-R1.pdf',
-             'sha256': sha, 'formato': 'A1', 'classe': 'vetorial_curva', 'sinais': ['camadas', 'nome', 'carimbo']}
+             'sha256': sha, 'acervo': 'obras', 'obra': 'Foz AAT-06', 'formato': 'A1', 'classe': 'vetorial_curva', 'sinais': ['camadas', 'nome', 'carimbo']}
     (entregas / 'entregas.jsonl').write_text(json.dumps({'tipo': 'metadata'}) + '\n' + json.dumps(linha) + '\n' + json.dumps(linha) + '\n')
     respostas = {'escala': '1:1000', 'folha': '012/019', 'titulo': 'ADUTORA DE ÁGUA TRATADA AAT-06 PLANTA E PERFIL'}
     desfazer = motores_falsos(ia, qwen3=respostas, apple=respostas, glm='ESCALA 1:1000\nEST 77\nEST 323', vision='ESCALA 1:1000 EST 77')
@@ -298,11 +317,15 @@ def testar_rodada(pasta):
              'rodada: a entrega repetida vale uma vez; não relê na mesma versão; relê quando a versão muda')
     projeto.publicar({'lidas': 0})
     conferir(json.loads((pasta / 'saidas' / 'status.json').read_text())['saude'] == 'ok'
-             and (pasta / 'saidas' / 'obras' / 'foz' / '012-SAA-0017-7471-PBHI-DE-AAT06PTPER-R1.dxf').exists(),
-             'rodada: o DXF na pasta da obra (obras/foz) e o status.json ok no formato comum')
-    prancha = (pasta / 'saidas' / 'pranchas.csv').read_text(encoding='utf-8-sig')
-    carimbo = (pasta / 'saidas' / 'carimbo.csv').read_text(encoding='utf-8-sig')
-    valores = (pasta / 'saidas' / 'valores_ocr.csv').read_text(encoding='utf-8-sig')
+             and (pasta / 'saidas' / 'obras' / 'Foz AAT-06' / 'projeto' / '012-SAA-0017-7471-PBHI-DE-AAT06PTPER-R1.dxf').exists()
+             and (pasta / 'saidas' / 'obras' / 'Foz AAT-06' / 'projeto' / 'pranchas.csv').exists(),
+             'rodada: o DXF e os CSV em <acervo>/<obra>/projeto/ (a obra do extrator, ao lado do extrator/) e o status.json ok')
+    conferir(projeto.obra_de({'caminho': 'obras/SAIC.zip/pranchas/f.pdf'}) == ('obras', 'SAIC') and projeto.obra_de({'caminho': 'obras/f.pdf'}) == ('obras', '_avulsos'),
+             'rodada: sem a obra na entrega, ela sai do caminho com a regra do extrator (o zip do 1º nível; o arquivo solto é _avulsos)')
+    sistema = pasta / 'saidas' / '_sistema' / 'projeto'
+    prancha = (sistema / 'pranchas.csv').read_text(encoding='utf-8-sig')
+    carimbo = (sistema / 'carimbo.csv').read_text(encoding='utf-8-sig')
+    valores = (sistema / 'valores_ocr.csv').read_text(encoding='utf-8-sig')
     conferir(';fecha;' in prancha and 'escala;1:1000;confirmado' in carimbo and 'EST323;so_glm' in valores and 'EST77;confirmado' in valores,
              'rodada: escala do carimbo confirmada por código e IA, a conferência fecha, o OCR das fatias com o status de cada valor')
 

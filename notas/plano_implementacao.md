@@ -40,8 +40,8 @@ Estado: `pendente` → `feito` → `verificado`. Cada item fecha com a verifica�
 | 7 | `codigo/projeto.py`: `ler <pdf>`, `pasta <dir>`, `rodada` (lê as entregas do extrator), `status`; uma pasta por prancha em `dados/pranchas/`, o DXF e os CSV em `saidas/`, o `status.json` no formato comum do maestro, publicação no Drive (`gdrive:saida/projeto/`) | rodada com entrega sintética: lê uma vez (sha256), não relê na segunda, relê quando a versão muda; `saidas/pranchas.csv`, `tabelas.csv`, `notas.csv`, `status.json` | verificado |
 | 8 | `codigo/mini.py`: `atualizar` (main por fast-forward) e `instalar` (launchd: rodada a cada 10 min, atualizar a cada 5) | as agendas montam o plist com o python do .venv; testado em `testes.py` sem chamar o launchctl | verificado |
 | 9 | `codigo/testes.py`: a prancha sintética de ponta a ponta e a aferição (regra 17: órfã, duplicata, comprimento, profundidade) | `python codigo/testes.py` sem falha; linha nova em `codigo/afericao.jsonl` | verificado |
-| 10 | Extrator deixa de extrair projeto (2v76): `ler_prancha` vira triagem + entrega; sai a `ler_prancha_ia`, a cota diária, a tabela `nao_prancha` e a reconferência; prompts e notas de prancha saem (ponteiro para cá) | `testes.py` do extrator sem falha; prancha sintética chega a `para_projeto/` com a linha no manifesto; PDF A4 não chega | pendente |
-| 11 | Maestro (0v42): `ialocal.projeto` no cadastro (pasta, status, GPU, prioridade 5, depende do extrator, launchd, ambiente), papel do extrator atualizado, MASTER-PLAN §2 e §6.5, LEIA | `testes.py` do maestro sem falha; o levantamento mostra o projeto `sem_dados` (pasta ausente na máquina de teste) | pendente |
+| 10 | Extrator deixa de extrair projeto (2v94): `ler_prancha` vira triagem + entrega; sai a `ler_prancha_ia`, a cota diária, a tabela `nao_prancha` e a reconferência; prompts e notas de prancha saem (ponteiro para cá) | `testes.py` do extrator sem falha; prancha sintética chega a `para_projeto/` com a linha no manifesto; PDF A4 não chega | verificado |
+| 11 | Maestro (0v44): `ialocal.projeto` no cadastro (pasta, status, GPU, prioridade 5, depende do extrator, launchd, ambiente), papel do extrator atualizado, MASTER-PLAN §2 e §6.5, LEIA | `testes.py` do maestro sem falha; o levantamento mostra o projeto `sem_dados` (pasta ausente na máquina de teste) | pendente |
 | 12 | `LEIA.md` do projeto: o que é, como rodo, onde está o quê, o que não é óbvio | lido contra a árvore real | verificado |
 
 ## Fica para depois (do `plano_projeto.md` §9, na ordem dele)
@@ -56,4 +56,11 @@ Estado: `pendente` → `feito` → `verificado`. Cada item fecha com a verifica�
 
 ## Emendas
 
-(nenhuma)
+- **02/10/2026, itens 7, 10 e 11.** O clone do extrator desta sessão estava na 2v75; a `main` tinha andado até a 2v93.
+  A mudança do extrator foi refeita sobre a 2v93 e virou a **2v94** (a 2v76 de verdade é outra). Dela vieram duas
+  coisas: a 2v81 adiava a `ler_prancha_ia` para o fim de semana (o adiamento fica só com foto e desenho), e a 2v93 pôs
+  cada etapa numa pasta dentro da obra — a publicação do projeto passou a `saida/<acervo>/<obra>/projeto/`, com a obra
+  vinda do mapa do extrator na entrega. O maestro já estava na 0v43: o item 11 é a 0v44.
+- **02/10/2026, item 10.** A suíte do extrator já falhava na `main` (2v93) em dois pontos, sem relação com a prancha: a
+  2v93 sem `muda` (corrigido na 2v94 com `"muda": []`, que não muda o refazer) e o `testar_ordem_por_tipo` (a foto
+  adiada não chega na fila compartilhada do teste; falha igual na `main`, não mexido aqui). O resto da suíte passa.

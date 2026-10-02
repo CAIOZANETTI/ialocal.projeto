@@ -41,14 +41,14 @@ def versao():
 
 def ler(caminho, origem=None, com_ia=None):
     """Uma prancha inteira: cada página de formato A3 ou maior é uma folha, lida pelo código e, com a IA ligada, pelos
-    motores locais. Grava dados/pranchas/<sha>/ (geometria por página e leitura.json) e o DXF em saidas/<acervo>/<obra>/."""
+    motores locais. Grava dados/pranchas/<sha>/ (geometria por página e leitura.json) e o DXF na pasta da obra."""
     import pypdfium2 as pdfium
     OPERACAO, RECONHECER = ia.configuracao('operacao'), ia.configuracao('prancha')['reconhecer']
     caminho = Path(caminho)
     sha = hashlib.sha256(caminho.read_bytes()).hexdigest()
     origem = origem or {'id': '', 'caminho': f'avulsas/{caminho.name}', 'nome': caminho.name}
-    partes = Path(origem['caminho']).parts
-    destino = SAIDAS / partes[0] / (Path(partes[1]).stem if len(partes) > 2 else '')
+    acervo, obra = obra_de(origem)
+    destino = SAIDAS / acervo / obra / 'projeto'
     pasta = DADOS / 'pranchas' / sha[:16]
     pasta.mkdir(parents=True, exist_ok=True)
     destino.mkdir(parents=True, exist_ok=True)
@@ -62,12 +62,21 @@ def ler(caminho, origem=None, com_ia=None):
             if OPERACAO['ia'] if com_ia is None else com_ia:
                 perfil.update(ler_com_ia(caminho, perfil, primitivas, pasta, prazo))
         folhas.append(perfil)
-    registro = {'sha256': sha, 'id': origem.get('id', ''), 'caminho': origem['caminho'], 'nome': origem['nome'],
+    registro = {'sha256': sha, 'id': origem.get('id', ''), 'caminho': origem['caminho'], 'nome': origem['nome'], 'acervo': acervo, 'obra': obra,
                 'paginas': len(documento), 'camadas': catalogo['camadas'], 'geopdf': catalogo['geopdf'], **versao(),
                 'lida_em': datetime.now().isoformat(timespec='seconds'), 'folhas': folhas}
     documento.close()
     (pasta / 'leitura.json').write_text(json.dumps(registro, ensure_ascii=False, indent=1))
     return registro
+
+
+def obra_de(origem):
+    """Acervo e obra da prancha: os que o extrator entregou (o mapa dele, com os nomes do obras.csv); sem eles, pelo
+    caminho, com a regra do extrator — o zip ou a pasta do primeiro nível do acervo, e `_avulsos` o arquivo solto."""
+    if origem.get('acervo') and origem.get('obra'):
+        return origem['acervo'], origem['obra']
+    partes = Path(origem['caminho']).parts
+    return partes[0], Path(partes[1]).stem if len(partes) > 2 else '_avulsos'
 
 
 def ler_folha(documento, perfil, pasta, dxf, nome):
@@ -179,24 +188,41 @@ def ler_pendentes(pendentes, pasta, atual, vez):
     return resultado
 
 
-def escrever_csv(nome, linhas):
+def escrever_csv(destino, linhas):
     """CSV com ; e UTF-8 com BOM (o que o Excel em português abre certo), as colunas na ordem em que aparecem."""
     colunas = list(dict.fromkeys(c for linha in linhas for c in linha))
-    with open(SAIDAS / nome, 'w', newline='', encoding='utf-8-sig') as saida:
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    with open(destino, 'w', newline='', encoding='utf-8-sig') as saida:
         escritor = csv.DictWriter(saida, colunas, delimiter=';')
         escritor.writeheader()
         escritor.writerows({c: json.dumps(v, ensure_ascii=False) if isinstance(v, (list, dict)) else v for c, v in linha.items()} for linha in linhas)
 
 
 def publicar(ultima_rodada=None):
-    """Os CSV de todas as pranchas lidas (pranchas, carimbo campo a campo, tabelas, revisões, notas, valores do OCR) e o
-    status.json no formato comum do maestro; depois, se há rclone, a pasta saidas/ no Drive (só o que mudou)."""
-    SAIDAS.mkdir(parents=True, exist_ok=True)
+    """Os CSV (pranchas, carimbo campo a campo, tabelas, revisões, notas, valores do OCR): de todas as pranchas em
+    saidas/_sistema/projeto/ e os de cada obra em saidas/<acervo>/<obra>/projeto/, ao lado do DXF dela — no Drive, ao
+    lado do extrator/, revisor/ e contexto/ da obra (extrator 2v93). Depois o status.json no formato comum do maestro e,
+    na rodada com rclone, a pasta saidas/ no Drive (só o que mudou; o status e as avulsas ficam no mini)."""
     registros = [json.loads(a.read_text()) for a in sorted((DADOS / 'pranchas').glob('*/leitura.json'))] if (DADOS / 'pranchas').exists() else []
+    por_obra = {}
+    for registro in registros:
+        por_obra.setdefault((registro['acervo'], registro['obra']), []).append(registro)
+    for pasta, grupo in [(SAIDAS / '_sistema' / 'projeto', registros)] + [(SAIDAS / a / o / 'projeto', g) for (a, o), g in por_obra.items()]:
+        for nome, linhas in tabelas_csv(grupo).items():
+            escrever_csv(pasta / f'{nome}.csv', linhas)
+    status(registros, ultima_rodada)
+    if shutil.which('rclone') and ultima_rodada is not None:
+        subprocess.run(['rclone', 'copy', '--checksum', '--exclude', '/status.json', '--exclude', '/avulsas/**', str(SAIDAS),
+                        ia.configuracao('operacao')['drive']], capture_output=True)
+
+
+def tabelas_csv(registros):
+    """As linhas de cada CSV, de um grupo de pranchas: uma por folha, por campo do carimbo, por linha de tabela, por
+    revisão, por item de nota e por valor lido no OCR."""
     tabelas = {nome: [] for nome in ('pranchas', 'carimbo', 'tabelas', 'revisoes', 'notas', 'valores_ocr')}
     for registro in registros:
         for f in (f for f in registro['folhas'] if f['e_prancha']):
-            chave = {'arquivo': registro['nome'], 'caminho': registro['caminho'], 'pagina': f['pagina']}
+            chave = {'obra': registro['obra'], 'arquivo': registro['nome'], 'caminho': registro['caminho'], 'pagina': f['pagina']}
             tabelas['pranchas'].append(linha_da_prancha(registro, f, chave))
             tabelas['carimbo'] += [{**chave, 'campo': c, **v} for c, v in f['carimbo']['conferido'].items()]
             tabelas['tabelas'] += [{**chave, 'tabela': n, 'tipo': t['tipo'], 'origem': t['origem'], 'linha': k, **{f'c{j + 1}': v for j, v in enumerate(l)}}
@@ -206,12 +232,7 @@ def publicar(ultima_rodada=None):
             tabelas['revisoes'] += [{**chave, **r} for r in f['revisoes']]
             tabelas['notas'] += [{**chave, 'bloco': b['titulo'], **i} for b in f['notas'] for i in b['itens']]
             tabelas['valores_ocr'] += [{**chave, **v} for v in f.get('valores_ocr', [])]
-    for nome, linhas in tabelas.items():
-        escrever_csv(f'{nome}.csv', linhas)
-    status(registros, ultima_rodada)
-    destino = ia.configuracao('operacao')['drive']
-    if shutil.which('rclone') and ultima_rodada is not None:
-        subprocess.run(['rclone', 'copy', '--checksum', str(SAIDAS), destino], capture_output=True)
+    return tabelas
 
 
 def linha_da_prancha(registro, f, chave):

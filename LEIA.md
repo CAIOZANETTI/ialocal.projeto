@@ -62,13 +62,16 @@ dados/pranchas/<sha>/            leitura.json (a prancha inteira) e p<N>_geometr
 dados/lidas.jsonl                sha256 × versão × erro: o que já foi lido
 dados/congelamento.jsonl         cada resposta de IA com a chave inteira (§8.2)
 dados/gpu/                       pedidos de vez ao maestro e o que foi usado (feitos.jsonl)
-saidas/<acervo>/<obra>/*.dxf     o desenho de cada prancha, em mm de papel, uma camada por camada do CAD
-saidas/pranchas.csv              uma linha por folha: formato, classe, família, carimbo aceito, contagens, conferência
-saidas/carimbo.csv               cada campo do carimbo com o valor, o status (confirmado, um_leitor, divergente, vazio) e as fontes
-saidas/tabelas.csv               cada linha de cada tabela (vetor ou colada), célula a célula
-saidas/revisoes.csv, notas.csv, valores_ocr.csv
-saidas/status.json               o status no formato comum do maestro
-Drive  gdrive:saida/projeto/     a pasta saidas/ inteira (rclone --checksum: só o que mudou)
+saidas/<acervo>/<obra>/projeto/  O PROJETO DA OBRA, ao lado do extrator/, revisor/ e contexto/ dela (extrator 2v93):
+                                 o DXF de cada prancha (mm de papel, uma camada por camada do CAD) e os CSV abaixo, só da obra
+saidas/_sistema/projeto/         os mesmos CSV de todas as pranchas:
+    pranchas.csv                 uma linha por folha: formato, classe, família, carimbo aceito, contagens, conferência
+    carimbo.csv                  cada campo do carimbo com o valor, o status (confirmado, um_leitor, divergente, vazio) e as fontes
+    tabelas.csv                  cada linha de cada tabela (vetor ou colada), célula a célula
+    revisoes.csv, notas.csv, valores_ocr.csv
+saidas/avulsas/_avulsos/projeto/ o que se leu à mão (ler, pasta): fica no mini
+saidas/status.json               o status no formato comum do maestro (fica no mini)
+Drive  gdrive:saida/             saidas/ sem o status e as avulsas (rclone copy --checksum: só o que mudou)
 ```
 
 ## O que não é óbvio
@@ -100,4 +103,7 @@ Drive  gdrive:saida/projeto/     a pasta saidas/ inteira (rclone --checksum: só
   importante espera. Sem o maestro, segue sem a trava (falha aberta).
 - **Nenhuma IA em nuvem** (MASTER-PLAN §5.4): só o Ollama local, o modelo do dispositivo da Apple e o Vision. O código
   chega ao mini só pela `main`, por PR aprovado pelo Caio.
+- **A obra é a do extrator.** A entrega traz acervo e obra pelo mapa do extrator (`por_obra/.obras`, com os nomes do
+  `obras.csv`); sem eles, a obra sai do caminho com a mesma regra (o zip ou a pasta do 1º nível; arquivo solto é
+  `_avulsos`). Assim `saida/<acervo>/<obra>/` tem `extrator/`, `projeto/`, `revisor/` e `contexto/` lado a lado.
 - **`dados/` e `saidas/` não vão para o git.** O GitHub guarda código, conceitos e notas.

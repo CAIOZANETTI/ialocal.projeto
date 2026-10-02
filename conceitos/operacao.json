@@ -5,9 +5,9 @@
     "atualizado_em": "2026-10-02"
   },
   "entregas": "~/dados/extracao/para_projeto",
-  "_entregas": "a pasta que o extrator escreve: o PDF de cada prancha (<sha256>.pdf) e entregas.jsonl com id, caminho, nome, sha256, formato, classe e sinais. O projeto só lê",
-  "drive": "gdrive:saida/projeto",
-  "_drive": "a publicação para o Caio e a equipe (rclone copy --checksum de saidas/); sem rclone no PATH, não publica e diz",
+  "_entregas": "a pasta que o extrator escreve: o PDF de cada prancha (<sha256>.pdf) e entregas.jsonl com id, caminho, nome, sha256, acervo, obra (o mapa do extrator, com os nomes do obras.csv), formato, classe e sinais. O projeto só lê",
+  "drive": "gdrive:saida",
+  "_drive": "a publicação para o Caio e a equipe (rclone copy --checksum de saidas/, sem o status.json e as avulsas): cada obra em saida/<acervo>/<obra>/projeto/, ao lado do extrator/, revisor/ e contexto/ dela (extrator 2v93), e o geral em saida/_sistema/projeto/; sem rclone no PATH, não publica",
   "gpu": {
     "prioridade": 5,
     "tarefa": "prancha"
