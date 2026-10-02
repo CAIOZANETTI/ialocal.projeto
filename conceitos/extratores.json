@@ -1,0 +1,23 @@
+{
+  "metadata": {
+    "fonte": "conceitos/extratores.json do ialocal.extrator até a 2v75 (modelos e contornos do glm-ocr medidos no mini em 25–27/09); notas/plano_projeto.md §11.3 (papel de cada modelo)",
+    "regra": "modelos e parâmetros dos motores locais (MASTER-PLAN §5.4: só Ollama local e o modelo do dispositivo da Apple). Modelo trocado aqui muda a chave de congelamento (§8.2). O papel de cada um: Vision e glm-ocr leem o texto do recorte (dois leitores de natureza diferente), qwen3 e Apple FM organizam os tokens lidos no esquema e escolhem entre opções fechadas; nenhum é fonte única de número",
+    "atualizado_em": "2026-10-02"
+  },
+  "modelos": {
+    "qwen3": "qwen3:8b",
+    "glm_ocr": "glm-ocr:latest"
+  },
+  "opcoes_por_modelo": {
+    "_": "somadas a temperatura 0 e semente 0; o glm-ocr abortava com 'token repeat limit' em página em branco ou com ruído (extrator, 25/09) e a transcrição legítima de tabela passava de 2.048 tokens (extrator 2v40)",
+    "glm-ocr:latest": {"repeat_penalty": 1.15, "num_predict": 2560}
+  },
+  "parametros": {
+    "lado_max_px_ia": 1600,
+    "_lado_max_px_ia": "lado maior da imagem que vai ao modelo local; o glm-ocr dava 500 em prancha e página grande (extrator, 25/09) — premissa, muda pela medida",
+    "ocr_glm": {"faixas": 2, "sobreposicao": 0.1, "linhas_iguais_laco": 6, "cauda_laco": 300, "janela_laco": 1500, "compressao_laco": 0.06},
+    "_ocr_glm": "contornos da regressão do Ollama 0.34.1+ com o glm-ocr (ollama#18609: o modelo não para no fim da transcrição e a trava de repetição devolve 500 sem o texto): a resposta vem em partes e o laço é visto no fluxo — linhas iguais seguidas, cauda de 2 símbolos ou janela que comprime abaixo de compressao_laco (laço 0,01–0,04; prancha e tabela 0,10–0,45, extrator 2v24); se parou no meio, a imagem vai em faixas com sobreposição",
+    "carimbo_dpi": 200,
+    "_carimbo_dpi": "o recorte do carimbo vai ao OCR a 200 DPI: texto de 2 mm precisa de 150–200 DPI (plano_projeto §11.2)"
+  }
+}

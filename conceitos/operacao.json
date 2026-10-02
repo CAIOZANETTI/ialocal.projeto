@@ -1,0 +1,22 @@
+{
+  "metadata": {
+    "fonte": "notas/plano_implementacao.md (fronteira e contrato extrator → projeto); ialocal.maestro conceitos/repositorios.json e politica.json (prioridade da extração 5, gpu_pasta na pasta do próprio repositório)",
+    "regra": "de onde o projeto lê, para onde publica e quanto faz por rodada. Caminho que começa com ~ é a casa do usuário no mini",
+    "atualizado_em": "2026-10-02"
+  },
+  "entregas": "~/dados/extracao/para_projeto",
+  "_entregas": "a pasta que o extrator escreve: o PDF de cada prancha (<sha256>.pdf) e entregas.jsonl com id, caminho, nome, sha256, formato, classe e sinais. O projeto só lê",
+  "drive": "gdrive:saida/projeto",
+  "_drive": "a publicação para o Caio e a equipe (rclone copy --checksum de saidas/); sem rclone no PATH, não publica e diz",
+  "gpu": {
+    "prioridade": 5,
+    "tarefa": "prancha"
+  },
+  "_gpu": "o pedido de vez ao maestro (cliente_gpu.py copiado), em dados/gpu/ — a gpu_pasta do cadastro do maestro é ~/dados/ialocal.projeto/dados/gpu; prioridade de extração (politica.json do maestro). Sem o maestro, falha aberta: segue sem a trava",
+  "pranchas_por_rodada": 20,
+  "_pranchas_por_rodada": "a rodada agendada (10 min) lê no máximo isso e sai; a próxima continua — nenhuma rodada segura a máquina (premissa)",
+  "ia": true,
+  "_ia": "falso: só o que o código lê (vetor, carimbo com texto real, tabelas por grade); a rodada não pede GPU",
+  "limite_prancha_s": 1800,
+  "_limite_prancha_s": "a leitura por fatias para no limite (a A0 da EET levava 1.700–2.500 s no extrator, 26/09); o que foi lido fica e o motivo sai na linha (premissa)"
+}
