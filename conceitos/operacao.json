@@ -1,0 +1,28 @@
+{
+  "metadata": {
+    "o_que_e": "Como o projeto roda no mini: de onde lê a entrega do extrator, para onde publica, quanto dura uma rodada, o limite de cada prancha na IA e a vez da GPU. Mudar um número aqui muda a operação: por PR.",
+    "atualizado_em": "2026-10-03"
+  },
+  "entrega": {
+    "familia": "projeto_entrega",
+    "obras": "por_obra/.obras",
+    "_entrega": "o extrator (2v94, tarefa entregar_projeto) grava em ~/dados/extracao/projeto_entrega/parte_*.parquet uma linha por PDF com a primeira página A3 ou maior, e o arquivo em ~/dados/extracao/projetos/; o mapa ARQ de primeiro nível → acervo/obra é o .obras da saída por obra dele. O projeto só lê"
+  },
+  "drive": {
+    "saida": "gdrive:saida",
+    "sistema": "_sistema/projeto",
+    "etapa": "projeto",
+    "_drive": "a obra é a pasta de cima e cada etapa tem a sua dentro dela (extrator 2v93): saida/<acervo>/<obra>/projeto/ ao lado de extrator/, revisor/ e contexto/; a visão de todas as obras em saida/_sistema/projeto/"
+  },
+  "rodada_max_s": 3000,
+  "_rodada_max_s": "a rodada sai depois disso, entre pranchas; o launchd a sobe de novo em 5 min com o código que estiver na main",
+  "publicar_a_cada_s": 600,
+  "limite_ia_s": 1200,
+  "_limite_ia_s": "a prancha para de ler fatias no limite (o lido fica; motivo 'tempo' no pranchas.csv). Herdado do extrator 2v30: a A0 da EET de Tatuquara ficou 1 h presa em 26/09",
+  "tentativas": 3,
+  "gpu": {
+    "prioridade": 7,
+    "modelo": "glm-ocr",
+    "_gpu": "a leitura de IA da prancha pede a vez ao maestro (cliente_gpu.py) uma prancha por pedaço; prioridade 7, atrás da extração de documentos (5) e à frente da conferência do revisor (8): é a decisão do Caio de 26/09 (extrator 2v29) — documentos primeiro, projetos depois —, agora pela trava e não por uma cota diária"
+  }
+}

@@ -1,2 +1,2 @@
 # ialocal.projeto
-converte projetos em dados
+extrai todos os projetos (pranchas) do acervo: veja LEIA.md
