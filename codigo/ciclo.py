@@ -171,8 +171,13 @@ def rodada():
         feitas['codigo'] += 1
     estados = situacao(documentos)
     fila = [d for d in documentos if estados[d['id']] == 'ia']
+    publicar(documentos)  # o código terminou: o maestro vê o andamento já, não só depois da espera pela vez e da primeira prancha
+    status(documentos, {'inicio': rodada_em, 'em_curso': True, **feitas})
+    publicado = time.monotonic()
     if fila and seguir():
         GPU = OPERACAO['gpu']
+        print(f"{time.strftime('%d/%m %H:%M:%S')}  pedindo a vez da GPU ao maestro (prioridade {GPU['prioridade']}): "
+              f"{len(fila)} pranchas para a IA", flush=True)
         with cliente_gpu.vez_da_gpu('ialocal.projeto', str(comum.DADOS / 'gpu'), GPU['prioridade'], GPU['modelo'], 'prancha') as vez:
             for documento in fila:
                 if not vez.minha() or not seguir():  # alguém mais importante espera, ou a rodada acabou: a próxima pede de novo
