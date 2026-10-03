@@ -145,12 +145,7 @@ def tabelas(linhas, todas):
         tipo = 'revisoes' if revisao else next((t for t, padrao in TABELAS['tipos'].items() if re.search(padrao, ' '.join(cabecalho))), '')
         if not tipo:
             continue
-        mesmas, bloco = [c for c in corridas if divisoes(c) == divisoes(corrida)], [corrida]
-        encosta = lambda de, ate: next((c for c in mesmas if abs(c[0][de] - ate) <= tolerancia), None)
-        while (acima := encosta('y0', bloco[0][0]['y1'])) and acima not in bloco:
-            bloco.insert(0, acima)
-        while (abaixo := encosta('y1', bloco[-1][0]['y0'])) and abaixo not in bloco:
-            bloco.append(abaixo)
+        bloco = estender([corrida], [c for c in corridas if divisoes(c) == divisoes(corrida)], todas, tolerancia)
         corpo = [[escrito(c) for c in fileira] for fileira in bloco]
         cheias = sum(bool(t) for fileira in corpo for t in fileira) / max(sum(len(f) for f in corpo), 1)
         if len(bloco) < TABELAS['linhas_minimas'] or cheias < TABELAS['ocupacao_minima']:
@@ -160,6 +155,24 @@ def tabelas(linhas, todas):
         achadas.append({'tipo': tipo, 'x0': corrida[0]['x0'], 'x1': corrida[-1]['x1'], 'y0': bloco[-1][0]['y0'], 'y1': bloco[0][0]['y1'],
                         'linhas': [corpo[cabeca]] + [f for n, f in enumerate(corpo) if n != cabeca and any(f)]})
     return achadas
+
+
+def estender(bloco, mesmas, todas, tolerancia):
+    """A tabela cresce para cima e para baixo pelas fileiras com as mesmas divisões que encostam; a célula da largura
+    inteira da tabela (a linha de seção, "REDE DE DISTRIBUIÇÃO") entra só entre duas fileiras da tabela — a que encosta
+    só por fora é título ou carimbo, e fica fora."""
+    x0, x1 = bloco[0][0]['x0'], bloco[0][-1]['x1']
+    largas = [[c] for c in todas if abs(c['x0'] - x0) <= tolerancia and abs(c['x1'] - x1) <= tolerancia]
+    encosta = lambda grupo, de, ate: next((c for c in grupo if abs(c[0][de] - ate) <= tolerancia and c not in bloco), None)
+    for de, para, borda in (('y0', 'y1', lambda: bloco[0][0]['y1']), ('y1', 'y0', lambda: bloco[-1][0]['y0'])):
+        while True:
+            passo = [encosta(mesmas, de, borda())]
+            if passo[0] is None and (larga := encosta(largas, de, borda())):
+                passo = [larga, encosta(mesmas, de, larga[0][para])]
+            if None in passo:
+                break
+            bloco = passo[::-1] + bloco if de == 'y0' else bloco + passo
+    return bloco
 
 
 def revisoes(tabela):

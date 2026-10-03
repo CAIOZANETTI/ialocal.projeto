@@ -42,6 +42,7 @@ ollama pull qwen3:8b && ollama pull glm-ocr                                     
 codigo/projeto.py      ler, pasta, rodada, status: uma pasta por prancha em dados/, o DXF e os CSV em saidas/
 codigo/folha.py        perfil da folha (formato, classe, camadas, GeoPDF, é prancha?), vetor (primitivas) e DXF
 codigo/leitura.py      por código: linhas de texto, células das grades, tabelas, revisões, carimbo, notas, família
+codigo/itens.py        a tabela de materiais vira itens: coluna pelo sinônimo, seção, quantidade dupla, marcador e nota, SI
 codigo/linear.py       eixo desenhado (faixa colorida ou camadas de tubo), deflexões e a conferência eixo × escala × tubo
 codigo/conferencia.py  IA no carimbo e na família, com as provas: presença (está no texto lido) e concordância (duas fontes)
 codigo/ocr.py          folha sem texto real em fatias e a tabela colada em faixas, cada pedaço pelo Vision e pelo glm-ocr
@@ -52,6 +53,7 @@ codigo/testes.py       prancha sintética A1 (camadas, carimbo em células, revi
 codigo/versoes.jsonl   0v1, 0v2…; a última carimba cada leitura, o status.json e os CSV
 codigo/afericao.jsonl  a régua da regra 17, uma linha por rodada registrada
 conceitos/prancha.json      reconhecer, famílias, carimbo (rótulos-âncora, padrões), revisões, notas, tabelas, DXF, eixo, fatias
+conceitos/unidades.json     unidades, dimensão, fator para SI e grafias (cópia da do extrator, com barra e kg/m)
 conceitos/extratores.json   modelos (qwen3, glm-ocr) e os contornos do glm-ocr medidos no mini
 conceitos/operacao.json     de onde lê (entregas do extrator), para onde publica (Drive), GPU, limites por rodada
 conceitos/prompts/          prompts versionados (o texto entra na chave de congelamento)
@@ -66,6 +68,7 @@ saidas/<acervo>/<obra>/projeto/  O PROJETO DA OBRA, ao lado do extrator/, reviso
                                  o DXF de cada prancha (mm de papel, uma camada por camada do CAD) e os CSV abaixo, só da obra
 saidas/_sistema/projeto/         os mesmos CSV de todas as pranchas:
     pranchas.csv                 uma linha por folha: formato, classe, família, carimbo aceito, contagens, conferência
+    itens.csv                    um material × quantidade por linha: seção, código, descrição, etapa, quantidade impressa e em SI
     carimbo.csv                  cada campo do carimbo com o valor, o status (confirmado, um_leitor, divergente, vazio) e as fontes
     tabelas.csv                  cada linha de cada tabela (vetor ou colada), célula a célula
     revisoes.csv, notas.csv, valores_ocr.csv
@@ -103,6 +106,10 @@ Drive  gdrive:saida/             saidas/ sem o status e as avulsas (rclone copy 
   importante espera. Sem o maestro, segue sem a trava (falha aberta).
 - **Nenhuma IA em nuvem** (MASTER-PLAN §5.4): só o Ollama local, o modelo do dispositivo da Apple e o Vision. O código
   chega ao mini só pela `main`, por PR aprovado pelo Caio.
+- **A tabela vira itens, e item não soma o que não soma** (0v2). A coluna é achada pelo nome (CÓDIGO, ESPECIF/COD SAM,
+  QTDE, 1ª ETAPA…), não pela posição; a linha de seção é o título das de baixo; 02 pç e 31,57 kg na mesma linha são dois
+  itens; `*07` é o item 07 com a nota do rodapé. Quantidade como impressa e em SI lado a lado (`pç`, `un`, `cj` e
+  `barra` são espécies diferentes). O gabarito de Cambé (190 linhas) passa inteiro pelo leitor nos testes.
 - **A obra é a do extrator.** A entrega traz acervo e obra pelo mapa do extrator (`por_obra/.obras`, com os nomes do
   `obras.csv`); sem eles, a obra sai do caminho com a mesma regra (o zip ou a pasta do 1º nível; arquivo solto é
   `_avulsos`). Assim `saida/<acervo>/<obra>/` tem `extrator/`, `projeto/`, `revisor/` e `contexto/` lado a lado.

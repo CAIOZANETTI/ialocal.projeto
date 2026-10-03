@@ -322,5 +322,29 @@
     "caracteres_raster": 50,
     "fracao_imagem_raster": 0.5,
     "caracteres_texto": 1500
+  },
+  "itens": {
+    "_regra": "a tabela de materiais vira itens (notas/amostras_tabelas_2026-10-03.md): a linha de cabeçalho diz o papel de cada coluna pelo sinônimo; a linha que só tem texto numa célula (ou só na descrição) é seção e vira o título das de baixo; a quantidade com duas linhas (02 pç e 31,57 kg) vira dois itens, nunca somados; '*07' é o item 07 com o marcador '*', cuja nota é a linha de rodapé '* VER ...'; coluna de etapa dá um item por etapa com quantidade maior que zero. Código '-', 'S/N' ou vazio fica vazio, com o impresso ao lado",
+    "colunas": {
+      "item": "(?i)^(n[º°o.]*|item)$",
+      "codigo": "(?i)^(c[óo]d(igo|\\.)?(\\s*sam)?|especif\\.?\\s*/?\\s*c[óo]d\\.?\\s*sam|c[óo]d\\.?\\s*sanepar)$",
+      "descricao": "(?i)^(discrimina[çc][ãa]o|descri[çc][ãa]o|especifica[çc][ãa]o|material)$",
+      "quantidade": "(?i)^(quant\\.?|qtde?\\.?|qt\\.?|quantidade)$",
+      "etapa": "(?i)^(\\d)\\s*[ªa°º]?\\s*etapa$",
+      "unidade": "(?i)^(und?\\.?|unid\\.?|unidade)$"
+    },
+    "_colunas": "sinônimos vistos nas amostras: Cambé CÓDIGO | Nº | DISCRIMINAÇÃO | QUANT. | UND.; Foz ETA Nº | ESPECIF/COD SAM | DESCRIÇÃO | 1ª ETAPA | 2ª ETAPA | UN; Foz AAT CÓDIGO | QT | ITEM | DESCRIÇÃO | UN.; Foz equipamentos Nº | CÓD. | DESCRIÇÃO | QTDE | UN. O cabeçalho é a linha em que pelo menos colunas_minimas células casam um papel, com descrição e quantidade (ou etapa) entre elas",
+    "colunas_minimas": 3,
+    "marcador": "^\\s*(\\*+)\\s*",
+    "nota": "^\\s*(\\*+)\\s+(\\S.*)$",
+    "codigo_vazio": [
+      "-",
+      "–",
+      "S/N",
+      "SN",
+      ""
+    ],
+    "numero": "^\\d{1,3}(\\.\\d{3})+(,\\d+)?$|^\\d+(,\\d+)?$|^\\d+\\.\\d{1,2}$",
+    "_numero": "quantidade como impressa, pt-BR: 7.113,99 e 10221,25 (Cambé, os dois no mesmo projeto); ponto seguido de 1 ou 2 dígitos é decimal (3.30 m, Foz tabela 19); ponto com 3 dígitos é milhar (1.250 é mil duzentos e cinquenta, extrator 2v59)"
   }
 }

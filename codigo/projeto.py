@@ -23,6 +23,7 @@ from pathlib import Path
 import conferencia
 import folha
 import ia
+import itens
 import leitura
 import linear
 import ocr
@@ -96,7 +97,8 @@ def ler_folha(documento, perfil, pasta, dxf, nome):
     return {**perfil, 'dxf': str(dxf.relative_to(SAIDAS)), 'camadas_dxf': camadas_dxf, **folha.contagem(primitivas),
             'carimbo': {**carimbo, 'conferido': conferencia.provas({c: {'codigo': v} for c, v in carimbo['campos'].items()}, [carimbo['texto']])},
             'revisoes': [r for t in achadas if t['tipo'] == 'revisoes' for r in leitura.revisoes(t)],
-            'tabelas': [{**t, 'origem': 'vetor'} for t in achadas if t['tipo'] != 'revisoes'], 'notas': leitura.notas(linhas),
+            'tabelas': [{**t, 'origem': 'vetor', 'itens': itens.itens(t['linhas'], {'tabela': n})}
+                        for n, t in enumerate((t for t in achadas if t['tipo'] != 'revisoes'), 1)], 'notas': leitura.notas(linhas),
             'familia': familia, 'eixo': eixo,
             'conferencia': linear.conferir(eixo, linear.escala(carimbo['campos'].get('escala', '')), tubos) if eixo else None}, primitivas
 
@@ -118,7 +120,7 @@ def ler_com_ia(caminho, perfil, primitivas, pasta, prazo):
     valores, conta = ocr.ler_fatias(caminho, numero, pasta, prazo) if perfil['classe'] != 'vetorial_texto' else ([], {})
     coladas = ocr.tabelas_coladas(caminho, numero, primitivas, pasta, prazo) if perfil['classe'] != 'raster' else []
     resultado = {'carimbo': {**carimbo, 'conferido': conferido, 'ocr': lidos}, 'familia': familia, 'valores_ocr': valores,
-                 'fatias': conta, 'tabelas_coladas': coladas, 'erros_ia': {**erros, **erros_ia},
+                 'fatias': conta, 'tabelas_coladas': coladas, 'itens_colados': itens_colados(coladas), 'erros_ia': {**erros, **erros_ia},
                  'motivo_ia': 'tempo: parou no limite (operacao.json → limite_prancha_s)' if time.monotonic() > prazo else ''}
     if perfil.get('eixo'):
         escala = conferido.get('escala', {})
@@ -128,6 +130,23 @@ def ler_com_ia(caminho, perfil, primitivas, pasta, prazo):
                 [c['celulas'] for c in coladas if c['status'] == 'confirmada']
         resultado['conferencia'] = linear.conferir(perfil['eixo'], escalas, tubos)
     return resultado
+
+
+def itens_colados(coladas):
+    """Os itens de cada tabela colada como imagem: as faixas na ordem, sem as linhas que a sobreposição repetiu no
+    começo da faixa seguinte (a linha repetida dentro da mesma faixa fica: pode estar impressa duas vezes, Cambé 12)."""
+    achados = []
+    for imagem in sorted({c['imagem'] for c in coladas}):
+        linhas, situacao, anterior = [], [], []
+        for faixa in sorted({c['faixa'] for c in coladas if c['imagem'] == imagem}):
+            atuais = [c for c in sorted(coladas, key=lambda c: c['linha']) if c['imagem'] == imagem and c['faixa'] == faixa and c['celulas']]
+            while atuais and anterior and atuais[0]['celulas'] in anterior[-len(atuais):]:
+                atuais.pop(0)
+            linhas += [c['celulas'] for c in atuais]
+            situacao += [c['status'] for c in atuais]
+            anterior = [c['celulas'] for c in atuais] or anterior
+        achados += itens.itens(linhas, {'tabela': f'imagem{imagem}'}, situacao)
+    return achados
 
 
 def lidas():
@@ -219,7 +238,7 @@ def publicar(ultima_rodada=None):
 def tabelas_csv(registros):
     """As linhas de cada CSV, de um grupo de pranchas: uma por folha, por campo do carimbo, por linha de tabela, por
     revisão, por item de nota e por valor lido no OCR."""
-    tabelas = {nome: [] for nome in ('pranchas', 'carimbo', 'tabelas', 'revisoes', 'notas', 'valores_ocr')}
+    tabelas = {nome: [] for nome in ('pranchas', 'carimbo', 'itens', 'tabelas', 'revisoes', 'notas', 'valores_ocr')}
     for registro in registros:
         for f in (f for f in registro['folhas'] if f['e_prancha']):
             chave = {'obra': registro['obra'], 'arquivo': registro['nome'], 'caminho': registro['caminho'], 'pagina': f['pagina']}
@@ -229,6 +248,8 @@ def tabelas_csv(registros):
                                    for n, t in enumerate(f['tabelas'], 1) for k, l in enumerate(t['linhas'])]
             tabelas['tabelas'] += [{**chave, 'tabela': f"imagem{c['imagem']}", 'tipo': 'colada', 'origem': 'ocr', 'linha': c['linha'],
                                     'status': c['status'], **{f'c{j + 1}': v for j, v in enumerate(c['celulas'])}} for c in f.get('tabelas_coladas', [])]
+            tabelas['itens'] += [{**chave, 'origem': 'vetor', **i} for t in f['tabelas'] for i in t.get('itens', [])]
+            tabelas['itens'] += [{**chave, 'origem': 'ocr', **i} for i in f.get('itens_colados', [])]
             tabelas['revisoes'] += [{**chave, **r} for r in f['revisoes']]
             tabelas['notas'] += [{**chave, 'bloco': b['titulo'], **i} for b in f['notas'] for i in b['itens']]
             tabelas['valores_ocr'] += [{**chave, **v} for v in f.get('valores_ocr', [])]
@@ -244,7 +265,8 @@ def linha_da_prancha(registro, f, chave):
             'campos_confirmados': sum(v['status'] == 'confirmado' for v in f['carimbo']['conferido'].values()),
             'campos_divergentes': sum(v['status'] == 'divergente' for v in f['carimbo']['conferido'].values()),
             'inventados': sum(bool(v['inventado']) for v in f['carimbo']['conferido'].values()),
-            'revisoes': len(f['revisoes']), 'tabelas': len(f['tabelas']), 'notas': sum(len(b['itens']) for b in f['notas']),
+            'revisoes': len(f['revisoes']), 'tabelas': len(f['tabelas']),
+            'itens': sum(len(t.get('itens', [])) for t in f['tabelas']) + len(f.get('itens_colados', [])), 'notas': sum(len(b['itens']) for b in f['notas']),
             'primitivas': f['primitivas'], 'camadas': len(registro['camadas']), 'geopdf': registro['geopdf'], 'dxf': f['dxf'],
             'eixo_mm': (f['eixo'] or {}).get('eixo_mm'), **{k: (f['conferencia'] or {}).get(k) for k in ('eixo_m', 'tubo_relacao_m', 'conferencia')},
             'versao': registro['versao'], 'lida_em': registro['lida_em']}

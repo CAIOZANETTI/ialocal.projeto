@@ -1,0 +1,221 @@
+{
+  "metadata": {
+    "fonte": "BIPM, The International System of Units (SI), 9ª ed., 2019; INMETRO, Quadro Geral de Unidades de Medida (Resolução Conmetro nº 12/1988); kgf pela gravidade padrão de 9,80665 m/s² (3ª CGPM, 1901); copiado do conceitos/unidades.json do ialocal.extrator (2v94) em 03/10/2026 — os dois evoluem à parte (dois repositórios: duplicar, não abstrair)",
+    "regra": "estilo-caio-python regra 15: o valor guardado está em SI (quantidade × fator); a unidade impressa viaja como atributo; soma só dentro da dimensão; contagem agrega pela unidade (un, pç, cj e vb são espécies diferentes). Grafia: o texto impresso, sem espaço, em minúsculas e sem ponto final, é procurado em `grafias`; senão, direto em `unidades`. Grafia nova é uma linha aqui, não um elif.",
+    "atualizado_em": "2026-09-25"
+  },
+  "unidades": {
+    "m": {
+      "dimensao": "comprimento",
+      "unidade_si": "m",
+      "fator": "1"
+    },
+    "cm": {
+      "dimensao": "comprimento",
+      "unidade_si": "m",
+      "fator": "0.01"
+    },
+    "mm": {
+      "dimensao": "comprimento",
+      "unidade_si": "m",
+      "fator": "0.001"
+    },
+    "km": {
+      "dimensao": "comprimento",
+      "unidade_si": "m",
+      "fator": "1000"
+    },
+    "m²": {
+      "dimensao": "area",
+      "unidade_si": "m²",
+      "fator": "1"
+    },
+    "cm²": {
+      "dimensao": "area",
+      "unidade_si": "m²",
+      "fator": "0.0001"
+    },
+    "ha": {
+      "dimensao": "area",
+      "unidade_si": "m²",
+      "fator": "10000"
+    },
+    "km²": {
+      "dimensao": "area",
+      "unidade_si": "m²",
+      "fator": "1000000"
+    },
+    "m³": {
+      "dimensao": "volume",
+      "unidade_si": "m³",
+      "fator": "1"
+    },
+    "l": {
+      "dimensao": "volume",
+      "unidade_si": "m³",
+      "fator": "0.001"
+    },
+    "kg": {
+      "dimensao": "massa",
+      "unidade_si": "kg",
+      "fator": "1"
+    },
+    "g": {
+      "dimensao": "massa",
+      "unidade_si": "kg",
+      "fator": "0.001"
+    },
+    "t": {
+      "dimensao": "massa",
+      "unidade_si": "kg",
+      "fator": "1000"
+    },
+    "s": {
+      "dimensao": "tempo",
+      "unidade_si": "s",
+      "fator": "1"
+    },
+    "min": {
+      "dimensao": "tempo",
+      "unidade_si": "s",
+      "fator": "60"
+    },
+    "h": {
+      "dimensao": "tempo",
+      "unidade_si": "s",
+      "fator": "3600"
+    },
+    "dia": {
+      "dimensao": "tempo",
+      "unidade_si": "s",
+      "fator": "86400"
+    },
+    "mês": {
+      "dimensao": "periodo_calendario",
+      "unidade_si": "mês",
+      "fator": "1",
+      "observacao": "mês de calendário não tem duração fixa em segundos: não se converte e não soma com h"
+    },
+    "Pa": {
+      "dimensao": "pressao",
+      "unidade_si": "Pa",
+      "fator": "1"
+    },
+    "MPa": {
+      "dimensao": "pressao",
+      "unidade_si": "Pa",
+      "fator": "1000000"
+    },
+    "kgf/cm²": {
+      "dimensao": "pressao",
+      "unidade_si": "Pa",
+      "fator": "98066.5"
+    },
+    "t·km": {
+      "dimensao": "momento_transporte_massa",
+      "unidade_si": "kg·m",
+      "fator": "1000000",
+      "observacao": "momento de transporte (DMT) de SICRO e SINAPI"
+    },
+    "m³·km": {
+      "dimensao": "momento_transporte_volume",
+      "unidade_si": "m³·m",
+      "fator": "1000"
+    },
+    "un": {
+      "dimensao": "contagem",
+      "unidade_si": "un",
+      "fator": "1"
+    },
+    "pç": {
+      "dimensao": "contagem",
+      "unidade_si": "pç",
+      "fator": "1"
+    },
+    "cj": {
+      "dimensao": "contagem",
+      "unidade_si": "cj",
+      "fator": "1"
+    },
+    "vb": {
+      "dimensao": "contagem",
+      "unidade_si": "vb",
+      "fator": "1",
+      "observacao": "verba: preço global, conta como uma unidade própria"
+    },
+    "pt": {
+      "dimensao": "contagem",
+      "unidade_si": "pt",
+      "fator": "1",
+      "observacao": "ponto (elétrico, hidráulico)"
+    },
+    "barra": {
+      "dimensao": "contagem",
+      "unidade_si": "barra",
+      "fator": "1",
+      "observacao": "barra de tubo (Foz, coleta de amostra da ETA): conta barras, não metros — o comprimento da barra está na descrição"
+    },
+    "kg/m": {
+      "dimensao": "massa_linear",
+      "unidade_si": "kg/m",
+      "fator": "1"
+    }
+  },
+  "grafias": {
+    "ml": "m",
+    "_ml": "em planilha orçamentária, ml é metro linear; mililitro não aparece em orçamento de obra — se aparecer, é achado para conferir",
+    "m.l": "m",
+    "metro": "m",
+    "metros": "m",
+    "m2": "m²",
+    "m3": "m³",
+    "cm2": "cm²",
+    "km2": "km²",
+    "lt": "l",
+    "litro": "l",
+    "litros": "l",
+    "kgs": "kg",
+    "ton": "t",
+    "tf": "t",
+    "hr": "h",
+    "hora": "h",
+    "horas": "h",
+    "chp": "h",
+    "chi": "h",
+    "_chp": "custo horário produtivo e improdutivo de equipamento (SINAPI): a quantidade é hora",
+    "d": "dia",
+    "dias": "dia",
+    "mes": "mês",
+    "pa": "Pa",
+    "mpa": "MPa",
+    "kgf/cm2": "kgf/cm²",
+    "kgf/cm²": "kgf/cm²",
+    "tkm": "t·km",
+    "t.km": "t·km",
+    "t×km": "t·km",
+    "txkm": "t·km",
+    "t·km": "t·km",
+    "m3km": "m³·km",
+    "m3.km": "m³·km",
+    "m3xkm": "m³·km",
+    "m³xkm": "m³·km",
+    "m³·km": "m³·km",
+    "und": "un",
+    "unid": "un",
+    "u": "un",
+    "pc": "pç",
+    "pç": "pç",
+    "peca": "pç",
+    "peça": "pç",
+    "conj": "cj",
+    "cjto": "cj",
+    "verba": "vb",
+    "barras": "barra",
+    "br": "barra",
+    "kg/m": "kg/m",
+    "un.": "un",
+    "und.": "un",
+    "pç.": "pç",
+    "cj.": "cj"
+  }
+}

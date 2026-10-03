@@ -11,6 +11,7 @@ import sys
 import tempfile
 import time
 from datetime import date
+from decimal import Decimal
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
@@ -198,6 +199,90 @@ def conferir_familias_do_acervo():
              'família: o campo "Adutora:" da OSE e a legenda "DRENAGEM - EXISTENTE" não decidem; EET e RAP colados ao número')
 
 
+def gabarito_cambe():
+    """O gabarito do Caio para Cambé (amostras/tabelas/216_cambe, o TXT): tabela → linhas
+    (CÓDIGO, Nº, DISCRIMINAÇÃO, QUANT., UND., TÍTULO), como ele digitou."""
+    arquivo = next((RAIZ / 'amostras' / 'tabelas' / '216_cambe').glob('*.txt'))
+    tabelas, nome = {}, None
+    for linha in arquivo.read_text(encoding='utf-8').replace('\r', '').splitlines():
+        if linha.strip().upper().startswith('TABELA'):
+            nome, tabelas[linha.strip()] = linha.strip(), []
+        elif linha.strip() and not linha.startswith('CÓDIGO;'):
+            tabelas[nome].append(linha.split(';'))
+    return tabelas
+
+
+def testar_itens():
+    """Item 14: a tabela vira itens nos quatro layouts das amostras — Cambé, a ETA, a AAT e a lista de equipamentos de
+    Foz (notas/amostras_tabelas_2026-10-03.md) — e as 190 linhas do gabarito de Cambé, montadas como a imagem as mostra
+    (cabeçalho, linha de seção, linhas), voltam iguais."""
+    import itens
+    conferir([itens.numero(x) for x in ('7.113,99', '10221,25', '3.30', '02', '1.250', '0 - 00')] ==
+             [Decimal('7113.99'), Decimal('10221.25'), Decimal('3.30'), Decimal('2'), Decimal('1250'), None],
+             'itens: 7.113,99 e 10221,25 no mesmo projeto; 3.30 é decimal, 1.250 é milhar; o riscado não é número')
+    eta = [['RELAÇÃO DE MATERIAIS'], ['SAÍDA ÁGUA TRATADA'], ['Nº', 'ESPECIF/ COD SAM', 'DESCRIÇÃO', '1ª ETAPA', '2ª ETAPA', 'UN'],
+           ['20', '134554', 'TUBO FD PF PN10 DN900', '00', '01', 'pç'],
+           ['S/N', '308783', 'ABA DE VEDACAO ESPECIAL ACO CARBONO', '0 - 00', '01\n13,76', 'pç\nkg/m'],
+           ['*07', '-', 'BOMBA CENTRÍFUGA AUTOASPIRANTE', '', '01', 'PÇ'], ['* VER ESPECIFICAÇÃO TÉCNICA']]
+    lidos = [(i['item'], i['marcador'], i['nota'], i['codigo'], i['etapa'], i['quantidade_impressa'], i['unidade_si'], i['dimensao'])
+             for i in itens.itens(eta)]
+    conferir(lidos == [('20', '', '', '134554', '2', '01', 'pç', 'contagem'), ('S/N', '', '', '308783', '2', '01', 'pç', 'contagem'),
+                       ('S/N', '', '', '308783', '2', '13,76', 'kg/m', 'massa_linear'),
+                       ('07', '*', 'VER ESPECIFICAÇÃO TÉCNICA', '', '2', '01', 'pç', 'contagem')],
+             'itens (ETA de Foz): a etapa com 00 sai, 02 pç e 13,76 kg/m são dois itens, *07 leva a nota do rodapé, código "-" fica vazio')
+    aat = itens.itens([['AAT - PARTE 05'], ['CÓDIGO', 'QT', 'ITEM', 'DESCRIÇÃO', 'UN.'],
+                       ['301218', '486,60', 'A1', 'TUBO POLIETILENO PE 100 PN10 (BARRA COM 6,0 M) DE 315', 'M']])
+    equipamento = itens.itens([['Nº', 'CÓD.', 'DESCRIÇÃO', 'QTDE', 'UN'], ['8', '', 'Tubo rigido para Ar Comprimido\nMaterial: Aluminio', '180', 'M'],
+                               ['1', '332836', 'COMPORTA RETANGULAR 400X400', '6', 'CJ']])
+    conferir((aat[0]['secao'], aat[0]['codigo'], aat[0]['item'], aat[0]['valor_si'], aat[0]['unidade_si']) == ('AAT - PARTE 05', '301218', 'A1', '486.60', 'm')
+             and [(i['descricao'], i['unidade_si']) for i in equipamento] == [('Tubo rigido para Ar Comprimido Material: Aluminio', 'm'), ('COMPORTA RETANGULAR 400X400', 'cj')],
+             'itens (AAT e equipamentos de Foz): a coluna pelo nome, não pela ordem; a especificação em várias linhas fica numa descrição')
+    gabarito, montadas, lidos = gabarito_cambe(), 0, []
+    for nome, linhas in gabarito.items():
+        tabela, secao = [['CÓDIGO', 'N°', 'DISCRIMINAÇÃO', 'QUANT.', 'UND.']], None
+        for linha in linhas:
+            if linha[5] != secao:
+                secao = linha[5]
+                tabela.append([secao])
+            tabela.append(linha[:5])
+        montadas += len(linhas)
+        lidos += [[i['codigo_impresso'], i['item'], i['descricao'], i['quantidade_impressa'], i['unidade_declarada'], i['secao']] for i in itens.itens(tabela)]
+    esperado = [l for linhas in gabarito.values() for l in linhas]
+    conferir(montadas == len(lidos) == 190 and lidos == esperado and {i for l in esperado for i in [l[4]]} == {'UN.', 'M'},
+             'itens (gabarito de Cambé): as 190 linhas das 17 tabelas voltam iguais, com a seção da linha de cima')
+
+
+def testar_tabela_com_secao():
+    """A linha de seção (célula da largura da tabela entre o cabeçalho e as linhas, como em Cambé) entra na tabela; a
+    célula larga que só encosta por fora (o carimbo embaixo do quadro) fica fora."""
+    import leitura
+    traco = lambda x0, y0, x1, y1: {'tipo': 'traco', 'fechado': False, 'camada': '', 'x_mm': [x0, x1], 'y_mm': [y0, y1]}
+    texto = lambda x, y, escrito: {'tipo': 'texto', 'texto': escrito, 'x_mm': [x], 'y_mm': [y], 'x0_mm': x, 'y0_mm': y, 'x1_mm': x + 2 * len(escrito),
+                                   'y1_mm': y + 2.5, 'tamanho_mm': 2.5, 'angulo_graus': 0.0, 'camada': ''}
+    ys, xs = [0, 10, 20, 30, 40, 50], [0, 20, 30, 140, 160, 180]
+    primitivas = [traco(0, y, 180, y) for y in ys] + [traco(x, y, x, y + 10) for x in xs[1:-1] for y in (20, 40)]  # a seção (30–40) sem divisão
+    primitivas += [traco(0, 0, 0, 50), traco(180, 0, 180, 50)]
+    linhas = [('CÓDIGO', 'N°', 'DISCRIMINAÇÃO', 'QUANT.', 'UND.', 42), ('282665', 'S/N', 'REGISTRO DE GAVETA DN 50', '4', 'UN.', 22)]
+    primitivas += [texto(x + 1, y, v) for *valores, y in linhas for x, v in zip(xs, valores)]
+    primitivas += [texto(60, 32, 'REGISTRO DE DESCARGA'), texto(5, 12, 'CARIMBO: PROJETISTA'), texto(5, 2, 'OBRA')]
+    tabelas = leitura.tabelas(leitura.linhas_de_texto(primitivas), leitura.celulas(primitivas))
+    conferir(len(tabelas) == 1 and tabelas[0]['linhas'] == [['CÓDIGO', 'N°', 'DISCRIMINAÇÃO', 'QUANT.', 'UND.'], ['REGISTRO DE DESCARGA'],
+                                                           ['282665', 'S/N', 'REGISTRO DE GAVETA DN 50', '4', 'UN.']] and tabelas[0]['y0'] == 20,
+             'leitura: a linha de seção no meio da tabela entra; as células largas de baixo, que só encostam, ficam fora')
+
+
+def testar_itens_colados():
+    """As faixas da tabela colada viram uma tabela só: a linha que a sobreposição repetiu no começo da faixa seguinte sai;
+    a situação de cada linha do OCR (confirmada, pendente) vai para o item."""
+    import projeto
+    linha = lambda faixa, n, celulas, status='confirmada': {'imagem': 1, 'faixa': faixa, 'linha': n, 'celulas': celulas, 'status': status}
+    coladas = [linha(1, 1, ['ITEM', 'CÓDIGO', 'DESCRIÇÃO', 'QUANT.', 'UND.']), linha(1, 2, ['01', '309244', 'TUBO PE 100 DE 630', '540,00', 'm']),
+               linha(2, 1, ['01', '309244', 'TUBO PE 100 DE 630', '540,00', 'm']), linha(2, 2, ['02', '312059', 'CURVA 45 DE 630', '02', 'PÇ'], 'pendente')]
+    lidos = [(i['tabela'], i['codigo'], i['valor_si'], i['situacao']) for i in projeto.itens_colados(coladas)]
+    conferir(lidos == [('imagem1', '309244', '540.00', 'confirmada'), ('imagem1', '312059', '2', 'pendente')],
+             'itens colados: as faixas juntas sem a linha repetida da sobreposição, com a situação do OCR')
+
+
 def testar_linear(primitivas):
     """Eixo da faixa com a dobra e a conferência eixo × escala × tubo."""
     import linear
@@ -326,6 +411,9 @@ def testar_rodada(pasta):
     prancha = (sistema / 'pranchas.csv').read_text(encoding='utf-8-sig')
     carimbo = (sistema / 'carimbo.csv').read_text(encoding='utf-8-sig')
     valores = (sistema / 'valores_ocr.csv').read_text(encoding='utf-8-sig')
+    lista = (sistema / 'itens.csv').read_text(encoding='utf-8-sig')
+    conferir('TUBO PEAD DE 630;;300,00;m;m;comprimento;300.00' in lista and lista.count('\n') == 4,
+             'rodada: itens.csv com os 3 materiais da relação, o tubo em metros (300,00 → 300.00 m)')
     conferir(';fecha;' in prancha and 'escala;1:1000;confirmado' in carimbo and 'EST323;so_glm' in valores and 'EST77;confirmado' in valores,
              'rodada: escala do carimbo confirmada por código e IA, a conferência fecha, o OCR das fatias com o status de cada valor')
 
@@ -397,6 +485,9 @@ if __name__ == '__main__':
         primitivas = testar_folha(pasta)
         carimbo, _ = testar_leitura(primitivas)
         testar_linear(primitivas)
+        testar_itens()
+        testar_tabela_com_secao()
+        testar_itens_colados()
         testar_ia(carimbo)
         testar_congelamento(pasta)
         testar_rodada(pasta)
