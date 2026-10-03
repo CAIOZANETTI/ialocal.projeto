@@ -11,9 +11,15 @@ from pathlib import Path
 import polars as pl
 
 import comum
+import respostas
 
 
 def documentos():
+    """Os PDFs da rodada: os do extrator e os anexos às respostas das demandas (respostas.py, obra _demandas)."""
+    return do_extrator() + respostas.documentos()
+
+
+def do_extrator():
     """Os PDFs candidatos a prancha, com a obra, na ordem do caminho; lista vazia sem entrega ou sem o mapa de obras."""
     ENTREGA = comum.configuracao('operacao')['entrega']
     partes = sorted((comum.EXTRATOR / ENTREGA['familia']).glob('parte_*.parquet'))

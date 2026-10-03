@@ -23,6 +23,7 @@ import cliente_gpu
 import comum
 import entrega
 import prancha
+import respostas
 import sondagem
 
 TAREFAS = {'ler_prancha': ('prancha', 'prancha'), 'ler_prancha_ia': ('prancha', 'prancha_ia'),  # tarefa → (família, extrator
@@ -148,14 +149,17 @@ def status(documentos, ultima=None):
                       if 'boletim_sondagem' in tabela.columns else 0,
                       'furos': 0 if boletins is None else boletins.filter(pl.col('campo') == 'furo')['valor'].n_unique()},
         'por_obra': por_obra(documentos, estados, tabela),
-        'ultima_rodada': ultima, **pedidos_ao_caio()}, ensure_ascii=False, indent=1))
+        'ultima_rodada': ultima, **pedidos_ao_caio(documentos, estados)}, ensure_ascii=False, indent=1))
 
 
-def pedidos_ao_caio():
-    """As demandas abertas de conceitos/demandas.json: quantas (precisa_do_caio, o número que o maestro conta) e quais
-    (demandas: id, título e texto), que o maestro põe na caixa de avisos e o ialocal.web manda por e-mail."""
-    abertas = [{c: d[c] for c in ('id', 'titulo', 'texto')} for d in comum.configuracao('demandas')['demandas'] if d['aberta']]
-    return {'precisa_do_caio': len(abertas), 'demandas': abertas}
+def pedidos_ao_caio(documentos, estados):
+    """As demandas abertas de conceitos/demandas.json ainda sem resposta: quantas (precisa_do_caio, o número que o
+    maestro conta) e quais (demandas: id, título e texto), que o maestro põe na caixa de avisos e o ialocal.web manda
+    por e-mail. E os resultados das respondidas (respostas.py), que seguem o mesmo caminho até o Caio."""
+    respondidas, resultados = respostas.situacao(estados, documentos)
+    abertas = [{c: d[c] for c in ('id', 'titulo', 'texto')} for d in comum.configuracao('demandas')['demandas']
+               if d['aberta'] and d['id'] not in respondidas]
+    return {'precisa_do_caio': len(abertas), 'demandas': abertas, 'resultados': resultados}
 
 
 def por_obra(documentos, estados, tabela):

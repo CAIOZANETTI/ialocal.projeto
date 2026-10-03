@@ -21,6 +21,7 @@ import cliente_gpu
 import comum
 import ia
 import prancha
+import respostas
 
 RCLONE_FALSO = '''#!/bin/sh
 # rclone copyto [--checksum] ORIGEM gdrive:DESTINO → $DRIVE_FALSO/DESTINO
@@ -389,6 +390,50 @@ def testar_sondagem(raiz):
              'sondagem: sondagens, N-SPT e camadas publicados na pasta da obra')
 
 
+def resposta(demanda, pasta, anexos, de='equipe@exemplo.com.br'):
+    """Uma resposta guardada como o ialocal.web (0v8) guarda: <demanda>/<pasta>/anexos/, corpo.txt e meta.json."""
+    destino = respostas.RESPOSTAS / demanda / pasta
+    (destino / 'anexos').mkdir(parents=True)
+    for nome, conteudo in anexos.items():
+        (destino / 'anexos' / nome).write_bytes(conteudo)
+    (destino / 'corpo.txt').write_text('segue o material')
+    (destino / 'meta.json').write_text(json.dumps({'demanda': demanda, 'de': de, 'contato': 'equipe', 'assunto': f'Re: [demanda {demanda}]',
+                                                   'message_id': f'<{pasta}@exemplo>', 'recebido_em': f'2026-10-03T{pasta[:2]}:00:00',
+                                                   'anexos': sorted(anexos)}))
+
+
+def testar_respostas(raiz):
+    """A equipe responde a demanda por e-mail direto ao mini: o PDF anexo entra na rodada (obra _demandas/<demanda>) e
+    é lido como os outros; o CSV é o gabarito. A demanda respondida sai da lista; o resultado (acerto por campo, as
+    divergências) sai no status para o maestro e o web levarem ao Caio. O CSV do Excel (cp1252, vírgula) também vale."""
+    boletim = [l.replace('SP-03', 'SP-05') for l in BOLETIM]
+    gabarito = ('arquivo;furo;coordenada_e;coordenada_n;cota_boca;nivel_agua;profundidade_final;nspt_1m;nspt_2m;nspt_3m\n'
+                'SP-05.pdf;SP-05;712.400;7.098.200;812,45;2,30;3,45;9;14;28\n')
+    resposta('projeto-boletins-reais', '10-00_boletins', {'SP-05.pdf': pdf_de_texto(boletim), 'gabarito_sondagem.csv': gabarito.encode('utf-8-sig')})
+    resposta('projeto-carimbos-conferir', '11-00_carimbos',
+             {'carimbos_conferidos.csv': 'arquivo,campo,valor,conferido,correto\nx.pdf,crea,PR-1,c,\nx.pdf,titulo,ADUTORA,p,\nx.pdf,art,17,e,1720\n'.encode('cp1252')})
+    ciclo.rodada()
+    status = json.loads((comum.SAIDAS / 'status.json').read_text())
+    resultados = {r['demanda']: r for r in status['resultados']}
+    sondagem = resultados['projeto-boletins-reais']
+    conferir(not {d['id'] for d in status['demandas']} & {'projeto-boletins-reais', 'projeto-carimbos-conferir'}
+             and status['precisa_do_caio'] == len(status['demandas']) and sondagem['id'] == 'projeto-boletins-reais-resultado-1',
+             'resposta guardada pelo web: a demanda respondida sai da lista do Caio e vira um resultado, com id próprio')
+    conferir('PDFs lidos: 1 de 1' in sondagem['texto'] and 'Acerto contra o gabarito: 8 de 9 campos' in sondagem['texto']
+             and "nspt_3m: lido '27' × gabarito '28'" in sondagem['texto']
+             and status['por_obra']['_demandas/projeto-boletins-reais']['feito'] == 1,
+             f"o boletim anexo é lido na rodada (obra _demandas) e medido contra o gabarito, com a divergência ({sondagem['texto'].splitlines()[2]})")
+    conferir('Conferência da equipe: 1 de 3 campos certos' in resultados['projeto-carimbos-conferir']['texto']
+             and 'art: 0 certo, 0 parcial, 1 errado' in resultados['projeto-carimbos-conferir']['texto'],
+             'carimbos conferidos (CSV do Excel, cp1252 e vírgula): o acerto por campo')
+    resposta('projeto-boletins-reais', '12-00_mais', {'SP-06.pdf': pdf_de_texto([l.replace('SP-03', 'SP-06') for l in BOLETIM])})
+    ciclo.rodada()
+    status = json.loads((comum.SAIDAS / 'status.json').read_text())
+    conferir({r['id'] for r in status['resultados']} >= {'projeto-boletins-reais-resultado-2'}
+             and 'PDFs lidos: 2 de 2' in next(r['texto'] for r in status['resultados'] if r['demanda'] == 'projeto-boletins-reais'),
+             'resposta nova da mesma demanda: lida na rodada seguinte, e um resultado novo (outro id) com tudo o que chegou')
+
+
 def principal():
     with tempfile.TemporaryDirectory() as temporaria:
         raiz = Path(temporaria)
@@ -401,6 +446,7 @@ def principal():
         comum.DADOS.mkdir()
         ia.OLLAMA = 'http://127.0.0.1:9'  # porta fechada: nenhum teste chama modelo de verdade
         ia.instalado = lambda modulo: modulo in sys.modules  # no mini o Vision e o Apple FM existem: só o falso do teste conta
+        respostas.RESPOSTAS = raiz / 'web' / 'demandas'  # no mini a pasta do web existe: só as respostas do teste contam
         cliente_gpu.VEZ = raiz / 'sem_maestro' / 'vez.json'  # no mini o maestro está de pé e nunca daria a vez ao pedido da pasta do teste
         testar_conceitos()
         testar_regras(raiz)
@@ -409,6 +455,7 @@ def principal():
         testar_falha(raiz)
         testar_carimbo_desenhado(raiz)
         testar_sondagem(raiz)
+        testar_respostas(raiz)
 
 
 if __name__ == '__main__':
