@@ -1,0 +1,1 @@
+Transcreva todo o texto visível na imagem, linha por linha, na ordem de leitura, sem comentar e sem corrigir.

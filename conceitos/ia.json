@@ -1,0 +1,19 @@
+{
+  "metadata": {
+    "o_que_e": "Os modelos locais que a leitura de prancha chama e os parâmetros da chamada. Modelo trocado aqui muda a chave de congelamento (MASTER-PLAN §8.2): a resposta guardada deixa de valer.",
+    "fonte": "copiado de ialocal.extrator/conceitos/extratores.json em 03/10/2026 (extrator 2v93), quando a extração de projeto passou para cá; as medidas que justificam cada número estão lá, nas chaves com _",
+    "independencia": "cópia, não import: o projeto não lê os conceitos do extrator. Mudou lá por medida, muda aqui por PR"
+  },
+  "modelos": {
+    "glm_ocr": "glm-ocr:latest",
+    "qwen3": "qwen3:8b"
+  },
+  "opcoes_por_modelo": {
+    "_": "somadas a temperatura 0 e semente 0; num_predict 2.560 pela amostra de 27/09 do extrator (2v40: 6 de 10 cortadas eram tabelas de relação de materiais das adutoras)",
+    "glm-ocr:latest": {"repeat_penalty": 1.15, "num_predict": 2560}
+  },
+  "lado_max_px_ia": 1600,
+  "_lado_max_px_ia": "lado maior da imagem que vai ao modelo local; o glm-ocr dava 500 em prancha grande (25/09) — premissa, muda pela medida",
+  "ocr_glm": {"faixas": 2, "sobreposicao": 0.1, "linhas_iguais_laco": 6, "cauda_laco": 300, "janela_laco": 1500, "compressao_laco": 0.06},
+  "_ocr_glm": "contornos da regressão do Ollama 0.34.1+ com o glm-ocr (ollama#18609): o laço é visto no fluxo e a leitura para ali; parada no meio, a imagem vai em faixas com sobreposição"
+}

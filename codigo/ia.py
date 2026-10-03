@@ -1,0 +1,302 @@
+"""A única porta do projeto para os modelos do mini (§5.4): Ollama (glm-ocr, qwen3), o Vision do macOS e o modelo do
+dispositivo da Apple. Nenhum chama nuvem. Toda resposta é congelada com a configuração inteira (§8.2): a mesma chave
+devolve a resposta guardada em dados/congelamento.jsonl, sem chamar o modelo de novo.
+
+Copiado de ialocal.extrator/codigo/modelos_ia.py e extracao.py (2v93) só no que a prancha usa: cópia, não import —
+cada repositório roda sozinho. O texto da prancha vai como dado, nunca como instrução (princípio 10).
+"""
+import base64
+import functools
+import hashlib
+import importlib.util
+import io
+import json
+import re
+import sys
+import time
+import urllib.error
+import urllib.request
+import zlib
+from datetime import datetime
+from pathlib import Path
+
+import comum
+
+CONGELAMENTO = comum.DADOS / 'congelamento.jsonl'
+OLLAMA = 'http://localhost:11434'
+REPETICAO = 'token repeat limit'  # o 500 do Ollama quando o modelo entra em laço (glm-ocr, ollama#18609)
+
+
+def ler_prompt(nome, regras=True):
+    """O prompt com as regras comuns na frente (conceitos/prompts/_regras.txt: não inventar, vazio é resposta certa);
+    o glm-ocr recebe só o pedido curto dele. O hash do texto entra na chave de congelamento."""
+    pasta = comum.RAIZ / 'conceitos' / 'prompts'
+    texto = ((pasta / '_regras.txt').read_text() + '\n' if regras else '') + (pasta / f'{nome}.txt').read_text()
+    return texto, hashlib.sha256(texto.encode()).hexdigest()[:16]
+
+
+@functools.cache
+def congelados():
+    if not CONGELAMENTO.exists():
+        return {}
+    return {r['assinatura']: r for r in map(json.loads, CONGELAMENTO.read_text().splitlines())}
+
+
+def congelado(chave, chamar):
+    """Resposta guardada para a mesma chave; senão chama e acrescenta ao JSONL."""
+    assinatura = hashlib.sha256(json.dumps(chave, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
+    guardado = congelados().get(assinatura)
+    if guardado:
+        return guardado['resposta'], {**guardado['meta'], 'congelado': True}
+    marca = time.perf_counter()
+    resposta, meta = chamar()
+    meta = {**meta, 'segundos': round(time.perf_counter() - marca, 2), 'congelado': False}
+    registro = {'assinatura': assinatura, 'chave': chave, 'resposta': resposta, 'meta': meta,
+                'em': datetime.now().isoformat(timespec='seconds')}
+    comum.anexar(CONGELAMENTO, json.dumps(registro, ensure_ascii=False) + '\n')
+    congelados()[assinatura] = registro
+    return resposta, meta
+
+
+def instalado(modulo):
+    """O pacote está no python do .venv? (sem importar: o Vision e o apple_fm_sdk só existem no macOS)"""
+    try:
+        return modulo in sys.modules or importlib.util.find_spec(modulo) is not None
+    except ValueError:
+        return modulo in sys.modules
+
+
+def imagem_para_ia(caminho):
+    """A imagem como vai ao modelo: o lado maior até lado_max_px_ia (conceitos/ia.json)."""
+    from PIL import Image
+    LADO = comum.configuracao('ia')['lado_max_px_ia']
+    with Image.open(caminho) as imagem:
+        if max(imagem.size) <= LADO:
+            return Path(caminho).read_bytes()
+        reduzida = imagem.convert('RGB')
+        reduzida.thumbnail((LADO, LADO))
+        saida = io.BytesIO()
+        reduzida.save(saida, format='PNG')
+        return saida.getvalue()
+
+
+@functools.cache
+def versao_ollama():
+    try:
+        with urllib.request.urlopen(f'{OLLAMA}/api/version', timeout=10) as resposta:
+            return json.load(resposta)['version']
+    except OSError:
+        return ''
+
+
+def ollama(modelo, prompt, esquema=None, imagens=(), parcial=False):
+    """Resposta do Ollama local: temperatura 0, esquema JSON quando há, sem raciocínio visível. O digest do modelo
+    entra na chave. `parcial`: a resposta vem em partes e, abortada pela trava de repetição, o texto até ali volta
+    com meta['fim'] = 'abortado'."""
+    with urllib.request.urlopen(f'{OLLAMA}/api/tags', timeout=10) as resposta:
+        digest = next(m['digest'] for m in json.load(resposta)['models'] if m['name'] == modelo)
+    corpo = {'model': modelo, 'prompt': prompt, 'stream': parcial, 'think': False,
+             'options': {'temperature': 0, 'seed': 0, **comum.configuracao('ia')['opcoes_por_modelo'].get(modelo, {})},
+             'images': [base64.b64encode(imagem_para_ia(i)).decode() for i in imagens]}
+    if esquema:
+        corpo['format'] = esquema
+    chave = {'motor': 'ollama', 'modelo': modelo, 'digest': digest, 'prompt': prompt, 'esquema': esquema,
+             'imagens': [hashlib.sha256(Path(i).read_bytes()).hexdigest() for i in imagens], 'opcoes': corpo['options']}
+
+    def chamar():
+        pedido = urllib.request.Request(f'{OLLAMA}/api/generate', data=json.dumps(corpo).encode(),
+                                        headers={'Content-Type': 'application/json'})
+        try:
+            with urllib.request.urlopen(pedido, timeout=900) as resposta:
+                meta = {'motor': 'ollama', 'modelo': modelo, 'digest': digest[:12], 'versao': versao_ollama()}
+                if parcial:
+                    return em_partes(resposta, modelo, meta)
+                inteira = json.load(resposta)
+                return inteira['response'], {**meta, 'fim': inteira.get('done_reason')}
+        except urllib.error.HTTPError as falha:
+            raise RuntimeError(f'Ollama {falha.code} ({modelo}): {falha.read().decode(errors="replace")[:300]}') from falha
+    return congelado(chave, chamar)
+
+
+def em_partes(resposta, modelo, meta):
+    """O texto em partes e como parou; a cada linha completa o laço é procurado no próprio fluxo e a leitura para ali."""
+    texto = ''
+    for numero, parte in enumerate(map(json.loads, resposta), 1):
+        if 'error' in parte and REPETICAO in parte['error']:
+            return texto, {**meta, 'fim': 'abortado', 'tokens': numero}
+        if 'error' in parte:
+            raise RuntimeError(f"Ollama 500 ({modelo}): {parte['error'][:300]}")
+        texto += parte.get('response', '')
+        if ('\n' in parte.get('response', '') or numero % 32 == 0) and (laco := laco_no_fluxo(texto)):
+            return texto, {**meta, 'fim': laco, 'tokens': numero}
+        if parte.get('done'):
+            meta = {**meta, 'fim': parte.get('done_reason'), 'tokens': parte.get('eval_count', numero)}
+    return texto, meta
+
+
+def laco_no_fluxo(texto):
+    """'recomecou' se uma linha completa abre cerca depois da primeira; 'laco' se as últimas linhas são a mesma, a
+    cauda é pontilhado ou a janela final quase não se comprime (laço ≤ 0,04; prancha, tabela e cotas ≥ 0,10)."""
+    OCR = comum.configuracao('ia')['ocr_glm']
+    completas = texto.split('\n')[:-1]
+    if any(linha.strip().startswith('```') for linha in completas[1:]):
+        return 'recomecou'
+    ultimas = [linha.strip() for linha in completas[-OCR['linhas_iguais_laco']:]]
+    cauda = texto[-OCR['cauda_laco']:].replace(' ', '').replace('\n', '')
+    janela = texto[-OCR['janela_laco']:].encode()
+    if (len(ultimas) == OCR['linhas_iguais_laco'] and ultimas[0] and len(set(ultimas)) == 1) or \
+            (len(texto) >= OCR['cauda_laco'] and len(set(cauda)) <= 2) or \
+            (len(janela) >= OCR['janela_laco'] and len(zlib.compress(janela)) < OCR['compressao_laco'] * len(janela)):
+        return 'laco'
+    return ''
+
+
+def ocr_glm(caminho, instrucao):
+    """O glm-ocr numa imagem. Abortada depois de terminar a transcrição, o texto até ali vale; parada no meio, a imagem
+    vai em faixas com sobreposição. Todas no meio, o erro de repetição sobe (quem chama decide)."""
+    modelo, OCR = comum.configuracao('ia')['modelos']['glm_ocr'], comum.configuracao('ia')['ocr_glm']
+
+    def ler(imagem):
+        try:
+            texto, meta = ollama(modelo, instrucao, imagens=[imagem], parcial=True)
+        except RuntimeError as falha:
+            if REPETICAO not in str(falha):
+                raise
+            return None
+        texto, recomecou = cortar_laco(texto)
+        if recomecou or meta.get('fim') not in ('abortado', 'length', 'laco'):
+            return texto
+        return texto if meta['fim'] == 'abortado' and not fim_em_laco(texto) else None
+    inteira = ler(caminho)
+    if inteira is not None:
+        return inteira
+    textos = [t for t in (ler(faixa) for faixa in em_faixas(caminho, OCR['faixas'], OCR['sobreposicao'])) if t is not None]
+    if not textos:
+        raise RuntimeError(f'Ollama 500 ({modelo}): prediction aborted, {REPETICAO} reached (a imagem e as faixas)')
+    return juntar(textos)
+
+
+def fim_em_laco(texto):
+    linhas = [linha.strip() for linha in texto.strip().splitlines()]
+    cauda = texto.strip()[-40:].replace(' ', '')
+    return not linhas or len(set(cauda)) <= 2 or (len(linhas) >= 3 and linhas[-1] == linhas[-2] == linhas[-3])
+
+
+def cortar_laco(texto):
+    """A transcrição até onde o glm-ocr recomeça (abre outra cerca '```'), e se recomeçou."""
+    linhas = texto.splitlines()
+    if linhas and linhas[0].strip().startswith('```'):
+        linhas = linhas[1:]
+    corte = next((n for n, linha in enumerate(linhas) if linha.strip().startswith('```')), None)
+    return '\n'.join(linhas[:corte]).strip(), corte is not None
+
+
+def em_faixas(caminho, quantas, sobreposicao):
+    """A imagem em `quantas` faixas horizontais com `sobreposicao` a mais para baixo, em PNG em dados/faixas_ocr/."""
+    from PIL import Image
+    pasta = comum.DADOS / 'faixas_ocr'
+    pasta.mkdir(parents=True, exist_ok=True)
+    with Image.open(caminho) as imagem:
+        altura = imagem.height / quantas
+        caixas = [(0, round(n * altura), imagem.width, min(imagem.height, round((n + 1 + sobreposicao) * altura)))
+                  for n in range(quantas)]
+        codigo = hashlib.sha256(Path(caminho).read_bytes()).hexdigest()[:16]
+        destinos = [pasta / f'{codigo}_{n}.png' for n in range(quantas)]
+        for caixa, destino in zip(caixas, destinos):
+            imagem.convert('RGB').crop(caixa).save(destino)
+    return destinos
+
+
+def juntar(textos):
+    """O texto das faixas na ordem, sem as linhas que a sobreposição repetiu."""
+    linhas = []
+    for texto in textos:
+        novas = texto.splitlines()
+        vistas = {v.strip() for v in linhas[-len(novas):]}
+        while novas and (novas[0].strip() in vistas or not novas[0].strip()):
+            novas.pop(0)
+        linhas += novas
+    return '\n'.join(linhas)
+
+
+def ler_com_glm_ocr(caminho):
+    return {'texto': ocr_glm(caminho, ler_prompt('imagem_ocr', regras=False)[0])}
+
+
+def ler_com_vision(caminho):
+    """Texto da imagem pelo OCR do macOS (Vision, modo preciso, pt-BR): o segundo leitor, de natureza diferente."""
+    import Vision
+    import objc
+    from Foundation import NSURL
+    with objc.autorelease_pool():
+        pedido = Vision.VNRecognizeTextRequest.alloc().init()
+        pedido.setRecognitionLevel_(Vision.VNRequestTextRecognitionLevelAccurate)
+        pedido.setRecognitionLanguages_(['pt-BR', 'en-US'])
+        pedido.setUsesLanguageCorrection_(True)
+        manipulador = Vision.VNImageRequestHandler.alloc().initWithURL_options_(NSURL.fileURLWithPath_(str(caminho)), None)
+        certo, erro = manipulador.performRequests_error_([pedido], None)
+        if not certo:
+            raise RuntimeError(f'Vision: {erro}')
+        achados = sorted(pedido.results() or [], key=lambda o: (-round(o.boundingBox().origin.y, 2), o.boundingBox().origin.x))
+        return {'texto': '\n'.join(str(o.topCandidates_(1)[0].string()) for o in achados)}
+
+
+def concordancia(texto_a, texto_b):
+    """Jaccard das palavras de dois leitores; 1,0 = mesmas palavras."""
+    palavras_a, palavras_b = set(re.findall(r'\w+', texto_a.lower())), set(re.findall(r'\w+', texto_b.lower()))
+    if not palavras_a and not palavras_b:
+        return 1.0
+    return len(palavras_a & palavras_b) / len(palavras_a | palavras_b)
+
+
+def ocr_da_pagina(imagem):
+    """Texto pelo glm-ocr; em repetição (recorte em branco ou só ruído) fica sem texto e com o motivo."""
+    try:
+        return {'texto': ler_com_glm_ocr(imagem)['texto'], 'erro': ''}
+    except RuntimeError as falha:
+        if REPETICAO not in str(falha):
+            raise
+        return {'texto': '', 'erro': 'repetição: recorte sem texto legível'}
+
+
+def dupla_leitura(lida, imagem, com_vision=True):
+    """A leitura do glm-ocr mais a do Vision do mesmo recorte e a concordância, quando os dois leram."""
+    try:
+        vision, erro_vision = (ler_com_vision(imagem)['texto'], '') if com_vision else ('', 'só o glm-ocr')
+    except ImportError:
+        vision, erro_vision = '', 'Vision ausente: .venv/bin/pip install pyobjc-framework-Vision'
+    except RuntimeError as falha:
+        vision, erro_vision = '', str(falha)[:300]
+    comparavel = not erro_vision and not lida['erro']
+    return {**lida, 'texto_vision': vision, 'erro_vision': erro_vision,
+            'concordancia_ocr': round(concordancia(lida['texto'], vision), 3) if comparavel else None}
+
+
+def apple(prompt, esquema=None):
+    """Modelo do dispositivo da Apple, com o esquema montado pelo próprio SDK (@fm.generable); se a geração guiada
+    falha, o esquema vai no pedido e o JSON é tirado da resposta. Importado aqui: só existe no macOS."""
+    import asyncio
+    import platform
+    import apple_fm_sdk as fm
+    modelo = fm.SystemLanguageModel()
+    disponivel, motivo = modelo.is_available()
+    if not disponivel:
+        raise RuntimeError(f'Apple FM indisponível: {motivo}')
+    chave = {'motor': 'apple', 'sdk': getattr(fm, '__version__', ''), 'prompt': prompt, 'esquema': esquema, 'guiada': 'generable'}
+
+    def responder(texto, **opcoes):
+        resposta = asyncio.run(fm.LanguageModelSession(model=modelo).respond(texto, **opcoes))
+        return resposta.to_json() if hasattr(resposta, 'to_json') else str(resposta)
+
+    def chamar():
+        meta = {'motor': 'apple', 'modelo': 'SystemLanguageModel', 'versao': platform.mac_ver()[0]}
+        classe = type('CamposDoDocumento', (), {'__annotations__': {campo: str for campo in esquema['properties']}})
+        try:
+            return responder(prompt, schema=fm.generable('Campos lidos, como estão escritos')(classe).generation_schema()), meta
+        except Exception as falha:
+            pedido = f"{prompt}\n\nResponda só com um objeto JSON com as chaves {', '.join(esquema['properties'])}, todos os valores como texto."
+            achado = re.search(r'\{.*\}', responder(pedido), re.S)
+            if not achado:
+                raise RuntimeError(f'Apple FM sem esquema não devolveu JSON (com esquema: {falha})') from falha
+            return achado.group(0), {**meta, 'esquema': 'no prompt'}
+    return congelado(chave, chamar)

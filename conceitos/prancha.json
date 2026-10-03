@@ -1,0 +1,175 @@
+{
+  "metadata": {
+    "fonte": "notas/plano_projeto.md §4, §4-A, §11; notas/teste_tese_modelos_2026-09-26.md; notas/viabilidade_prancha_2026-09-26.md",
+    "regra": "prancha de projeto em PDF: o que a reconhece, a família (linear ou localizada), onde fica o carimbo, como achar o eixo desenhado e como fatiar para a IA. Número só é confirmado quando dois leitores de natureza diferente (glm-ocr × Vision) leram o mesmo valor no mesmo recorte; o que um só leu fica pendente, nunca vira fato. Limites são premissa: mudam pela medida.",
+    "atualizado_em": "2026-09-26"
+  },
+  "reconhecer": {
+    "_regra": "é prancha se o formato é A3 ou maior E há pelo menos 2 sinais (camadas do CAD, nome no padrão de desenho, palavras de carimbo); PDF menor que A3 nunca é prancha",
+    "formatos_mm": {
+      "A0": [
+        841,
+        1189
+      ],
+      "A1": [
+        594,
+        841
+      ],
+      "A2": [
+        420,
+        594
+      ],
+      "A3": [
+        297,
+        420
+      ],
+      "A4": [
+        210,
+        297
+      ]
+    },
+    "tolerancia_mm": 25,
+    "formatos_de_prancha": [
+      "A0",
+      "A1",
+      "A2",
+      "A3",
+      "fora_de_serie"
+    ],
+    "nome": "(?:^|[-_ ])(?-i:DE)[-_]|[-_ ]R\\d{1,2}$|(?i:prancha|planta|perfil|folha)",
+    "carimbo": "(?i)escala|folha|projetista|desenho|revis[ãa]o|resp\\.? t[ée]cnico|crea|arquivo eletr",
+    "sinais_minimos": 2,
+    "caminhos_desenho": 5000,
+    "_caminhos_desenho": "desenho vetorial denso é sinal de prancha: as folhas da AAT-06 têm 15 a 20 mil caminhos, a de Cambé (sem texto e sem camadas) 78 mil; uma página de texto tem dezenas",
+    "maximo_paginas": 3,
+    "sinais_minimos_raster": 1,
+    "_sinais_minimos_raster": "a escaneada não tem camada nem texto antes do OCR: formato de prancha e nome de desenho bastam"
+  },
+  "familias": {
+    "_regra": "a primeira família cujo padrão casa no nome do arquivo ou no texto do carimbo e das notas; o grupo sai da família (nunca se pergunta ao modelo: T7 de 26/09 errou o grupo e acertou a família)",
+    "ordem": [
+      "adutora",
+      "recalque",
+      "coletor_esgoto",
+      "rede_agua",
+      "gas",
+      "drenagem",
+      "eta",
+      "ete",
+      "elevatoria",
+      "reservatorio",
+      "edificacao",
+      "sondagem"
+    ],
+    "padroes": {
+      "adutora": "(?i)\\bAA[TB]\\b|AA[TB]\\d|adutora",
+      "recalque": "(?i)recalque|\\bLR\\d",
+      "coletor_esgoto": "(?i)\\bSES\\b|coletor|interceptor|emiss[áa]rio",
+      "rede_agua": "(?i)\\bRDA\\b|\\dRDA|RDA\\d|rede de (?:distribui|[áa]gua)",
+      "gas": "(?i)\\bg[áa]s\\b|gasoduto",
+      "drenagem": "(?i)drenagem|galeria pluvial|boca de lobo",
+      "eta": "(?i)\\bETA\\b|\\dETA|tratamento de [áa]gua",
+      "ete": "(?i)\\bETE\\b|\\dETE|tratamento de esgoto",
+      "elevatoria": "(?i)\\bEE[ABET]\\b|EE[ABET]\\d|elevat[óo]ria",
+      "reservatorio": "(?i)reservat[óo]rio|\\bRAP\\b|\\dRAP|RAP\\d|\\bREL\\b",
+      "edificacao": "(?i)edifica[çc][ãa]o|pr[ée]dio|administra[çc][ãa]o",
+      "sondagem": "(?i)sondage|\\bSPT\\b|\\bfuros? de sondagem\\b|boletim de sondagem"
+    },
+    "grupo": {
+      "adutora": "linear",
+      "recalque": "linear",
+      "coletor_esgoto": "linear",
+      "rede_agua": "linear",
+      "gas": "linear",
+      "drenagem": "linear",
+      "eta": "localizada",
+      "ete": "localizada",
+      "elevatoria": "localizada",
+      "reservatorio": "localizada",
+      "edificacao": "localizada",
+      "sondagem": "apoio"
+    },
+    "desenhos": {
+      "planta_e_perfil": "(?i)planta\\s*e\\s*perfil|PTPER",
+      "detalhe": "(?i)\\bdetalhes?\\b|VENDS|\\bDET\\b",
+      "forma": "(?i)\\bformas?\\b|\\bFRM\\b",
+      "armacao": "(?i)\\barma[çc][ãa]o\\b|\\bARM\\b",
+      "locacao": "(?i)\\bloca[çc][ãa]o\\b|\\bsitua[çc][ãa]o\\b|\\blayout\\b",
+      "corte": "(?i)\\bcortes?\\b"
+    },
+    "codigo_desenho": "\\b[0-9A-Z]{2,4}-S[A-Z]{2}-\\d{4}-\\d{4}-[A-Z]{4}-DE-[0-9A-Z]+-[RA]\\d{1,2}\\b",
+    "_codigo_desenho": "o código do desenho no carimbo (002-SAA-0001-6745-PULI-DE-RDA00TATCADBL01-R0) diz a obra antes do texto solto; auditoria de 26/09: as OSE da Sanepar saíam gás pelo rótulo GAS GAS GAS da linha de interferência e esgoto pelos PV da rede existente, e o código (RDA, na 2ª página) dizia rede de água. O PV…PV saiu do coletor: poço de visita aparece como interferência em folha de água",
+    "rotulos_ignorados": "(?i)\\badutora\\s*:|(?:declividade|fluxo) da\\s+adutora|\\b[a-zçãáéíóú]+\\s*-\\s*existente\\b",
+    "_rotulos_ignorados": "rótulo fixo de formulário e legenda de existente saem do texto antes da regra (auditoria de 26/09): a OSE da Sanepar tem os campos 'Adutora:' e 'Declividade da Adutora' com o valor RDA (rede de água), e a EET saía drenagem pela legenda 'DRENAGEM - EXISTENTE'; o código do desenho aceita revisão A0 (as built)",
+    "_desempate": "sem padrão que case, o qwen3 e o Apple FM escolhem entre as opções pelo texto do carimbo; vale só se os dois (ou o único instalado) escolherem a mesma opção da lista",
+    "_desenhos": "palavra inteira (\\b): o LAYOUT de Cambé saiu corte pela rua CORTEZ (auditoria de 26/09); layout é locação",
+    "_sondagem": "planta de sondagem não é obra: grupo apoio (levantamento). Fica no fim da ordem para o texto de uma prancha de obra que cita sondagem não mudar a família; pelo nome, casa primeiro (auditoria de 26/09: PLANTA_GERAL_SONDAGEM_CAMBÉ_01/02/03 saíam indefinidas e iriam ao desempate da IA sem opção certa)"
+  },
+  "carimbo": {
+    "_regra": "canto inferior direito da folha, em fração da página (x0, y0, x1, y1, origem no alto à esquerda); campos por padrão no texto real da região",
+    "regiao": [
+      0.7,
+      0.62,
+      1.0,
+      1.0
+    ],
+    "campos": {
+      "folha": "(\\d{2,3})\\s*/\\s*(\\d{2,3})",
+      "data": "(?i)\\b(\\d{2}/\\d{2}/\\d{4}|\\d{2}/\\d{4}|(?:jan|fev|mar|abr|mai|jun|jul|ago|set|out|nov|dez)[a-zç]*/\\d{2,4})\\b",
+      "escala": "(?i)escala:?\\s*(indicada|1\\s*:\\s*\\d{1,3}(?:\\.\\d{3})+|1\\s*:\\s*\\d+)",
+      "revisao_nome": "[-_ ]R(\\d{1,2})$"
+    },
+    "_campos": "escala com separador de milhar (1:7.500 saía 1:7) e data com mês por extenso abreviado (AGO/25), auditoria de 26/09"
+  },
+  "eixo": {
+    "_regra": "o traçado da obra linear desenhado como faixa preenchida numa cor (triângulos em sequência); o eixo é o ponto médio de cada par de bordas. Cor por projetista: acrescentar aqui quando outro padrão aparecer. Medido em mm de papel; vira metro com a escala que dois leitores confirmarem",
+    "cores": [
+      [
+        0.64706,
+        0.0,
+        0.86667
+      ]
+    ],
+    "camadas_tubo": {
+      "incluir": "(^|[-_ ])TUBO([-_ ]|$)|^ADUTORA([-_ ]PROJETADA)?$",
+      "excluir": "TEXTO|TXT|GRADE|PONTOS|INFO|CHAMADA|BLOCOS|EXIST|^600_|[-_ ]EX$|BASE|TELECOM|FORNECEDOR|CARV|SANEPAR"
+    },
+    "_camadas_tubo": "2v60: sem a faixa colorida, o eixo é o traço aberto das camadas de tubo projetado, somado por camada (mm de papel). Regra tirada dos nomes das camadas das 435 pranchas lineares do pranchas.csv de 27/09 (a cor achou o eixo em 12, todas da AAT-06): o projetado é '1ª ETAPA-TUBO-<material>-<DN/DE>', 'TUBO' e 'ADUTORA'; fica de fora o texto do tubo ('1ª ETAPA-TEXTO-TUBO…'), o cadastro existente da Sanepar ('600_PVC_DN0050'), a rede existente ('REDE ESGOTO EX') e o eixo de via ('EIXO-VIAS'). Sub-caminho fechado não conta (é símbolo: registro, válvula). Só na prancha linear; 'ADUTORA' sozinha (ou ADUTORA-PROJETADA), porque em 'SJMH_ADUTORA_TERRENO' é o nome do projeto; fora também a base (telecomunicação), o fornecedor, o carvão da ETA e o 'TUBO SANEPAR' (existente)",
+    "deflexao_minima_graus": 1.0,
+    "curva_graus": 10.0
+  },
+  "fatias": {
+    "_regra": "a folha renderizada vira fatias de até lado_px com sobreposição (o glm-ocr dava 500 a ~1.600 px e abortava por repetição em tabela inteira: T5 e T6 de 26/09); a imagem colada (relação de materiais) é fatiada à parte, em faixas horizontais",
+    "dpi": 150,
+    "lado_px": 1100,
+    "sobreposicao": 0.15,
+    "maximo_fatias": 60,
+    "paginas_com_ia": 1,
+    "imagem_minima_px": 400,
+    "faixa_altura_px": 500,
+    "_maximo_fatias": "A0 a 150 DPI dá 48 fatias de 1.100 px; acima do máximo, as que sobram não são lidas e o motivo fica na linha"
+  },
+  "padroes": {
+    "_regra": "o que se procura no texto lido; valor normalizado (vírgula decimal vira ponto, espaço sai) para comparar os dois leitores",
+    "cota": "(?<![\\d.,])\\d{3}[.,]\\d{3}(?![\\d.,])",
+    "estaca": "(?i)\\bEST\\.?\\s*\\d{1,4}(?:\\s*\\+\\s*\\d{1,2}(?:[.,]\\d+)?)?",
+    "escala": "(?i)1\\s*:\\s*\\d{1,3}(?:\\.\\d{3})+(?!\\d)|1\\s*:\\s*\\d{2,5}(?![\\d.])",
+    "comprimento_dn": "\\d{1,4}[.,]\\d{2}\\s*-\\s*\\d{2,4}\\s*mm",
+    "declividade": "(?<![\\d.,])0[.,]\\d{4,5}(?![\\d])",
+    "diametro": "(?i)\\b(?:DN|DE)\\s*\\d{2,4}",
+    "coordenada": "(?i)\\b[EN]\\s*=\\s*\\d{6,7}",
+    "codigo_sam": "(?<![\\d.,/])\\d{5,6}(?![\\d.,/])"
+  },
+  "conferencia": {
+    "_regra": "extensão do eixo desenhado (mm × escala) contra a quantidade do tubo na relação de materiais; fecha dentro da tolerância",
+    "tolerancia_relativa": 0.001,
+    "_tolerancia_relativa": "0,1 %: nas 4 folhas da AAT-06 o eixo desenhado bateu com a relação a 0,004 %; 0,5 % deixava passar 538 × 540 m, o erro de 2 m achado na 012 (26/09)",
+    "tubo": "(?i)\\btubo\\b"
+  },
+  "classe": {
+    "_regra": "raster: quase sem texto e imagem cobrindo a folha; vetorial_texto: o texto é texto; vetorial_curva: o CAD desenhou o texto como curva (o caso da AAT-06: 662 caracteres, 12.905 curvas)",
+    "caracteres_raster": 50,
+    "fracao_imagem_raster": 0.5,
+    "caracteres_texto": 1500
+  }
+}
