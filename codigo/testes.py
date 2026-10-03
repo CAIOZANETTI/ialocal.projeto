@@ -17,6 +17,7 @@ from pathlib import Path
 import polars as pl
 
 import ciclo
+import cliente_gpu
 import comum
 import ia
 import prancha
@@ -307,6 +308,7 @@ def principal():
         comum.DADOS.mkdir()
         ia.OLLAMA = 'http://127.0.0.1:9'  # porta fechada: nenhum teste chama modelo de verdade
         ia.instalado = lambda modulo: modulo in sys.modules  # no mini o Vision e o Apple FM existem: só o falso do teste conta
+        cliente_gpu.VEZ = raiz / 'sem_maestro' / 'vez.json'  # no mini o maestro está de pé e nunca daria a vez ao pedido da pasta do teste
         testar_conceitos()
         testar_regras(raiz)
         testar_eixo_por_camada()
