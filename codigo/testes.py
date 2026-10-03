@@ -306,6 +306,7 @@ def principal():
         ia.CONGELAMENTO, ciclo.FALHAS = comum.DADOS / 'congelamento.jsonl', comum.DADOS / 'falhas.jsonl'
         comum.DADOS.mkdir()
         ia.OLLAMA = 'http://127.0.0.1:9'  # porta fechada: nenhum teste chama modelo de verdade
+        ia.instalado = lambda modulo: modulo in sys.modules  # no mini o Vision e o Apple FM existem: só o falso do teste conta
         testar_conceitos()
         testar_regras(raiz)
         testar_eixo_por_camada()
