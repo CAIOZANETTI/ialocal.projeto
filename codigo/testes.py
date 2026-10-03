@@ -275,6 +275,9 @@ def testar_rodada(raiz):
     conferir((status['saude'], status['progresso'], status['fila']['na_fila'], status['pranchas']['lidas_pela_ia'])
              == ('ok', {'feito': 2, 'total': 2}, 0, 1) and status['repo'] == 'ialocal.projeto',
              'status.json no formato comum: 2 de 2 candidatas feitas, fila vazia, 1 prancha lida pela IA')
+    conferir(status['precisa_do_caio'] == len(status['demandas']) >= 1
+             and all(d['id'] and d['titulo'] and len(d['texto']) > 100 for d in status['demandas']),
+             'status: as demandas abertas ao Caio (conceitos/demandas.json), com título e texto, e quantas em precisa_do_caio')
     obra = status['por_obra']['obras/Foz AAT-06']
     conferir((obra['feito'], obra['total'], obra['pranchas'], obra['arquivos']) == (2, 2, 1, 3) and obra['bytes'] > 0,
              'status por obra (a tela 8 do maestro): 2 de 2 feitas, 1 prancha; pranchas, leituras e carimbos publicados (sem imagem colada, sem tabela)')

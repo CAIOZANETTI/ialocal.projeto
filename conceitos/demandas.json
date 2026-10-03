@@ -1,0 +1,20 @@
+{
+  "metadata": {
+    "o_que_e": "O que o projeto precisa do Caio e da equipe dele. Cada demanda aberta vai no status.json (precisa_do_caio e demandas); o maestro a põe na caixa de avisos e o ialocal.web a manda por e-mail, uma vez. Feita a demanda, um PR troca aberta para false.",
+    "atualizado_em": "2026-10-03"
+  },
+  "demandas": [
+    {
+      "id": "projeto-boletins-reais",
+      "aberta": true,
+      "titulo": "Boletins de sondagem reais para calibrar o leitor (ialocal.projeto)",
+      "texto": "O ialocal.projeto passou a ler boletins de sondagem (SPT, NBR 6484): furo, coordenadas, cota da boca, nível d'água, profundidade final, N-SPT de cada metro e as camadas do perfil. Os padrões são de um boletim típico e precisam ser calibrados com boletins reais.\n\nO que preciso:\n1. De 3 a 4 boletins de sondagem de laboratórios diferentes (Foz do Iguaçu, Cambé, Irati...), pelo menos um digitalizado (escaneado).\n2. Colocar os PDFs no Drive, em entrada/orçamentos/<obra>/ (o extrator pega sozinho e entrega ao projeto).\n3. Para cada boletim, uma linha em entrada/_anotacoes/gabarito_sondagem.csv com o que está no papel: arquivo;furo;coordenada_e;coordenada_n;cota_boca;nivel_agua;profundidade_final;nspt_1m;nspt_2m;nspt_3m\n\nÉ o gabarito: com ele eu meço o acerto e ajusto conceitos/sondagem.json até bater. Responda este e-mail quando estiver feito."
+    },
+    {
+      "id": "projeto-carimbos-conferir",
+      "aberta": true,
+      "titulo": "Conferir 10 carimbos de prancha (ialocal.projeto)",
+      "texto": "O ialocal.projeto lê o carimbo de cada prancha (canto inferior direito): número do desenho, título, projetista, responsável técnico, CREA, ART, fase, data, escala, folha e o quadro de revisões.\n\nO que preciso:\n1. Abrir no Drive saida/orçamentos/<obra>/projeto/carimbos.csv (uma linha por campo do carimbo, com quem leu: pdf, glm_ocr+vision).\n2. Escolher 10 pranchas de obras e projetistas diferentes, de preferência algumas escaneadas.\n3. Com o PDF aberto ao lado, marcar cada linha numa coluna nova conferido: c (certo), p (parcial) ou e (errado); se errado, o valor certo na coluna correto.\n4. Salvar como CSV em entrada/_anotacoes/carimbos_conferidos.csv.\n\nCom isso eu meço o acerto por campo e acrescento os rótulos que faltam em conceitos/prancha.json. Responda este e-mail quando estiver feito."
+    }
+  ]
+}
