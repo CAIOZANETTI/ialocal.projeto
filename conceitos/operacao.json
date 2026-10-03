@@ -8,6 +8,8 @@
     "obras": "por_obra/.obras",
     "_entrega": "o extrator (2v94, tarefa entregar_projeto) grava em ~/dados/extracao/projeto_entrega/parte_*.parquet uma linha por PDF com a primeira página A3 ou maior, e o arquivo em ~/dados/extracao/projetos/; o mapa ARQ de primeiro nível → acervo/obra é o .obras da saída por obra dele. O projeto só lê"
   },
+  "respostas": "~/dados/ialocal.web/saidas/demandas",
+  "_respostas": "o ialocal.web (0v8) guarda ali cada e-mail que responde uma demanda: <demanda>/<recebido>/ com anexos/, corpo.txt e meta.json. O projeto só lê (respostas.py): os PDFs entram na rodada como obra _demandas/<demanda>; o CSV é o gabarito",
   "drive": {
     "saida": "gdrive:saida",
     "sistema": "_sistema/projeto",

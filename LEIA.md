@@ -48,7 +48,8 @@ configurou no mini.
 codigo/prancha.py       ler_prancha (código: camada, carimbo, família, eixo; reconhece o boletim) e ler_prancha_ia (fatias, tabelas e o carimbo desenhado pelo glm-ocr × Vision)
 codigo/sondagem.py      o boletim de sondagem: ler_sondagem (páginas com texto, código) e ler_sondagem_ia (digitalizadas, glm-ocr × Vision)
 codigo/ciclo.py         a rodada: o que está pendente, código antes, IA na vez da GPU; publica; status.json
-codigo/entrega.py       lê o que o extrator entregou (só lê): PDFs A3 ou maiores e o mapa das obras
+codigo/entrega.py       lê o que o extrator entregou (só lê): PDFs A3 ou maiores e o mapa das obras; e os anexos das respostas
+codigo/respostas.py     as respostas da equipe às demandas (guardadas pelo ialocal.web): PDFs para a rodada, CSV gabarito, o resultado
 codigo/ia.py            a porta para os modelos locais (Ollama, Vision, Apple FM), com congelamento das respostas
 codigo/comum.py         pastas, conceitos, Parquet com troca por chave, CSV para o Drive
 codigo/cliente_gpu.py   cópia do cliente da trava de GPU do ialocal.maestro (não editar aqui)
@@ -59,7 +60,8 @@ codigo/versoes.jsonl    0v1…: data, resumo e as tarefas que cada versão muda 
 conceitos/prancha.json  o que reconhece a prancha, famílias, carimbo (campos por rótulo-âncora, revisões), eixo, fatias, padrões, conferência
 conceitos/sondagem.json o boletim: como reconhecer, por onde ler cada página, os padrões do cabeçalho, do N-SPT e das camadas
 conceitos/ia.json       modelos e parâmetros das chamadas (cópia do extratores.json do extrator, 2v93)
-conceitos/operacao.json de onde lê a entrega, para onde publica, limites, a prioridade na GPU
+conceitos/demandas.json o que o projeto pede ao Caio e à equipe (id, gabarito, texto do e-mail, aberta)
+conceitos/operacao.json de onde lê a entrega e as respostas, para onde publica, limites, a prioridade na GPU
 conceitos/prompts/      prompts versionados (o hash entra na chave de congelamento)
 
 amostras/tabelas/       recortes de tabelas de prancha (Foz, Cambé) com a transcrição do Caio: o gabarito das tabelas
@@ -104,5 +106,11 @@ Drive  saida/<acervo>/<obra>/projeto/   pranchas.csv, prancha_leituras.csv, pran
   versão do código; depois fica em `dados/falhas.jsonl` e a saúde do status vira atenção.
 - **A prancha tem limite.** A leitura de IA para entre fatias em 20 min (`operacao.json → limite_ia_s`): o que foi
   lido fica, e o motivo sai no `pranchas.csv`.
+- **A equipe responde direto ao mini** (0v4). Cada demanda de `conceitos/demandas.json` vai por e-mail ao Caio (status →
+  maestro → ialocal.web) com `[demanda <id>]` no assunto; ele encaminha, e quem tem o material responde ao endereço
+  do mini com os PDFs e o CSV. O web guarda em `~/dados/ialocal.web/saidas/demandas/<demanda>/`; o projeto só lê: os
+  PDFs entram na rodada como obra `_demandas/<demanda>`, o CSV é o gabarito. Respondida, a demanda sai da lista;
+  lidos os PDFs, o status leva o `resultado` (acerto por campo, divergências) e o Caio recebe por e-mail. Cada
+  resposta nova gera um resultado novo. Para ajustar os padrões: comparar as divergências e mexer no JSON por PR.
 - **A bancada E3 (qualidade) continua no extrator** por ora: a classe `prancha_pdf` mede os modelos numa amostra, à
   parte da produção. Trazê-la para cá é o passo seguinte, junto com os itens pendentes do `plano_projeto.md` §9.
