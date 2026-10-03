@@ -47,8 +47,10 @@ def pdf_prancha():
     lados = [((x + n[0] * m, y + n[1] * m), (x - n[0] * m, y - n[1] * m)) for (x, y), n, m in zip(eixo, normais, meia)]
     triangulos = [t for i in range(2) for t in ((lados[i][0], lados[i][1], lados[i + 1][0]), (lados[i][1], lados[i + 1][0], lados[i + 1][1]))]
     faixa = ''.join(f'{a[0]:.2f} {a[1]:.2f} m {b[0]:.2f} {b[1]:.2f} l {c[0]:.2f} {c[1]:.2f} l h f\n' for a, b, c in triangulos)
-    carimbo = ['FOLHA N: 012/019', 'DATA: 09/2020', 'ADUTORA DE AGUA TRATADA AAT-06', 'PLANTA E PERFIL',
-               'ARQUIVO ELETRONICO: 012-SAA-0017-7471-PBHI-DE-AAT06PTPER-R1']
+    carimbo = ['FOLHA N: 012/019', 'DATA: 09/2020', 'TITULO: ADUTORA DE AGUA TRATADA AAT-06', 'PLANTA E PERFIL',
+               'ARQUIVO ELETRONICO: 012-SAA-0017-7471-PBHI-DE-AAT06PTPER-R1', 'PROJETISTA: SANEPAR - USPE',
+               'RESP. TECNICO: ENG. JOAO DA SILVA', 'CREA: PR-12345/D', 'ART: 1720203456789', 'FASE: EXECUTIVO',
+               'R0 10/08/2020 EMISSAO INICIAL', 'R1 15/09/2020 ALTERACAO DO TRACADO']
     texto = ''.join(f'BT /F1 9 Tf 1720 {300 - 20 * n} Td ({linha}) Tj ET\n' for n, linha in enumerate(carimbo))
     conteudo = f'/OC /MC0 BDC 0.64706 0 0.86667 rg\n{faixa}EMC\n0 0 0 rg\n{texto}'.encode()
     objetos = ['<< /Type /Catalog /Pages 2 0 R /OCProperties << /OCGs [5 0 R] /D << /ON [5 0 R] >> >> >>',
@@ -247,6 +249,15 @@ def testar_rodada(raiz):
     conferir(abs(codigo['eixo_mm'] - 300) < 0.5 and json.loads(codigo['deflexoes']) == [45.0] and codigo['carimbo_folha'] == '012/019'
              and codigo['carimbo_arquivo_confere'] and codigo['carimbo_revisao_nome'] == '1',
              'eixo de 300 mm com a dobra de 45° tirado da faixa; carimbo com a folha e o nome do arquivo')
+    carimbo = {l['campo']: l for l in comum.ler('carimbo').to_dicts() if l['arquivo'].startswith('012-SAA')}
+    conferir(codigo['camada'] == 'vetor' and codigo['carimbo_camada'] == 'texto'
+             and {c: carimbo[c]['valor'] for c in ('numero_desenho', 'titulo', 'projetista', 'responsavel_tecnico', 'crea', 'art', 'fase', 'revisao_vigente')}
+             == {'numero_desenho': '012-SAA-0017-7471-PBHI-DE-AAT06PTPER-R1', 'titulo': 'ADUTORA DE AGUA TRATADA AAT-06',
+                 'projetista': 'SANEPAR - USPE', 'responsavel_tecnico': 'ENG. JOAO DA SILVA', 'crea': 'PR-12345/D',
+                 'art': '1720203456789', 'fase': 'EXECUTIVO', 'revisao_vigente': 'R1'}
+             and len(json.loads(carimbo['revisoes']['valor'])) == 2 and {l['status'] for l in carimbo.values()} == {'codigo'},
+             'camada: desenho vetorial com o texto em curva, carimbo em texto real lido pelo código — número, título, projetista, '
+             'responsável, CREA, ART, fase e o quadro de revisões (a vigente é a R1)')
     conferir(not next(l for l in linhas if l['arquivo'] == 'memorial_a3.pdf')['e_prancha']
              and not any(l['arquivo'] in ('oficio.pdf', 'saiu.pdf') for l in linhas)
              and [l['arquivo'] for l in linhas if l['extrator'] == 'prancha_ia'] == [codigo['arquivo']],
@@ -265,8 +276,8 @@ def testar_rodada(raiz):
              == ('ok', {'feito': 2, 'total': 2}, 0, 1) and status['repo'] == 'ialocal.projeto',
              'status.json no formato comum: 2 de 2 candidatas feitas, fila vazia, 1 prancha lida pela IA')
     obra = status['por_obra']['obras/Foz AAT-06']
-    conferir((obra['feito'], obra['total'], obra['pranchas'], obra['arquivos']) == (2, 2, 1, 2) and obra['bytes'] > 0,
-             'status por obra (a tela 8 do maestro): 2 de 2 feitas, 1 prancha; pranchas e leituras publicadas (sem imagem colada, sem tabela)')
+    conferir((obra['feito'], obra['total'], obra['pranchas'], obra['arquivos']) == (2, 2, 1, 3) and obra['bytes'] > 0,
+             'status por obra (a tela 8 do maestro): 2 de 2 feitas, 1 prancha; pranchas, leituras e carimbos publicados (sem imagem colada, sem tabela)')
     chamadas = []
     ia.ler_com_glm_ocr = lambda caminho: chamadas.append(caminho) or {'texto': ''}
     ciclo.rodada()
@@ -296,6 +307,85 @@ def testar_falha(raiz):
              'falha três vezes com este código: fica falhou, a saúde diz atenção e onde ver')
 
 
+def pdf_de_texto(linhas, largura=595, altura=842):
+    """PDF de uma página com as linhas em texto real, de cima para baixo (o boletim que o laboratório gerou no computador)."""
+    texto = ''.join(f'BT /F1 9 Tf 40 {altura - 60 - 14 * n} Td ({linha}) Tj ET\n' for n, linha in enumerate(linhas)).encode('latin-1')
+    objetos = [b'<< /Type /Catalog /Pages 2 0 R >>', b'<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+               f'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 {largura} {altura}] /Contents 5 0 R /Resources << /Font << /F1 4 0 R >> >> >>'.encode(),
+               b'<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>', f'<< /Length {len(texto)} >>\nstream\n'.encode() + texto + b'\nendstream']
+    corpo, posicoes = b'%PDF-1.7\n', []
+    for numero, objeto in enumerate(objetos, 1):
+        posicoes.append(len(corpo))
+        corpo += f'{numero} 0 obj\n'.encode() + objeto + b'\nendobj\n'
+    xref = f'xref\n0 {len(objetos) + 1}\n0000000000 65535 f \n' + ''.join(f'{p:010d} 00000 n \n' for p in posicoes)
+    return corpo + xref.encode() + f'trailer\n<< /Size {len(objetos) + 1} /Root 1 0 R >>\nstartxref\n{len(corpo)}\n%%EOF\n'.encode()
+
+
+BOLETIM = ['BOLETIM DE SONDAGEM A PERCUSSAO - SPT   NBR 6484', 'FURO: SP-03   COTA DA BOCA: 812,45 m', 'E = 712.400   N = 7.098.200',
+           'DATA: 12/03/2021', 'PROF.  GOLPES  AMOSTRADOR', '1,00 3/15 4/15 5/15', '2,00 5/15 6/15 8/15', '3,00 10/15 12/15 15/15',
+           '0,00 - 1,20 ATERRO DE ARGILA SILTOSA, MARROM', '1,20 - 3,45 AREIA FINA SILTOSA, CINZA, POUCO COMPACTA',
+           "NIVEL D'AGUA: 2,30 m", 'IMPENETRAVEL A PERCUSSAO', 'PROFUNDIDADE FINAL: 3,45 m']
+
+
+def testar_carimbo_desenhado(pasta):
+    """O carimbo que é desenho vai ao OCR em recorte: campo que os dois leram igual é confirmado; o que leram diferente
+    fica divergente com os dois valores; o que só um leu fica so_glm — nunca vira fato."""
+    from PIL import Image
+    imagem = pasta / 'carimbo.png'
+    Image.new('RGB', (800, 400), 'white').save(imagem)
+    glm, vision = ia.ler_com_glm_ocr, ia.ler_com_vision
+    ia.ler_com_glm_ocr = lambda c: {'texto': 'CREA: PR-12345/D\nRESP. TECNICO: ENG. JOAO DA SILVA\nART: 1720203456789'}
+    ia.ler_com_vision = lambda c: {'texto': 'CREA: PR-12345/D\nRESP. TECNICO: ENG. JOSE DA SILVA'}
+    try:
+        linhas = {l['campo']: l for l in prancha.ler_carimbo_ocr(imagem, 'x.pdf', True, {'id': 'x'})}
+    finally:
+        ia.ler_com_glm_ocr, ia.ler_com_vision = glm, vision
+    conferir((linhas['crea']['status'], linhas['responsavel_tecnico']['status'], linhas['art']['status']) == ('confirmado', 'divergente', 'so_glm')
+             and linhas['responsavel_tecnico']['valor_vision'] == 'ENG. JOSE DA SILVA',
+             'carimbo desenhado: CREA confirmado pelos dois; o responsável que leram diferente fica divergente com os dois; a ART que só o glm-ocr leu fica pendente')
+
+
+def testar_sondagem(raiz):
+    """O boletim de sondagem (A4) é reconhecido e lido por camada: o de texto pelo código (furo, coordenadas, cota da boca,
+    nível d'água, profundidade final, N-SPT de cada metro, camadas), o digitalizado pelo OCR, com os dois leitores — o
+    metro que só um leu fica pendente e a cota que leram diferente fica divergente."""
+    from PIL import Image
+    pasta = raiz / 'extracao' / 'projetos'
+    (pasta / 'boletim.pdf').write_bytes(pdf_de_texto(BOLETIM))
+    Image.new('RGB', (595, 842), 'white').save(pasta / 'boletim_escaneado.pdf')
+    pl.DataFrame([{'id': f'ARQ-000001/{nome}', 'extrator': 'entrega', 'caminho': f'obras/foz.zip/{nome}', 'arquivo': nome, 'versao': f'sha-{nome}',
+                   'candidata': True, 'arquivo_local': str(pasta / local)}
+                  for nome, local in (('SP-03.pdf', 'boletim.pdf'), ('BOLETIM_SP-04.pdf', 'boletim_escaneado.pdf'))]
+                 ).write_parquet(raiz / 'extracao' / 'projeto_entrega' / 'parte_08.parquet')
+    texto_vision = '\n'.join(l.replace('812,45', '812,46') for l in BOLETIM if not l.startswith('3,00')).replace('SP-03', 'SP-04')
+    ia.ler_com_glm_ocr = lambda c: {'texto': '\n'.join(BOLETIM).replace('SP-03', 'SP-04')}
+    ia.ler_com_vision = lambda c: {'texto': texto_vision}
+    ciclo.rodada()
+    perfis = {l['arquivo']: l for l in comum.ler('prancha').to_dicts() if l['extrator'] == 'prancha'}
+    campos = {(l['arquivo'], l['campo']): l for l in comum.ler('sondagem_campo').to_dicts()}
+    spt = {(l['arquivo'], l['profundidade_m']): l for l in comum.ler('sondagem_spt').to_dicts()}
+    camadas = [l for l in comum.ler('sondagem_camada').to_dicts() if l['arquivo'] == 'SP-03.pdf']
+    conferir(perfis['SP-03.pdf']['boletim_sondagem'] and perfis['BOLETIM_SP-04.pdf']['boletim_sondagem']
+             and not perfis['SP-03.pdf']['e_prancha'] and perfis['SP-03.pdf']['formato'] == 'A4',
+             'sondagem: o boletim A4 com texto (pelos sinais) e o digitalizado (pelo nome) são reconhecidos, e não como prancha')
+    texto = {c: campos[('SP-03.pdf', c)]['valor'] for c in ('furo', 'coordenada_e', 'coordenada_n', 'cota_boca', 'nivel_agua', 'profundidade_final', 'data')}
+    conferir(texto == {'furo': 'SP-03', 'coordenada_e': '712.400', 'coordenada_n': '7.098.200', 'cota_boca': '812,45', 'nivel_agua': '2,30',
+                       'profundidade_final': '3,45', 'data': '12/03/2021'}
+             and 'IMPENETRAVEL' in campos[('SP-03.pdf', 'paralisacao')]['valor']
+             and [(spt[('SP-03.pdf', m)]['nspt'], spt[('SP-03.pdf', m)]['status']) for m in (1.0, 2.0, 3.0)] == [(9, 'codigo'), (14, 'codigo'), (27, 'codigo')]
+             and [(c['de_m'], c['ate_m']) for c in sorted(camadas, key=lambda c: c['de_m'])] == [(0.0, 1.2), (1.2, 3.45)],
+             f'sondagem com texto, pelo código: furo, coordenadas, cota da boca, N.A., profundidade final, paralisação, N-SPT de cada metro '
+             f'(soma dos dois últimos trechos) e as camadas ({texto})')
+    conferir(campos[('BOLETIM_SP-04.pdf', 'furo')]['status'] == 'confirmado' and campos[('BOLETIM_SP-04.pdf', 'cota_boca')]['status'] == 'divergente'
+             and campos[('BOLETIM_SP-04.pdf', 'cota_boca')]['valor_vision'] == '812,46'
+             and (spt[('BOLETIM_SP-04.pdf', 1.0)]['status'], spt[('BOLETIM_SP-04.pdf', 3.0)]['status']) == ('confirmado', 'so_glm'),
+             'sondagem digitalizada, pelo OCR: o furo que os dois leram é confirmado, a cota que leram diferente fica divergente, '
+             'o metro que só o glm-ocr leu fica pendente')
+    drive = Path(os.environ['DRIVE_FALSO']) / 'saida' / 'obras' / 'Foz AAT-06' / 'projeto'
+    conferir(all((drive / n).exists() for n in ('sondagens.csv', 'sondagem_spt.csv', 'sondagem_camadas.csv', 'carimbos.csv')),
+             'sondagem: sondagens, N-SPT e camadas publicados na pasta da obra')
+
+
 def principal():
     with tempfile.TemporaryDirectory() as temporaria:
         raiz = Path(temporaria)
@@ -314,6 +404,8 @@ def principal():
         testar_eixo_por_camada()
         testar_rodada(raiz)
         testar_falha(raiz)
+        testar_carimbo_desenhado(raiz)
+        testar_sondagem(raiz)
 
 
 if __name__ == '__main__':

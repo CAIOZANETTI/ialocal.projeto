@@ -5,7 +5,8 @@
 A extração de **todos os projetos** (pranchas de engenharia em PDF) do acervo: para cada folha, se é prancha, o
 formato, o carimbo, a família da obra (adutora, rede, coletor, ETA, elevatória…), o eixo desenhado e, pela IA local,
 o texto de cada fatia e das tabelas coladas, com número só confirmado quando dois leitores de natureza diferente
-leem o mesmo. Saiu do `ialocal.extrator` em 03/10/2026 (0v1): o extrator lê documentos; o projeto, os desenhos. O
+leem o mesmo; o carimbo inteiro (quem fez, quando, responsável, revisões); e o **boletim de sondagem** (furo, coordenadas,
+nível d'água, N-SPT de cada metro, perfil do solo). Saiu do `ialocal.extrator` em 03/10/2026 (0v1): o extrator lê documentos; o projeto, os desenhos. O
 `ialocal.maestro` o acompanha como a etapa que extrai os projetos. Plano e tese: `notas/plano_projeto.md`.
 
 ## Como rodo
@@ -44,7 +45,8 @@ configurou no mini.
 ## Onde está o quê
 
 ```
-codigo/prancha.py       as duas leituras: ler_prancha (código) e ler_prancha_ia (fatias e tabelas pelo glm-ocr × Vision)
+codigo/prancha.py       ler_prancha (código: camada, carimbo, família, eixo; reconhece o boletim) e ler_prancha_ia (fatias, tabelas e o carimbo desenhado pelo glm-ocr × Vision)
+codigo/sondagem.py      o boletim de sondagem: ler_sondagem (páginas com texto, código) e ler_sondagem_ia (digitalizadas, glm-ocr × Vision)
 codigo/ciclo.py         a rodada: o que está pendente, código antes, IA na vez da GPU; publica; status.json
 codigo/entrega.py       lê o que o extrator entregou (só lê): PDFs A3 ou maiores e o mapa das obras
 codigo/ia.py            a porta para os modelos locais (Ollama, Vision, Apple FM), com congelamento das respostas
@@ -54,7 +56,8 @@ codigo/mini.py          atualizar (só fast-forward da main) e instalar (launchd
 codigo/testes.py        prancha A1 sintética, entrega e Drive falsos, regras com os casos reais de 26/09
 codigo/versoes.jsonl    0v1…: data, resumo e as tarefas que cada versão muda (muda: refeitas sozinhas)
 
-conceitos/prancha.json  o que reconhece a prancha, famílias, carimbo, eixo, fatias, padrões, conferência
+conceitos/prancha.json  o que reconhece a prancha, famílias, carimbo (campos por rótulo-âncora, revisões), eixo, fatias, padrões, conferência
+conceitos/sondagem.json o boletim: como reconhecer, por onde ler cada página, os padrões do cabeçalho, do N-SPT e das camadas
 conceitos/ia.json       modelos e parâmetros das chamadas (cópia do extratores.json do extrator, 2v93)
 conceitos/operacao.json de onde lê a entrega, para onde publica, limites, a prioridade na GPU
 conceitos/prompts/      prompts versionados (o hash entra na chave de congelamento)
@@ -62,11 +65,12 @@ conceitos/prompts/      prompts versionados (o hash entra na chave de congelamen
 amostras/tabelas/       recortes de tabelas de prancha (Foz, Cambé) com a transcrição do Caio: o gabarito das tabelas
 notas/                  plano_projeto.md (tese e itens), testes de mesa de 26/09, protótipo da prancha (camadas, georreferência)
 
-dados/    prancha.parquet, prancha_leitura.parquet, prancha_tabela.parquet, recortes/, congelamento.jsonl,
+dados/    prancha, prancha_leitura, prancha_tabela, carimbo, sondagem, sondagem_campo, sondagem_spt, sondagem_camada (.parquet), recortes/, congelamento.jsonl,
           execucoes.jsonl, falhas.jsonl, gpu/ (pedidos ao maestro), launchd.log — regenerável, fora do git
 saidas/   status.json (formato comum, o maestro lê) e os CSVs publicados — fora do git
 
-Drive  saida/<acervo>/<obra>/projeto/   pranchas.csv, prancha_leituras.csv, prancha_tabelas.csv da obra
+Drive  saida/<acervo>/<obra>/projeto/   pranchas.csv, prancha_leituras.csv, prancha_tabelas.csv, carimbos.csv, sondagens.csv,
+                                        sondagem_spt.csv e sondagem_camadas.csv da obra
        saida/_sistema/projeto/          os mesmos, de todas as obras
 ```
 
@@ -76,6 +80,19 @@ Drive  saida/<acervo>/<obra>/projeto/   pranchas.csv, prancha_leituras.csv, pran
   extrator (2v94) olha a primeira página de todo PDF — de zip, de e-mail, de PDF dentro de PDF — e, se é A3 ou maior,
   deixa o arquivo em `~/dados/extracao/projetos/` e uma linha em `~/dados/extracao/projeto_entrega/`. O projeto lê
   essa entrega e o mapa das obras (`~/dados/extracao/por_obra/.obras`). Obra que sai do mapa sai da saída.
+- **Cada folha tem a sua camada** (0v2, pedido do Caio): `texto` — o PDF vetorial com texto real, lido pelo código
+  (pypdfium2, pdfplumber), sem IA; `vetor` — o desenho é vetor mas o texto virou curva (AutoCAD): a geometria pelo código,
+  o texto pelo OCR; `imagem` — digitalizada: tudo pelo OCR. O carimbo tem a camada dele (`carimbo_camada`): na AAT-06 só
+  o carimbo tinha texto real.
+- **O carimbo diz o que é, quem fez e quando.** No canto inferior direito, cada campo pelo rótulo-âncora
+  (`prancha.json → carimbo.ancoras`): número do desenho, título, projetista, responsável técnico, CREA, ART, fase,
+  contratante, obra, local, data, escala, folha, e o quadro de revisões com a vigente. Com texto real, o código lê
+  (status `codigo`); desenhado, o recorte vai ao glm-ocr e ao Vision e o campo só é `confirmado` se os dois leram igual.
+  Projetista com rótulo diferente: acrescentar o rótulo no JSON, o código não muda.
+- **O boletim de sondagem é projeto, mesmo em A4.** Reconhecido pelos sinais do texto (SPT, golpes, N.A., impenetrável,
+  compacidade) ou, digitalizado, pelo nome; nunca vai à leitura de prancha. Página com texto, pelo código; digitalizada,
+  pelo OCR com os dois leitores. N-SPT = golpes dos dois últimos trechos de 15 cm. Os padrões são de boletim típico e
+  são tese: boletim de outro laboratório que não casa entra em `conceitos/sondagem.json`.
 - **Código antes de IA, e a IA na vez da GPU.** A rodada faz o `ler_prancha` em tudo o que falta (rápido) e só
   depois chama a IA, uma prancha por vez, pedindo a vez ao maestro com prioridade 7 — atrás da extração de
   documentos (5), à frente da conferência do revisor (8). É a decisão do Caio de 26/09 ("documentos primeiro,

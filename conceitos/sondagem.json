@@ -1,0 +1,51 @@
+{
+  "metadata": {
+    "o_que_e": "O boletim de sondagem à percussão (SPT, NBR 6484:2020): como reconhecer, por onde ler cada página (texto do PDF pelo código, ou OCR por dois leitores quando é digitalizado) e os padrões de cada campo. Pedido do Caio (03/10/2026): o boletim é projeto — coordenadas, perfil do solo, água —, quase sempre A4, e às vezes só digitalizado.",
+    "fonte": "campos da classe sondagem da bancada E3 do extrator (conceitos/qualidade.json, NBR 6484:2020, pedido do Caio de 26/09: nível d'água, coordenadas, SPT, solo, rocha, areias)",
+    "estado": "tese: os padrões são de boletim típico (Sanepar e laboratórios do Paraná); muda pela medida contra o gabarito do Caio — boletim de outro laboratório que não casa entra aqui, não no código"
+  },
+  "reconhecer": {
+    "nome": "(?i)boletim|sondag|\\bSPT\\b|\\bSP[-_ ]?\\d|perfil\\s+(?:de\\s+)?solo",
+    "texto": [
+      "(?i)\\bN\\.?\\s?SPT\\b|\\bSPT\\b",
+      "(?i)golpes",
+      "(?i)n[íi]vel\\s+d.?[áa]gua|\\bN\\.\\s?A\\.",
+      "(?i)impenet",
+      "(?i)compacidade|consist[êe]ncia",
+      "(?i)amostrador|revestimento|\\btrado\\b|lavagem"
+    ],
+    "sinais_minimos": 2,
+    "paginas": 3,
+    "formatos": ["A4", "A3", "pequeno", "fora_de_serie"],
+    "_regra": "boletim é o PDF com 2 ou mais sinais distintos de boletim no texto das primeiras páginas; sem texto (digitalizado), o nome basta. A planta de locação dos furos (A1, família sondagem do prancha.json) é prancha, não boletim: o boletim só vale nos formatos daqui"
+  },
+  "paginas": {
+    "maximo": 20,
+    "caracteres_texto": 80,
+    "dpi_ocr": 200,
+    "_regra": "página com texto real (≥ caracteres_texto) é lida pelo código (pypdfium2); a sem texto, digitalizada, vai ao OCR na vez da GPU — glm-ocr e Vision na página inteira, um conferindo o outro"
+  },
+  "campos": {
+    "furo": "(?i)\\b(?:SPT|SP|SM|ST|FURO)\\s*[-–_.]?\\s*(?:n[ºo°.]\\s*)?\\d{1,3}[A-Z]?\\b",
+    "coordenada_e": "(?i)(?:\\bE\\b|\\bESTE\\b|\\bX\\b)\\s*[=:]\\s*(\\d{3}[.\\s]?\\d{3}(?:[.,]\\d{1,3})?)",
+    "coordenada_n": "(?i)(?:\\bN\\b|\\bNORTE\\b|\\bY\\b)\\s*[=:]\\s*(\\d{1,2}[.\\s]?\\d{3}[.\\s]?\\d{3}(?:[.,]\\d{1,3})?)",
+    "cota_boca": "(?i)cota\\s*(?:da\\s*)?boca[^\\d\\n]{0,15}(\\d{1,4}[.,]\\d{1,3})",
+    "nivel_agua": "(?i)(?:n[íi]vel\\s+d.?[áa]gua|\\bN\\.\\s?A\\.?)[^\\n\\d]{0,30}(\\d{1,2}[.,]\\d{1,2})",
+    "nivel_agua_ausente": "(?i)(?:n[íi]vel\\s+d.?[áa]gua|\\bN\\.\\s?A\\.?)[^\\n]{0,40}?(n[ãa]o\\s+(?:encontrado|atingido|observado|detectado)|seco|ausente)",
+    "profundidade_final": "(?i)(?:profundidade\\s*(?:final|total|atingida)|limite\\s+da\\s+sondagem|final\\s+da\\s+sondagem)[^\\d\\n]{0,20}(\\d{1,2}[.,]\\d{1,2})",
+    "paralisacao": "(?i)(impenetr[áa]vel[^\\n]{0,60}|limite\\s+de\\s+sondagem[^\\n]{0,40}|crit[ée]rio\\s+(?:de\\s+)?paralisa[çc][ãa]o[^\\n]{0,60})",
+    "data": "\\b(\\d{2}/\\d{2}/\\d{2,4})\\b",
+    "_campos": "um grupo de captura = o valor como está; sem grupo, o trecho inteiro. coordenada_e com 6 dígitos (UTM Este) e coordenada_n com 7 (UTM Norte, fuso 21S/22S no Paraná); o datum não se presume (plano_projeto D3)"
+  },
+  "spt": {
+    "tres_trechos": "^\\s*(\\d{1,2}(?:[.,]\\d{1,2})?)\\s*m?\\b.*?\\b(\\d{1,2})\\s*/\\s*(\\d{1,2})\\s+(\\d{1,2})\\s*/\\s*(\\d{1,2})\\s+(\\d{1,2})\\s*/\\s*(\\d{1,2})\\b",
+    "golpes_15cm": "^\\s*(\\d{1,2}[.,]\\d{2})\\s+(\\d{1,2})\\s+(\\d{1,2})\\s+(\\d{1,2})\\b",
+    "profundidade_maxima_m": 60,
+    "_regra": "N-SPT = golpes dos dois últimos trechos de 15 cm (NBR 6484). Linha com profundidade e três trechos golpes/penetração (3/15 4/15 5/15) ou três colunas de golpes; penetração parcial (30/12) fica como está em golpes"
+  },
+  "camada": {
+    "faixa": "(\\d{1,2}[.,]\\d{2})\\s*(?:m\\s*)?(?:-|–|a|até)\\s*(\\d{1,2}[.,]\\d{2})\\s*m?\\s+(.{4,})",
+    "solo": "(?i)argila|silte|areia|pedregulho|aterro|rocha|solo\\s+(?:residual|org[âa]nico)|turfa|cascalho|alter[aã]",
+    "_regra": "a camada é a faixa de profundidade (de-até) com a descrição que tem palavra de solo; a descrição fica com as palavras do boletim (cor, consistência, compacidade)"
+  }
+}

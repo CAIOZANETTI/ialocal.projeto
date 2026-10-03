@@ -119,7 +119,27 @@
       "escala": "(?i)escala:?\\s*(indicada|1\\s*:\\s*\\d{1,3}(?:\\.\\d{3})+|1\\s*:\\s*\\d+)",
       "revisao_nome": "[-_ ]R(\\d{1,2})$"
     },
-    "_campos": "escala com separador de milhar (1:7.500 saía 1:7) e data com mês por extenso abreviado (AGO/25), auditoria de 26/09"
+    "_campos": "escala com separador de milhar (1:7.500 saía 1:7) e data com mês por extenso abreviado (AGO/25), auditoria de 26/09",
+    "ancoras": {
+      "numero_desenho": {"rotulo": "(?i)n[ºo°.]*\\s*(?:do\\s*)?desenho|desenho\\s*n[ºo°.]|arquivo\\s+eletr", "valor": "[0-9A-Z]{2,5}(?:-[0-9A-Z]{2,}){3,}"},
+      "titulo": {"rotulo": "(?i)\\bt[íi]tulo\\b|\\bassunto\\b|\\bconte[úu]do\\b"},
+      "projetista": {"rotulo": "(?i)\\bprojetista\\b|\\bempresa\\b|\\bprojeto\\s*[:\\-]"},
+      "responsavel_tecnico": {"rotulo": "(?i)resp(?:ons[áa]vel)?\\.?\\s*t[ée]c(?:nico)?\\.?|\\bR\\.\\s?T\\."},
+      "crea": {"rotulo": "(?i)\\bCREA\\b|\\bCAU\\b", "valor": "(?:[A-Z]{2}[-\\s]?)?\\d[\\d./-]{3,}[A-Z]?"},
+      "art": {"rotulo": "(?i)\\bART\\b|\\bRRT\\b", "valor": "\\d{6,}"},
+      "desenhista": {"rotulo": "(?i)\\bdesenhista\\b|\\bdesenho\\s*:|\\bdes\\.\\s*:"},
+      "contratante": {"rotulo": "(?i)\\bcontratante\\b|\\bcliente\\b|\\bpropriet[áa]rio\\b"},
+      "obra": {"rotulo": "(?i)\\bobra\\b|\\bempreendimento\\b"},
+      "local": {"rotulo": "(?i)\\blocal\\b|\\bmunic[íi]pio\\b"},
+      "fase": {"rotulo": "(?i)\\bfase\\b|\\betapa\\b", "valor": "(?i)estudo|b[áa]sico|executivo|as\\s*built|anteprojeto|licita[çc][ãa]o"}
+    },
+    "_ancoras": "03/10/2026, pedido do Caio: o carimbo diz o que é, quem fez, quando e com que responsabilidade (NBR 16752:2020). Cada campo pelo rótulo-âncora: o valor é o resto da linha do rótulo ou, vazio, a linha de baixo; com `valor`, só o trecho que casa. Rótulo novo de projetista novo entra aqui",
+    "revisoes": "^\\s*(R?\\d{1,2}|[A-H])\\s+(\\d{2}/\\d{2}/\\d{2,4})\\s+(\\S.{2,})$",
+    "_revisoes": "o quadro de revisões: uma linha por revisão (revisão, data, descrição); a vigente é a última. Sem ligar as revisões o sistema soma a mesma tubulação em R0, R1 e R2 (plano_projeto §1)",
+    "caracteres_texto": 30,
+    "_caracteres_texto": "com menos que isso de texto real na região, o carimbo é desenho (texto em curva ou escaneado): vai ao OCR em recorte, na vez da GPU",
+    "ocr_dpi": 300,
+    "ocr_lado_max_px": 2400
   },
   "eixo": {
     "_regra": "o traçado da obra linear desenhado como faixa preenchida numa cor (triângulos em sequência); o eixo é o ponto médio de cada par de bordas. Cor por projetista: acrescentar aqui quando outro padrão aparecer. Medido em mm de papel; vira metro com a escala que dois leitores confirmarem",

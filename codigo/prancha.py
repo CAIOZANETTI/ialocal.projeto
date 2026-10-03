@@ -104,20 +104,108 @@ def perfilar(documento, caminho, nome):
     return perfil
 
 
-def ler_carimbo(pagina, nome):
-    """Texto real da região do carimbo (pdfium, coordenada com a origem embaixo) e os campos por padrão; o nome do
-    arquivo tem de estar no carimbo (arquivo_confere)."""
-    CARIMBO = comum.configuracao('prancha')['carimbo']
-    x0, y0, x1, y1 = CARIMBO['regiao']
+def regiao_do_carimbo(pagina):
+    """A região do carimbo na página em pt do pdfium (esquerda, baixo, direita, cima), pela fração de prancha.json."""
+    x0, y0, x1, y1 = comum.configuracao('prancha')['carimbo']['regiao']
     largura, altura = pagina.get_size()
-    texto = pagina.get_textpage().get_text_bounded(left=x0 * largura, bottom=(1 - y1) * altura, right=x1 * largura,
-                                                    top=(1 - y0) * altura)
+    return x0 * largura, (1 - y1) * altura, x1 * largura, (1 - y0) * altura
+
+
+def campo_por_ancora(linhas, regra):
+    """O valor de um campo do carimbo: o resto da linha do rótulo ou, se vazio, a linha de baixo; com `valor`, só o
+    trecho que casa (nas duas). '' se o rótulo não aparece."""
+    for numero, linha in enumerate(linhas):
+        achado = re.search(regra['rotulo'], linha)
+        if not achado:
+            continue
+        candidatos = [linha[achado.end():].strip(' :-–.\t'), *(l.strip() for l in linhas[numero + 1:numero + 2])]
+        for candidato in candidatos:
+            valor = re.search(regra['valor'], candidato) if regra.get('valor') else None
+            if regra.get('valor') and valor:
+                return valor.group(0).strip()
+            if not regra.get('valor') and len(candidato) >= 3:
+                return candidato[:120]
+    return ''
+
+
+def campos_do_carimbo(texto, nome):
+    """Os campos do carimbo no texto (real ou lido): os por padrão (folha, data, escala, revisão do nome), os por
+    rótulo-âncora (número, título, projetista, responsável, CREA, ART…), o quadro de revisões e se o número do desenho
+    confere com o nome do arquivo."""
+    CARIMBO = comum.configuracao('prancha')['carimbo']
     campos = {}
     for campo, padrao in CARIMBO['campos'].items():
         achado = re.search(padrao, Path(nome).stem if campo == 'revisao_nome' else texto)
-        campos[f'carimbo_{campo}'] = ('/'.join(achado.groups()) if campo == 'folha' else achado.group(1)) if achado else ''
+        campos[campo] = ('/'.join(achado.groups()) if campo == 'folha' else achado.group(1)) if achado else ''
+    linhas = [l for l in unicodedata.normalize('NFKC', texto).splitlines() if l.strip()]
+    campos.update({campo: campo_por_ancora(linhas, regra) for campo, regra in CARIMBO['ancoras'].items()})
+    revisoes = [m.groups() for m in (re.match(CARIMBO['revisoes'], l) for l in linhas) if m]
+    campos['revisoes'] = json.dumps([{'revisao': r, 'data': d, 'descricao': x.strip()[:120]} for r, d, x in revisoes], ensure_ascii=False)
+    campos['revisao_vigente'] = revisoes[-1][0] if revisoes else ''
     compacto = lambda s: re.sub(r'\s+', '', unicodedata.normalize('NFKC', s)).upper()
-    return {'carimbo_texto': texto[:2000], **campos, 'carimbo_arquivo_confere': compacto(Path(nome).stem) in compacto(texto)}
+    campos['arquivo_confere'] = compacto(Path(nome).stem) in compacto(texto) or (
+        bool(campos['numero_desenho']) and compacto(campos['numero_desenho']) in compacto(Path(nome).stem))
+    return campos
+
+
+def ler_carimbo(pagina, nome):
+    """O carimbo pelo texto real da região (pdfium): os campos com o prefixo carimbo_ e a camada — `texto` se há texto
+    bastante para ler por código, `imagem` se o carimbo é desenho (texto em curva ou escaneado) e vai ao OCR em recorte."""
+    esquerda, baixo, direita, cima = regiao_do_carimbo(pagina)
+    texto = pagina.get_textpage().get_text_bounded(left=esquerda, bottom=baixo, right=direita, top=cima)
+    camada = 'texto' if len(texto.strip()) >= comum.configuracao('prancha')['carimbo']['caracteres_texto'] else 'imagem'
+    campos = campos_do_carimbo(texto, nome) if camada == 'texto' else {}
+    return {'carimbo_texto': texto[:2000], 'carimbo_camada': camada, **{f'carimbo_{c}': v for c, v in campos.items()}}
+
+
+def recorte_do_carimbo(caminho, pasta):
+    """A região do carimbo renderizada a ocr_dpi (o lado maior até ocr_lado_max_px), em PNG: o recorte que vai ao OCR."""
+    import pypdfium2 as pdfium
+    CARIMBO = comum.configuracao('prancha')['carimbo']
+    destino = pasta / 'carimbo.png'
+    if destino.exists():
+        return destino
+    documento = pdfium.PdfDocument(caminho)
+    pagina = documento[0]
+    esquerda, baixo, direita, cima = regiao_do_carimbo(pagina)
+    largura, altura = pagina.get_size()
+    escala = min(CARIMBO['ocr_dpi'] / 72, CARIMBO['ocr_lado_max_px'] / max(direita - esquerda, cima - baixo, 1))
+    imagem = pagina.render(scale=escala, crop=(esquerda, baixo, largura - direita, altura - cima)).to_pil()
+    documento.close()
+    pasta.mkdir(parents=True, exist_ok=True)
+    imagem.save(destino)
+    return destino
+
+
+def ler_carimbo_ocr(imagem, nome, com_vision, base):
+    """O carimbo que é desenho, lido no recorte pelo glm-ocr e pelo Vision: cada campo vira uma linha com quem o leu —
+    `confirmado` quando os dois leram o mesmo, `so_glm`/`so_vision` quando só um leu, `divergente` quando leram outra
+    coisa (os dois valores ficam). Campo que ninguém leu não vira linha."""
+    lida = ia.dupla_leitura(ia.ocr_da_pagina(imagem), imagem, com_vision)
+    leituras = {leitor: campos_do_carimbo(texto, nome) if texto else {}
+                for leitor, texto in (('glm_ocr', lida['texto']), ('vision', lida['texto_vision']))}
+    linhas = []
+    for campo in sorted(set(leituras['glm_ocr']) | set(leituras['vision'])):
+        if campo in ('revisao_nome', 'arquivo_confere'):
+            continue
+        glm, vision = (str(leituras[l].get(campo) or '') for l in ('glm_ocr', 'vision'))
+        if campo == 'revisoes':
+            glm, vision = ('' if v == '[]' else v for v in (glm, vision))
+        if not glm and not vision:
+            continue
+        status = ('confirmado' if normalizar(glm) == normalizar(vision) else 'divergente' if glm and vision
+                  else 'so_glm' if glm else 'so_vision')
+        linhas.append({**base, 'campo': campo, 'valor': glm if status != 'so_vision' else vision,
+                       'valor_vision': vision if status == 'divergente' else '', 'status': status,
+                       'erro': lida['erro'], 'erro_vision': lida['erro_vision']})
+    return linhas
+
+
+def linhas_do_carimbo_por_codigo(linha, base):
+    """As linhas da família carimbo para o carimbo lido por código (texto real do PDF): leitor pdf, status codigo."""
+    return [{**base, 'campo': c[len('carimbo_'):], 'valor': str(v), 'valor_vision': '', 'status': 'codigo', 'erro': '', 'erro_vision': ''}
+            for c, v in linha.items() if c.startswith('carimbo_') and c not in ('carimbo_texto', 'carimbo_camada', 'carimbo_revisao_nome')
+            and v not in ('', None, '[]')]
 
 
 def familia(nome, texto):
@@ -322,19 +410,40 @@ def ler_prancha(documento, rodada):
         pdf = pdfium.PdfDocument(caminho)
         perfil = perfilar(pdf, caminho, documento['nome'])
         linha = {**base, **{k: v for k, v in perfil.items() if k not in ('texto', 'texto_folhas')}}
+        linha['boletim_sondagem'] = e_boletim(pdf, documento['nome'], perfil['formato'])
+        if linha['boletim_sondagem']:  # o boletim é lido pelo sondagem.py, não como prancha (é A4 quase sempre)
+            perfil['e_prancha'] = linha['e_prancha'] = False
+            linha['motivo'] = 'boletim de sondagem'
         if perfil['e_prancha']:
             pagina = pdf[0]
             linha.update(**ler_carimbo(pagina, documento['nome']), **familia(documento['nome'], perfil['texto_folhas']))
             linha.update(**eixo(pagina, linha.get('grupo')), fatias=len(plano_fatias(*pagina.get_size())))
+        linha['camada'] = camada(perfil)
         pdf.close()
     except Exception as falha:  # PDF que o pdfium não abre não é prancha que se leia: fica o motivo, a fila segue
         perfil = {'e_prancha': False}
-        linha = {**base, 'e_prancha': False, 'motivo': f'erro ao abrir: {type(falha).__name__}: {falha}'[:300]}
+        linha = {**base, 'e_prancha': False, 'boletim_sondagem': False, 'motivo': f'erro ao abrir: {type(falha).__name__}: {falha}'[:300]}
     comum.gravar('prancha', [linha], [{**base, 'familia': 'prancha', 'segundos': round(time.perf_counter() - marca, 2),
                                        'e_prancha': perfil['e_prancha'], 'erro': ''}])
+    if linha.get('carimbo_camada') == 'texto':
+        comum.gravar('carimbo', linhas_do_carimbo_por_codigo(linha, {**base, 'leitor': 'pdf'}))
     if perfil['e_prancha']:
         reconferir(documento['id'], linha)
     return linha
+
+
+def e_boletim(pdf, nome, formato):
+    """O PDF é boletim de sondagem? Pelo texto das primeiras páginas (sondagem.json → reconhecer) ou, digitalizado, pelo nome."""
+    import sondagem
+    texto = '\n'.join(pdf[i].get_textpage().get_text_range() for i in range(min(len(pdf), sondagem.regras()['reconhecer']['paginas'])))
+    return sondagem.e_boletim(nome, texto, formato)
+
+
+def camada(perfil):
+    """Por onde a folha se lê (pedido do Caio, 03/10: projeto vetorial vai ao código, digitalizado à IA): `texto` — o
+    texto é texto, o código lê texto e geometria (pypdfium2, pdfplumber); `vetor` — o desenho é vetor mas o texto virou
+    curva: a geometria pelo código, o texto pelo OCR; `imagem` — escaneada: tudo pelo OCR, sem geometria."""
+    return {'vetorial_texto': 'texto', 'vetorial_curva': 'vetor', 'raster': 'imagem'}.get(perfil.get('classe'), '')
 
 
 def reconferir(identificador, linha):
@@ -557,6 +666,9 @@ def ler_prancha_ia(documento, rodada):
     caminho = Path(documento['arquivo_local'])
     pasta, com_vision = comum.DADOS / 'recortes' / caminho.stem, ia.instalado('Vision')
     prazo = relogio + comum.configuracao('operacao')['limite_ia_s']
+    if linha.get('carimbo_camada') == 'imagem':
+        comum.gravar('carimbo', ler_carimbo_ocr(recorte_do_carimbo(caminho, pasta), documento['nome'], com_vision,
+                                                {**base_da_linha(documento, 'carimbo_ia', rodada), 'leitor': 'glm_ocr+vision'}))
     leituras, planejadas = ler_fatias(caminho, pasta, com_vision, base, prazo)
     tabelas = ler_imagens(caminho, pasta, com_vision, base, prazo)
     contagem = {s: sum(l['status'] == s for l in leituras) for s in ('confirmado', 'so_glm', 'so_vision', 'um_leitor')}
