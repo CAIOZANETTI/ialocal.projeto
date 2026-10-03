@@ -3,8 +3,9 @@
     .venv/bin/python codigo/ciclo.py rodada     # o que o launchd roda a cada 5 min; sai sozinha (rodada_max_s)
     .venv/bin/python codigo/ciclo.py status     # só regrava saidas/status.json
 
-Ordem (decisão do Caio de 26/09, que veio do extrator): todo o código antes (ler_prancha: é prancha?, carimbo,
-família, eixo), depois a IA (ler_prancha_ia), uma prancha por vez na vez da GPU que o maestro dá (cliente_gpu.py,
+Ordem (decisão do Caio de 26/09, que veio do extrator): todo o código antes (ler_prancha: é prancha ou boletim?,
+camada, carimbo, família, eixo; ler_sondagem: as páginas com texto do boletim), depois a IA (ler_sondagem_ia nas
+páginas digitalizadas do boletim, ler_prancha_ia), um documento por vez na vez da GPU que o maestro dá (cliente_gpu.py,
 prioridade 7: atrás dos documentos do extrator). Refaz sozinho a leitura feita com código anterior à versão que a
 declara em `muda` (codigo/versoes.jsonl) e a de documento cujo conteúdo mudou. Falha volta na rodada seguinte até
 `tentativas` vezes por versão do código. O andamento sai em saidas/status.json, no formato comum que o maestro lê.
@@ -22,8 +23,10 @@ import cliente_gpu
 import comum
 import entrega
 import prancha
+import sondagem
 
-TAREFAS = {'ler_prancha': 'prancha', 'ler_prancha_ia': 'prancha_ia'}  # tarefa → extrator da linha em prancha.parquet
+TAREFAS = {'ler_prancha': ('prancha', 'prancha'), 'ler_prancha_ia': ('prancha', 'prancha_ia'),  # tarefa → (família, extrator
+           'ler_sondagem': ('sondagem', 'sondagem'), 'ler_sondagem_ia': ('sondagem', 'sondagem_ia')}  # do resumo dela)
 FALHAS = comum.DADOS / 'falhas.jsonl'
 
 
@@ -46,32 +49,50 @@ def falhas_agora():
 
 
 def situacao(documentos):
-    """Cada documento entregue em uma situação: codigo (falta o código), ia (prancha esperando a IA), feito (não é
-    prancha, ou as duas leituras em dia) ou falhou (passou das tentativas com este código)."""
-    tabela, VIGENTE = comum.ler('prancha'), vigentes()
-    linhas = {} if tabela is None else {(l['id'], l['extrator']): l for l in tabela.to_dicts()}
+    """id → a tarefa que falta (ler_prancha, ler_sondagem, ler_sondagem_ia, ler_prancha_ia), `feito` ou `falhou` (passou
+    das tentativas com este código). O ler_prancha vem antes de tudo: é ele que diz se a folha é prancha, boletim de
+    sondagem ou nenhum dos dois."""
+    VIGENTE, linhas = vigentes(), {}
+    for familia in {f for f, _ in TAREFAS.values()}:
+        tabela = comum.ler(familia)
+        linhas.update({} if tabela is None else {(l['id'], l['extrator']): l for l in tabela.to_dicts()})
     falhas, TENTATIVAS = falhas_agora(), comum.configuracao('operacao')['tentativas']
-    em_dia = lambda d, extrator: (l := linhas.get((d['id'], extrator))) is not None and l['versao_documento'] == d['versao'] \
-        and numero(l['versao_codigo']) >= numero(VIGENTE[next(t for t, e in TAREFAS.items() if e == extrator)])
+    em_dia = lambda d, tarefa: (l := linhas.get((d['id'], TAREFAS[tarefa][1]))) is not None and l['versao_documento'] == d['versao'] \
+        and numero(l['versao_codigo']) >= numero(VIGENTE[tarefa])
     estados = {}
     for documento in documentos:
-        if not em_dia(documento, 'prancha'):
-            tarefa = 'ler_prancha'
-        elif linhas[(documento['id'], 'prancha')]['e_prancha'] and not em_dia(documento, 'prancha_ia'):
-            tarefa = 'ler_prancha_ia'
-        else:
+        tarefa = proxima_tarefa(documento, linhas, em_dia)
+        if tarefa is None:
             estados[documento['id']] = 'feito'
             continue
-        esgotou = falhas[(documento['id'], documento['versao'], tarefa)] >= TENTATIVAS
-        estados[documento['id']] = 'falhou' if esgotou else 'codigo' if tarefa == 'ler_prancha' else 'ia'
+        estados[documento['id']] = 'falhou' if falhas[(documento['id'], documento['versao'], tarefa)] >= TENTATIVAS else tarefa
     return estados
+
+
+def fase(estado):
+    """codigo, ia, feito ou falhou: a tarefa que falta pela natureza dela."""
+    return estado if estado in ('feito', 'falhou') else 'ia' if estado.endswith('_ia') else 'codigo'
+
+
+def proxima_tarefa(documento, linhas, em_dia):
+    """A tarefa que falta: ler_prancha; no boletim, ler_sondagem e, com página digitalizada, ler_sondagem_ia; na
+    prancha, ler_prancha_ia. None se está tudo em dia."""
+    if not em_dia(documento, 'ler_prancha'):
+        return 'ler_prancha'
+    perfil = linhas[(documento['id'], 'prancha')]
+    if perfil.get('boletim_sondagem'):
+        if not em_dia(documento, 'ler_sondagem'):
+            return 'ler_sondagem'
+        digitalizadas = json.loads(linhas[(documento['id'], 'sondagem')].get('paginas_ocr') or '[]')
+        return 'ler_sondagem_ia' if digitalizadas and not em_dia(documento, 'ler_sondagem_ia') else None
+    return 'ler_prancha_ia' if perfil['e_prancha'] and not em_dia(documento, 'ler_prancha_ia') else None
 
 
 def executar(tarefa, documento, rodada):
     """Uma leitura; a falha fica em dados/falhas.jsonl com o erro e a rodada segue."""
     marca = time.perf_counter()
     try:
-        getattr(prancha, tarefa)(documento, rodada)
+        getattr(sondagem if 'sondagem' in tarefa else prancha, tarefa)(documento, rodada)
         erro = ''
     except Exception as falha:
         erro = f'{type(falha).__name__}: {falha}'[:500]
@@ -87,7 +108,9 @@ def publicar(documentos):
     saida/<acervo>/<obra>/projeto/ (ao lado de extrator/, revisor/ e contexto/). Só quando alguma tabela mudou desde a
     última publicação."""
     DRIVE, marca = comum.configuracao('operacao')['drive'], comum.DADOS / '.publicado'
-    FAMILIAS = {'prancha': 'pranchas.csv', 'prancha_leitura': 'prancha_leituras.csv', 'prancha_tabela': 'prancha_tabelas.csv'}
+    FAMILIAS = {'prancha': 'pranchas.csv', 'prancha_leitura': 'prancha_leituras.csv', 'prancha_tabela': 'prancha_tabelas.csv',
+                'carimbo': 'carimbos.csv', 'sondagem_campo': 'sondagens.csv', 'sondagem_spt': 'sondagem_spt.csv',
+                'sondagem_camada': 'sondagem_camadas.csv'}
     mudou = max(((comum.DADOS / f'{f}.parquet').stat().st_mtime for f in FAMILIAS if (comum.DADOS / f'{f}.parquet').exists()), default=0)
     if not mudou or (marca.exists() and marca.stat().st_mtime >= mudou):
         return
@@ -107,8 +130,8 @@ def publicar(documentos):
 def status(documentos, ultima=None):
     """saidas/status.json no formato comum dos repositórios (o do revisor): o maestro o lê pelo cadastro."""
     estados = situacao(documentos)
-    contagem = Counter(estados.values())
-    tabela = comum.ler('prancha')
+    contagem, tarefas = Counter(fase(e) for e in estados.values()), Counter(estados.values())
+    tabela, boletins = comum.ler('prancha'), comum.ler('sondagem_campo')
     ia = [] if tabela is None else tabela.filter(pl.col('extrator') == 'prancha_ia').to_dicts()
     pranchas = 0 if tabela is None else tabela.filter((pl.col('extrator') == 'prancha') & pl.col('e_prancha').fill_null(False)).height
     motivo = (f"{contagem['falhou']} leitura(s) falharam {comum.configuracao('operacao')['tentativas']} vezes com este código "
@@ -118,9 +141,12 @@ def status(documentos, ultima=None):
         'gerado_em': comum.agora(), 'saude': 'atenção' if motivo else 'ok', 'motivo': motivo, 'usa_gpu': True,
         'progresso': {'feito': contagem['feito'], 'total': len(documentos)},
         'fila': {'codigo': contagem['codigo'], 'ia': contagem['ia'], 'na_fila': contagem['codigo'] + contagem['ia'],
-                 'falhou': contagem['falhou']},
+                 'falhou': contagem['falhou'], 'por_tarefa': {t: n for t, n in tarefas.items() if t not in ('feito', 'falhou')}},
         'pranchas': {'reconhecidas': pranchas, 'lidas_pela_ia': len(ia),
                      'conferencia': dict(Counter(l.get('conferencia') or 'sem' for l in ia))},
+        'sondagens': {'boletins': 0 if tabela is None else tabela.filter(pl.col('boletim_sondagem').fill_null(False)).height
+                      if 'boletim_sondagem' in tabela.columns else 0,
+                      'furos': 0 if boletins is None else boletins.filter(pl.col('campo') == 'furo')['valor'].n_unique()},
         'por_obra': por_obra(documentos, estados, tabela),
         'ultima_rodada': ultima, 'precisa_do_caio': []}, ensure_ascii=False, indent=1))
 
@@ -163,26 +189,27 @@ def rodada():
             publicado = time.monotonic()
         return time.monotonic() - inicio < OPERACAO['rodada_max_s']
 
+    for _ in range(2):  # ler_prancha diz o que a folha é; no boletim, o ler_sondagem vem na segunda passada
+        estados = situacao(documentos)
+        for documento in [d for d in documentos if fase(estados[d['id']]) == 'codigo']:
+            if not seguir():
+                break
+            executar(estados[documento['id']], documento, rodada_em)
+            feitas['codigo'] += 1
     estados = situacao(documentos)
-    for documento in [d for d in documentos if estados[d['id']] == 'codigo']:
-        if not seguir():
-            break
-        executar('ler_prancha', documento, rodada_em)
-        feitas['codigo'] += 1
-    estados = situacao(documentos)
-    fila = [d for d in documentos if estados[d['id']] == 'ia']
+    fila = sorted((d for d in documentos if fase(estados[d['id']]) == 'ia'), key=lambda d: estados[d['id']] != 'ler_sondagem_ia')
     publicar(documentos)  # o código terminou: o maestro vê o andamento já, não só depois da espera pela vez e da primeira prancha
     status(documentos, {'inicio': rodada_em, 'em_curso': True, **feitas})
     publicado = time.monotonic()
     if fila and seguir():
         GPU = OPERACAO['gpu']
         print(f"{time.strftime('%d/%m %H:%M:%S')}  pedindo a vez da GPU ao maestro (prioridade {GPU['prioridade']}): "
-              f"{len(fila)} pranchas para a IA", flush=True)
+              f"{len(fila)} documentos para a IA ({', '.join(f'{n} {t}' for t, n in Counter(estados[d['id']] for d in fila).items())})", flush=True)
         with cliente_gpu.vez_da_gpu('ialocal.projeto', str(comum.DADOS / 'gpu'), GPU['prioridade'], GPU['modelo'], 'prancha') as vez:
             for documento in fila:
                 if not vez.minha() or not seguir():  # alguém mais importante espera, ou a rodada acabou: a próxima pede de novo
                     break
-                executar('ler_prancha_ia', documento, rodada_em)
+                executar(estados[documento['id']], documento, rodada_em)
                 feitas['ia'] += 1
     publicar(documentos)
     status(documentos, {'inicio': rodada_em, 'fim': comum.agora(), **feitas})
