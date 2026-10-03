@@ -148,7 +148,14 @@ def status(documentos, ultima=None):
                       if 'boletim_sondagem' in tabela.columns else 0,
                       'furos': 0 if boletins is None else boletins.filter(pl.col('campo') == 'furo')['valor'].n_unique()},
         'por_obra': por_obra(documentos, estados, tabela),
-        'ultima_rodada': ultima, 'precisa_do_caio': []}, ensure_ascii=False, indent=1))
+        'ultima_rodada': ultima, **pedidos_ao_caio()}, ensure_ascii=False, indent=1))
+
+
+def pedidos_ao_caio():
+    """As demandas abertas de conceitos/demandas.json: quantas (precisa_do_caio, o número que o maestro conta) e quais
+    (demandas: id, título e texto), que o maestro põe na caixa de avisos e o ialocal.web manda por e-mail."""
+    abertas = [{c: d[c] for c in ('id', 'titulo', 'texto')} for d in comum.configuracao('demandas')['demandas'] if d['aberta']]
+    return {'precisa_do_caio': len(abertas), 'demandas': abertas}
 
 
 def por_obra(documentos, estados, tabela):
