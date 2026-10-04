@@ -1,0 +1,56 @@
+{
+  "metadata": {
+    "o_que_e": "Os agentes externos que leem os mesmos recortes que a IA local (notas/plano_agentes_nvidia.md), na exceção do MASTER-PLAN §5.6. Agente é leitor candidato: o que ele leu passa pela curadoria em Python, e confirmado continua exigindo uma testemunha que não gera texto. Trocar de modelo, ligar ou desligar: por PR.",
+    "atualizado_em": "2026-10-04",
+    "decisao": "Caio, 04/10/2026: os projetos são da Sanepar, de domínio público, e o boletim de sondagem pode ir (é amostra de solo); o boletim é o mais difícil e o que mais precisa de ajuda"
+  },
+  "ligado": true,
+  "prazo_fim": "2026-11-03",
+  "_prazo_fim": "fim da exceção (MASTER-PLAN §5.6); depois disso o código não chama, mesmo ligado. Renovar só com o placar da bancada",
+  "obras_permitidas": ["*"],
+  "_obras_permitidas": "'*' = todas (decisão de 04/10: todo o acervo é projeto público da Sanepar); senão a lista acervo/obra",
+  "mascarar_carimbo": false,
+  "_mascarar_carimbo": "true pinta de branco a região do carimbo (prancha.json → carimbo.regiao) nas fatias da folha antes de enviar; desligado pela decisão de 04/10 (projeto público)",
+  "endpoint": "https://integrate.api.nvidia.com/v1/chat/completions",
+  "chave": "~/.config/ialocal/nvidia_api_key",
+  "_chave": "o arquivo com a chave nvapi-… (chmod 600), ou a variável NVIDIA_API_KEY. Nunca no git, nunca na chave do congelamento, nunca no log",
+  "tentativas": 3,
+  "espera_s": 4,
+  "_tentativas": "429, 5xx, timeout e queda de rede tentam de novo depois de Retry-After (ou espera_s × 2ⁿ) com sorteio de até 1 s; outro 4xx falha na hora",
+  "gratuito_conferido_em": "",
+  "_gratuito_conferido_em": "data em que o Caio viu o selo Free Endpoint na página dos dois modelos (F0); o preço muda: modelo que deixar de ser gratuito sai com ligado false",
+  "agentes": {
+    "kimi": {
+      "modelo": "moonshotai/kimi-k3",
+      "tipo": "vlm",
+      "natureza": "generativo",
+      "prompt": {"texto": "agente_texto", "tabela": "agente_tabela"},
+      "max_tokens": 8192,
+      "lado_max_px": 2048,
+      "simultaneas": 2,
+      "por_minuto": 20,
+      "timeout_s": 300,
+      "_": "VLM generalista, primeiro no OmniDocBench (91,1); raciocínio sempre ligado (o raciocínio vem em reasoning_content e fica de fora: só o content é leitura). Transcreve: os números saem do texto pelos mesmos padrões do código (prancha.json, sondagem.json)"
+    },
+    "parse": {
+      "modelo": "nvidia/nemotron-parse-2.0",
+      "tipo": "parser",
+      "natureza": "generativo",
+      "ferramenta": "markdown_bbox",
+      "max_tokens": 9000,
+      "lado_max_px": 2048,
+      "simultaneas": 2,
+      "por_minuto": 20,
+      "timeout_s": 180,
+      "_": "parser de documento < 1 B: texto com caixa (normalizada 0–1), classe do elemento e tabela; recomendado de 1.024×1.280 a 1.664×2.048 px. A resposta pode vir em tool_calls (JSON) ou em texto com marcas <x_><y_><class_>: os dois são lidos (a sonda diz qual)"
+    }
+  },
+  "reservas": {
+    "glm_flash": "z-ai/glm-5.3-flash",
+    "muse": "meta/muse-glimmer-30b",
+    "deepseek_flash": "deepseek-ai/deepseek-v4.1-flash",
+    "_": "entram pela mesma bancada, trocando o modelo de um agente (tipo vlm) — nenhum código novo"
+  },
+  "sonda": "amostras/tabelas/216_cambe/Tabela 01.png",
+  "_sonda": "a imagem da sonda (F1): a tabela 01 de Cambé, que tem gabarito transcrito pelo Caio"
+}

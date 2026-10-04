@@ -1,6 +1,7 @@
-"""A única porta do projeto para os modelos do mini (§5.4): Ollama (glm-ocr, qwen3), o Vision do macOS e o modelo do
-dispositivo da Apple. Nenhum chama nuvem. Toda resposta é congelada com a configuração inteira (§8.2): a mesma chave
-devolve a resposta guardada em dados/congelamento.jsonl, sem chamar o modelo de novo.
+"""A única porta do projeto para os modelos: os do mini (§5.4) — Ollama (glm-ocr, qwen3), o Vision do macOS e o modelo
+do dispositivo da Apple — e, na exceção do MASTER-PLAN §5.6 (só este repositório, com prazo), os agentes do catálogo
+da NVIDIA (nvidia(); conceitos/agentes.json). Toda resposta é congelada com a configuração inteira (§8.2): a mesma
+chave devolve a resposta guardada em dados/congelamento.jsonl, sem chamar o modelo de novo.
 
 Copiado de ialocal.extrator/codigo/modelos_ia.py e extracao.py (2v93) só no que a prancha usa: cópia, não import —
 cada repositório roda sozinho. O texto da prancha vai como dado, nunca como instrução (princípio 10).
@@ -11,8 +12,11 @@ import hashlib
 import importlib.util
 import io
 import json
+import os
+import random
 import re
 import sys
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -66,10 +70,10 @@ def instalado(modulo):
         return modulo in sys.modules
 
 
-def imagem_para_ia(caminho):
-    """A imagem como vai ao modelo: o lado maior até lado_max_px_ia (conceitos/ia.json)."""
+def imagem_para_ia(caminho, lado=None):
+    """A imagem como vai ao modelo: o lado maior até `lado` (sem ele, lado_max_px_ia de conceitos/ia.json)."""
     from PIL import Image
-    LADO = comum.configuracao('ia')['lado_max_px_ia']
+    LADO = lado or comum.configuracao('ia')['lado_max_px_ia']
     with Image.open(caminho) as imagem:
         if max(imagem.size) <= LADO:
             return Path(caminho).read_bytes()
@@ -115,6 +119,71 @@ def ollama(modelo, prompt, esquema=None, imagens=(), parcial=False):
                 return inteira['response'], {**meta, 'fim': inteira.get('done_reason')}
         except urllib.error.HTTPError as falha:
             raise RuntimeError(f'Ollama {falha.code} ({modelo}): {falha.read().decode(errors="replace")[:300]}') from falha
+    return congelado(chave, chamar)
+
+
+def chave_nvidia():
+    """A chave da API da NVIDIA: a variável NVIDIA_API_KEY ou o arquivo de agentes.json → chave; '' se não há."""
+    if os.environ.get('NVIDIA_API_KEY', '').strip():
+        return os.environ['NVIDIA_API_KEY'].strip()
+    arquivo = Path(os.path.expanduser(comum.configuracao('agentes')['chave']))
+    return arquivo.read_text().strip() if arquivo.exists() else ''
+
+
+RITMO, RITMO_TRAVA = {}, threading.Lock()
+
+
+def esperar_vez(modelo, por_minuto):
+    """Um pedido do mesmo modelo a cada 60/por_minuto s, entre todas as threads: o limite do gratuito não é publicado."""
+    with RITMO_TRAVA:
+        trava, ultimo = RITMO.setdefault(modelo, (threading.Lock(), [0.0]))
+    with trava:
+        espera = ultimo[0] + 60 / por_minuto - time.monotonic()
+        if espera > 0:
+            time.sleep(espera)
+        ultimo[0] = time.monotonic()
+
+
+def nvidia(modelo, pedido, imagens=(), opcoes=None, lado_max_px=2048, timeout_s=300, por_minuto=20):
+    """Resposta de um modelo do catálogo da NVIDIA (API no formato OpenAI): `pedido` é o texto, as imagens vão como data
+    URI. Devolve o JSON {'texto', 'ferramentas'} (o content e os argumentos das tool_calls; o raciocínio fica de fora).
+    429, 5xx, timeout e queda de rede tentam de novo (agentes.json → tentativas); outro 4xx sobe na hora. A chave da API
+    não entra na chave do congelamento; o remoto não tem digest: o modelo e os tokens que a resposta diz vão ao meta."""
+    AGENTES = comum.configuracao('agentes')
+    partes = ([{'type': 'text', 'text': pedido}] if pedido else []) + [
+        {'type': 'image_url', 'image_url': {'url': 'data:image/png;base64,' + base64.b64encode(imagem_para_ia(i, lado_max_px)).decode()}}
+        for i in imagens]
+    corpo = {'model': modelo, 'messages': [{'role': 'user', 'content': partes}], 'temperature': 0, **(opcoes or {})}
+    chave = {'motor': 'nvidia', 'modelo': modelo, 'pedido': pedido, 'opcoes': opcoes or {}, 'lado_max_px': lado_max_px,
+             'imagens': [hashlib.sha256(Path(i).read_bytes()).hexdigest() for i in imagens]}
+
+    def chamar():
+        envio = urllib.request.Request(AGENTES['endpoint'], data=json.dumps(corpo).encode(), headers={
+            'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': f'Bearer {chave_nvidia()}'})
+        for tentativa in range(AGENTES['tentativas'] + 1):
+            esperar_vez(modelo, por_minuto)
+            try:
+                with urllib.request.urlopen(envio, timeout=timeout_s) as resposta:
+                    inteira = json.load(resposta)
+                break
+            except urllib.error.HTTPError as falha:
+                motivo = f'NVIDIA {falha.code} ({modelo}): {falha.read().decode(errors="replace")[:300]}'
+                if (falha.code != 429 and falha.code < 500) or tentativa == AGENTES['tentativas']:
+                    raise RuntimeError(motivo) from falha
+                pedida = falha.headers.get('Retry-After', '')
+                espera = float(pedida) if re.fullmatch(r'\d+(?:\.\d+)?', pedida.strip()) else AGENTES['espera_s'] * 2 ** tentativa
+            except (urllib.error.URLError, TimeoutError, ConnectionError) as falha:
+                if tentativa == AGENTES['tentativas']:
+                    raise RuntimeError(f'NVIDIA sem resposta ({modelo}): {falha}') from falha
+                espera = AGENTES['espera_s'] * 2 ** tentativa
+            time.sleep(espera + random.random() * min(1, AGENTES['espera_s']))
+        escolha, uso = inteira['choices'][0], inteira.get('usage') or {}
+        mensagem = escolha.get('message') or {}
+        resposta = {'texto': mensagem.get('content') or '',
+                    'ferramentas': [c['function']['arguments'] for c in mensagem.get('tool_calls') or []]}
+        return json.dumps(resposta, ensure_ascii=False), {
+            'motor': 'nvidia', 'modelo': inteira.get('model') or modelo, 'fim': escolha.get('finish_reason'),
+            'tokens_entrada': uso.get('prompt_tokens'), 'tokens_saida': uso.get('completion_tokens'), 'tentativas': tentativa + 1}
     return congelado(chave, chamar)
 
 

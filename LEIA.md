@@ -22,6 +22,7 @@ python3 -m venv .venv && .venv/bin/pip install polars pdfplumber pypdfium2 pillo
 .venv/bin/python codigo/ciclo.py rodada     # uma rodada à mão (a agendada faz o mesmo)
 .venv/bin/python codigo/ciclo.py status     # só regrava saidas/status.json
 .venv/bin/python codigo/mini.py instalar    # agenda a rodada e o atualizar a cada 5 min (com o python do .venv)
+.venv/bin/python codigo/agentes.py sondar   # os agentes da NVIDIA (exceção §5.6) leem a tabela 01 de Cambé: formato, tempo, placar
 ```
 
 **O clone pede uma chave de acesso própria** (como os outros `ialocal.*`):
@@ -50,7 +51,8 @@ codigo/sondagem.py      o boletim de sondagem: ler_sondagem (páginas com texto,
 codigo/ciclo.py         a rodada: o que está pendente, código antes, IA na vez da GPU; publica; status.json
 codigo/entrega.py       lê o que o extrator entregou (só lê): PDFs A3 ou maiores e o mapa das obras; e os anexos das respostas
 codigo/respostas.py     as respostas da equipe às demandas (guardadas pelo ialocal.web): PDFs para a rodada, CSV gabarito, o resultado
-codigo/ia.py            a porta para os modelos locais (Ollama, Vision, Apple FM), com congelamento das respostas
+codigo/ia.py            a porta para os modelos locais (Ollama, Vision, Apple FM) e, na exceção §5.6, a API da NVIDIA (nvidia), com congelamento das respostas
+codigo/agentes.py       os agentes externos (Kimi K3, Nemotron Parse 2.0): leitura por agente, em paralelo, registro, sonda contra o gabarito de Cambé
 codigo/comum.py         pastas, conceitos, Parquet com troca por chave, CSV para o Drive
 codigo/cliente_gpu.py   cópia do cliente da trava de GPU do ialocal.maestro (não editar aqui)
 codigo/mini.py          atualizar (só fast-forward da main) e instalar (launchd)
@@ -60,15 +62,17 @@ codigo/versoes.jsonl    0v1…: data, resumo e as tarefas que cada versão muda 
 conceitos/prancha.json  o que reconhece a prancha, famílias, carimbo (campos por rótulo-âncora, revisões), eixo, fatias, padrões, conferência
 conceitos/sondagem.json o boletim: como reconhecer, por onde ler cada página, os padrões do cabeçalho, do N-SPT e das camadas
 conceitos/ia.json       modelos e parâmetros das chamadas (cópia do extratores.json do extrator, 2v93)
+conceitos/agentes.json  os agentes externos: ligado, prazo da exceção, obras, modelos, ritmo, tentativas, reservas
 conceitos/demandas.json o que o projeto pede ao Caio e à equipe (id, gabarito, texto do e-mail, aberta)
 conceitos/operacao.json de onde lê a entrega e as respostas, para onde publica, limites, a prioridade na GPU
 conceitos/prompts/      prompts versionados (o hash entra na chave de congelamento)
 
 amostras/tabelas/       recortes de tabelas de prancha (Foz, Cambé) com a transcrição do Caio: o gabarito das tabelas
-notas/                  plano_projeto.md (tese e itens), testes de mesa de 26/09, protótipo da prancha (camadas, georreferência)
+notas/                  plano_projeto.md (tese e itens), testes de mesa de 26/09, protótipo da prancha (camadas, georreferência),
+                        plano_agentes_nvidia.md (dois agentes externos gratuitos em paralelo; exceção do MASTER-PLAN §5.6)
 
 dados/    prancha, prancha_leitura, prancha_tabela, carimbo, sondagem, sondagem_campo, sondagem_spt, sondagem_camada (.parquet), recortes/, congelamento.jsonl,
-          execucoes.jsonl, falhas.jsonl, gpu/ (pedidos ao maestro), launchd.log — regenerável, fora do git
+          execucoes.jsonl, falhas.jsonl, agentes.jsonl (cada chamada externa), agentes_sonda.jsonl, gpu/ (pedidos ao maestro), launchd.log — regenerável, fora do git
 saidas/   status.json (formato comum, o maestro lê) e os CSVs publicados — fora do git
 
 Drive  saida/<acervo>/<obra>/projeto/   pranchas.csv, prancha_leituras.csv, prancha_tabelas.csv, carimbos.csv, sondagens.csv,
@@ -112,5 +116,10 @@ Drive  saida/<acervo>/<obra>/projeto/   pranchas.csv, prancha_leituras.csv, pran
   PDFs entram na rodada como obra `_demandas/<demanda>`, o CSV é o gabarito. Respondida, a demanda sai da lista;
   lidos os PDFs, o status leva o `resultado` (acerto por campo, divergências) e o Caio recebe por e-mail. Cada
   resposta nova gera um resultado novo. Para ajustar os padrões: comparar as divergências e mexer no JSON por PR.
+- **Agentes externos só neste repositório, com prazo** (0v5; MASTER-PLAN §5.6, até 03/11/2026). Dois modelos gratuitos
+  do catálogo da NVIDIA leem os mesmos recortes que o glm-ocr e o Vision, em paralelo e fora da vez da GPU. São
+  leitores candidatos: o número que só eles leram nunca vira `confirmado`. A chave fica fora do git, em
+  `~/.config/ialocal/nvidia_api_key` (`chmod 600`; criar em build.nvidia.com com a conta do Developer Program). Desligar:
+  `agentes.json → ligado: false` por PR. Por ora só a sonda e a bancada chamam; a rodada não (`notas/plano_agentes_nvidia.md`).
 - **A bancada E3 (qualidade) continua no extrator** por ora: a classe `prancha_pdf` mede os modelos numa amostra, à
   parte da produção. Trazê-la para cá é o passo seguinte, junto com os itens pendentes do `plano_projeto.md` §9.
