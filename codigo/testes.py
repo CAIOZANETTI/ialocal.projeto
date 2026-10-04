@@ -518,7 +518,8 @@ def testar_agentes(raiz):
         conferir(kimi['meta']['tentativas'] == 2 and primeira == 3
                  and all(p['autorizacao'] == 'Bearer nvapi-segredo-do-teste' for p in pedidos)
                  and all(p['corpo']['messages'][0]['content'][-1]['image_url']['url'].startswith('data:image/png;base64,') for p in pedidos)
-                 and (lambda corpo: 'tools' not in corpo and corpo['messages'][0]['content'][0]['text'].startswith('</s><s><predict_bbox>'))(
+                 and (lambda corpo: 'tools' not in corpo and 'max_tokens' not in corpo
+                      and corpo['messages'][0]['content'][0]['text'].startswith('</s><s><predict_bbox>'))(
                      next(p for p in pedidos if 'parse' in p['corpo']['model'])['corpo']),
                  'a porta: 429 espera o Retry-After e tenta de novo; a chave vai no cabeçalho; a imagem como data URI; o Parse com as '
                  'marcas de controle antes da imagem e sem ferramenta (a API recusou o tool_choice na sonda de 04/10)')
