@@ -172,7 +172,8 @@ def esperar_vez(provedor, por_minuto):
 
 def nvidia(modelo, pedido, imagens=(), opcoes=None, lado_max_px=2048, timeout_s=300, provedor='nvidia', refazer=False):
     """Resposta de um modelo do catálogo da NVIDIA (API no formato OpenAI): `pedido` é o texto, as imagens vão como data
-    URI. Devolve o JSON {'texto', 'ferramentas'} (o content e os argumentos das tool_calls; o raciocínio fica de fora).
+    URI. Devolve o JSON {'texto', 'ferramentas'} (o content e os argumentos das tool_calls; o raciocínio fica de fora,
+    menos os 300 primeiros caracteres dele no meta quando o content vem vazio: o diagnóstico da resposta vazia).
     429, 5xx, timeout e queda de rede tentam de novo (agentes.json → tentativas); outro 4xx sobe na hora. A chave da API
     não entra na chave do congelamento; o remoto não tem digest: o modelo e os tokens que a resposta diz vão ao meta.
     O tempo separa o modelo do plano: segundos_util (a tentativa que deu certo), segundos_espera (o ritmo do provedor
@@ -224,7 +225,7 @@ def nvidia(modelo, pedido, imagens=(), opcoes=None, lado_max_px=2048, timeout_s=
         return json.dumps(resposta, ensure_ascii=False), {
             'motor': 'nvidia', 'modelo': inteira.get('model') or modelo, 'fim': escolha.get('finish_reason'),
             'tokens_entrada': uso.get('prompt_tokens'), 'tokens_saida': uso.get('completion_tokens'), 'tentativas': tentativa + 1, 'motivos': motivos,
-            'caracteres_raciocinio': len(raciocinio), 'segundos_util': round(util, 2), 'segundos_espera': round(espera_total, 2), 'segundos_falhas': round(falhas_total, 2)}
+            'caracteres_raciocinio': len(raciocinio), **({'raciocinio_sem_resposta': raciocinio[:300]} if not (mensagem.get('content') or '').strip() else {}), 'segundos_util': round(util, 2), 'segundos_espera': round(espera_total, 2), 'segundos_falhas': round(falhas_total, 2)}
     return congelado(chave, chamar, refazer)
 
 

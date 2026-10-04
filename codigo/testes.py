@@ -568,9 +568,10 @@ def testar_agentes(raiz):
         vez['vazia'] = False
         nova_chance = agentes.ler_com_agente('kimi', vazio, 'tabela')
         de_novo = agentes.ler_com_agente('kimi', vazio, 'tabela')
-        conferir(primeira_vazia['erro'].startswith('RespostaRuim: vazia') and len(nova_chance['linhas']) == 4
+        conferir(primeira_vazia['erro'].startswith('RespostaRuim: vazia') and "pensou: 'pensando…'" in primeira_vazia['erro']
+                 and len(nova_chance['linhas']) == 4
                  and not nova_chance['meta']['congelado'] and de_novo['meta']['congelado'] and len(pedidos) - antes == 2,
-                 'a resposta ruim desta rodada conta como erro; a que veio do congelamento ganha uma nova chamada (04/10: a bancada '
+                 'a resposta ruim desta rodada conta como erro (a vazia diz o começo do que o modelo pensou); a que veio do congelamento ganha uma nova chamada (04/10: a bancada '
                  'repetia em 0,0 s as vazias do Kimi), e a boa fica no lugar dela')
         AGENTES['agentes']['kimi']['prompt'] = {**AGENTES['agentes']['kimi']['prompt'], 'texto': 'agente_texto'}
         AGENTES['agentes']['kimi']['max_tokens'] = 'erro400'
