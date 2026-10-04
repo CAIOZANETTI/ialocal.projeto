@@ -66,8 +66,15 @@ def situacao(documentos):
         if tarefa is None:
             estados[documento['id']] = 'feito'
             continue
-        estados[documento['id']] = 'falhou' if falhas[(documento['id'], documento['versao'], tarefa)] >= TENTATIVAS else tarefa
+        estados[documento['id']] = 'falhou' if falhas[(documento['id'], documento['versao'], tarefa)] >= TENTATIVAS \
+            or (tarefa.endswith('_ia') and em_quarentena(documento)) else tarefa
     return estados
+
+
+def em_quarentena(documento):
+    """O documento que travou a IA tantas vezes (o vigia do maestro encerrou a rodada parada nele; operacao.json →
+    gpu.quarentena_travamentos) fica de fora da fila de IA: uma tentativa a mais depois do primeiro travamento, e só."""
+    return cliente_gpu.travamentos('ialocal.projeto', documento['id']) >= comum.configuracao('operacao')['gpu']['quarentena_travamentos']
 
 
 def fase(estado):
@@ -135,8 +142,10 @@ def status(documentos, ultima=None):
     tabela, boletins = comum.ler('prancha'), comum.ler('sondagem_campo')
     ia = [] if tabela is None else tabela.filter(pl.col('extrator') == 'prancha_ia').to_dicts()
     pranchas = 0 if tabela is None else tabela.filter((pl.col('extrator') == 'prancha') & pl.col('e_prancha').fill_null(False)).height
+    quarentena = [d['caminho'] for d in documentos if estados[d['id']] == 'falhou' and em_quarentena(d)]
     motivo = (f"{contagem['falhou']} leitura(s) falharam {comum.configuracao('operacao')['tentativas']} vezes com este código "
-              '(dados/falhas.jsonl)') if contagem['falhou'] else '' if documentos else 'nada entregue pelo extrator ainda'
+              '(dados/falhas.jsonl)' + (f"; {len(quarentena)} em quarentena (travaram a IA: o maestro encerrou a rodada parada nelas)"
+                                        if quarentena else '')) if contagem['falhou'] else '' if documentos else 'nada entregue pelo extrator ainda'
     comum.gravar_no_lugar(comum.SAIDAS / 'status.json', json.dumps({
         'repo': 'ialocal.projeto', 'versao': comum.codigo()['versao_codigo'], 'commit': comum.codigo()['commit'],
         'gerado_em': comum.agora(), 'saude': 'atenção' if motivo else 'ok', 'motivo': motivo, 'usa_gpu': True,
@@ -149,6 +158,7 @@ def status(documentos, ultima=None):
                       if 'boletim_sondagem' in tabela.columns else 0,
                       'furos': 0 if boletins is None else boletins.filter(pl.col('campo') == 'furo')['valor'].n_unique()},
         'por_obra': por_obra(documentos, estados, tabela),
+        'quarentena': quarentena,
         'ultima_rodada': ultima, **pedidos_ao_caio(documentos, estados)}, ensure_ascii=False, indent=1))
 
 
@@ -220,6 +230,7 @@ def rodada():
             for documento in fila:
                 if not vez.minha() or not seguir():  # alguém mais importante espera, ou a rodada acabou: a próxima pede de novo
                     break
+                vez.avancei(documento['id'])  # o item em curso: travado aqui, o vigia do maestro encerra e o registra
                 executar(estados[documento['id']], documento, rodada_em)
                 feitas['ia'] += 1
     publicar(documentos)

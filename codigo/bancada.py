@@ -132,6 +132,7 @@ def locais(imagens, modo):
                 print('locais: a vez da GPU foi pedida de volta; o resto fica para a próxima rodada', flush=True)
                 break
             leituras = {}
+            vez.avancei(Path(imagem).name)
             for nome in nomes:
                 if sem_ollama and locais_da_bancada()[nome]['motor'] == 'ollama':
                     leituras[nome] = {'linhas': [], 'texto': '', 'erro': 'Ollama fora do ar', 'util': None, 'congelado': False}

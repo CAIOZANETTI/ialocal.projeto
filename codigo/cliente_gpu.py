@@ -7,7 +7,33 @@ maestro: a regra de independência vale para todos). Só a biblioteca padrão.
         for item in fila:
             if not vez.minha():      # o pedaço venceu e alguém mais importante espera: devolve e pede de novo depois
                 break
-            trabalhar(item)          # um pedaço curto: o dono espera no máximo isso
+            resposta = trabalhar(item)          # um pedaço curto: o dono espera no máximo isso
+            vez.contar('perguntas')             # o trabalho útil feito nesta vez (opcional): páginas, fotos, pranchas…
+            vez.tokens(resposta['prompt_eval_count'], resposta['eval_count'])   # os tokens que o Ollama devolve (opcional)
+        vez.anotar(contexto=8192, quantizacao='q4_K_M')                         # o que vale para a vez inteira (opcional)
+
+O SINAL DE VIDA (maestro 0v66, o vigia de progresso): `vez.avancei(item)` a cada passo que avança de verdade — uma
+fatia lida, uma resposta do modelo, uma página — com o item em curso (o documento, a prancha). Quem chama avancei uma
+vez passa a ser vigiado: se a vez fica mais de progresso_max_s (politica.json, 10 min) sem avanço, o maestro encerra o
+processo, libera a GPU e registra o item em travados.jsonl (04/10: uma rodada ficou 11 h presa no Apple Vision com a
+vez e a fila inteira esperou). Quem nunca chama avancei não é vigiado (só o aviso de vez presa). O item que já travou
+`travamentos(repo, item)` vezes o repositório pode pôr em quarentena (pular) — a regra é: mais uma tentativa, depois
+quarentena. `cliente_gpu.avancei(item)` (do módulo) marca a vez em curso deste processo, sem passar a Vez adiante.
+
+    with vez_da_gpu(...) as vez:
+        for documento in fila:
+            if travamentos('ialocal.projeto', documento['id']) >= 2:
+                continue                        # quarentena: travou duas vezes
+            vez.avancei(documento['id'])        # o item em curso
+            for fatia in fatias:
+                ler(fatia)
+                avancei()                       # de qualquer lugar do código: a vez deste processo avançou
+
+O trabalho útil (desde o maestro 0v64, fase C2 da capacidade) vai para o feitos.jsonl junto com o tempo: `unidades`
+({'paginas': 12, 'fotos': 3}), `tokens_entrada`, `tokens_saida` e o que foi anotado. Só sai o que foi declarado: quem
+não conta nada grava o feito como antes. Unidades no plural e sem acento, as mesmas em todos: paginas, fotos,
+pranchas, documentos, perguntas. É o que deixa o maestro dizer páginas por hora e R$ por 1.000 páginas, em vez de só
+segundos de GPU.
 
 O que ele faz:
 - escreve o pedido em <gpu_pasta>/pedidos/<id>.json (na pasta do próprio repositório) e espera o vez.json do maestro
@@ -23,6 +49,7 @@ GPU seguidas e devolve quando vem tarefa sem GPU, quando o modelo muda ou quando
     for tarefa in fila:
         sessao.antes(usa_gpu(tarefa), modelo=tarefa['executor'])
         executar(tarefa)
+        sessao.contar('paginas', tarefa['paginas'])   # opcional: vai para o feito da vez em curso
     sessao.fechar()
 """
 import json
@@ -34,6 +61,7 @@ from datetime import datetime
 from pathlib import Path
 
 VEZ = Path.home() / 'dados' / 'ialocal.maestro' / 'dados' / 'gpu' / 'vez.json'
+ATUAL = None  # a Vez em curso deste processo (avancei() do módulo marca nela)
 
 
 def _agora():
@@ -83,8 +111,40 @@ def _limpar_mortos(pasta):
 
 
 class Vez:
-    def __init__(self, identificador, vez_arquivo, com_maestro, negada=False):
+    def __init__(self, identificador, vez_arquivo, com_maestro, negada=False, pedido=None):
         self.id, self.vez_arquivo, self.com_maestro, self.negada = identificador, vez_arquivo, com_maestro, negada
+        self.unidades, self.entrada, self.saida, self.notas = {}, 0, 0, {}
+        self.pedido, self.item, self.avancos = pedido, None, 0
+
+    def avancei(self, item=None):
+        """O sinal de vida: o trabalho avançou agora (e, com item, o item em curso mudou). Grava no pedido, que o
+        maestro lê a cada ciclo; o primeiro avancei liga o vigia para esta vez."""
+        if item is not None:
+            self.item = str(item)[:200]
+        self.avancos += 1
+        if self.pedido is not None and self.pedido.exists():
+            _gravar(self.pedido, {**_ler(self.pedido), 'vigia': True, 'avanco_em': _agora().isoformat(), 'item': self.item,
+                                  'avancos': self.avancos})
+
+    def contar(self, unidade, n=1):
+        """+n da unidade de trabalho útil feita nesta vez ('paginas', 'fotos', 'pranchas', 'documentos', 'perguntas')."""
+        self.unidades[unidade] = self.unidades.get(unidade, 0) + n
+
+    def tokens(self, entrada=0, saida=0):
+        """Os tokens de uma chamada ao modelo (no Ollama: prompt_eval_count e eval_count da resposta)."""
+        self.entrada += entrada or 0
+        self.saida += saida or 0
+
+    def anotar(self, **campos):
+        """O que vale para a vez inteira: contexto (tokens), quantizacao ('q4_K_M', '4bit')."""
+        self.notas.update(campos)
+
+    def medidas(self):
+        """O trabalho útil declarado, para o feitos.jsonl; vazio se nada foi declarado (o feito sai como antes)."""
+        medidas = {'unidades': dict(self.unidades)} if self.unidades else {}
+        if self.entrada or self.saida:
+            medidas |= {'tokens_entrada': self.entrada, 'tokens_saida': self.saida}
+        return medidas | self.notas
 
     def minha(self):
         """Ainda posso continuar? Negada (esperou além de espera_max_s), nunca; sem maestro, sempre; com ele, até a vez
@@ -120,18 +180,44 @@ def vez_da_gpu(repo, gpu_pasta, prioridade, modelo=None, tarefa=None, espera_mae
                 com_maestro = negada = True
                 break
             time.sleep(intervalo_s)
+        global ATUAL
         inicio = time.time()
-        yield Vez(identificador, vez_arquivo, com_maestro, negada)
+        vez = ATUAL = Vez(identificador, vez_arquivo, com_maestro, negada, pedido)
+        yield vez
     finally:
+        ATUAL = None
         pedido.unlink(missing_ok=True)
     if negada:
         return  # não usou a GPU: nada a registrar em feitos
     fim = time.time()
     with open(pasta / 'feitos.jsonl', 'a') as saida:
-        saida.write(json.dumps({'id': identificador, 'repo': repo, 'modelo': modelo, 'tarefa': tarefa, 'com_maestro': com_maestro,
+        saida.write(json.dumps({**vez.medidas(), 'id': identificador, 'repo': repo, 'modelo': modelo, 'tarefa': tarefa, 'com_maestro': com_maestro,
                                 'inicio': datetime.fromtimestamp(inicio).isoformat(timespec='seconds'),
                                 'fim': datetime.fromtimestamp(fim).isoformat(timespec='seconds'),
                                 'segundos': round(fim - inicio, 2)}, ensure_ascii=False) + '\n')
+
+
+def avancei(item=None):
+    """O sinal de vida da vez em curso deste processo, de qualquer lugar do código (sem vez, nada)."""
+    if ATUAL is not None:
+        ATUAL.avancei(item)
+
+
+def travamentos(repo, item, vez_arquivo=None):
+    """Quantas vezes o maestro encerrou este repositório parado neste item (travados.jsonl, ao lado do vez.json)."""
+    arquivo = (Path(vez_arquivo) if vez_arquivo else VEZ).with_name('travados.jsonl')
+    try:
+        linhas = arquivo.read_text().splitlines()
+    except OSError:
+        return 0
+    contados = 0
+    for linha in linhas:
+        try:
+            registro = json.loads(linha)
+        except ValueError:
+            continue
+        contados += registro.get('repo') == repo and registro.get('item') == str(item)[:200]
+    return contados
 
 
 class SessaoGpu:
@@ -156,6 +242,15 @@ class SessaoGpu:
                 self.fechar()
                 return negada
         return self.vez
+
+    def contar(self, unidade, n=1):
+        """+n da unidade na vez em curso; sem vez (a tarefa não usou a GPU), não conta: o feito é só da GPU."""
+        if self.vez is not None:
+            self.vez.contar(unidade, n)
+
+    def tokens(self, entrada=0, saida=0):
+        if self.vez is not None:
+            self.vez.tokens(entrada, saida)
 
     def fechar(self):
         if self.pilha is not None:
