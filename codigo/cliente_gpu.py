@@ -14,9 +14,10 @@ maestro: a regra de independência vale para todos). Só a biblioteca padrão.
 
 O SINAL DE VIDA (maestro 0v66, o vigia de progresso): `vez.avancei(item)` a cada passo que avança de verdade — uma
 fatia lida, uma resposta do modelo, uma página — com o item em curso (o documento, a prancha). Quem chama avancei uma
-vez passa a ser vigiado: se a vez fica mais de progresso_max_s (politica.json, 10 min) sem avanço, o maestro encerra o
+vez passa a ser vigiado: se a vez fica mais de progresso_max_s (politica.json, 16 min) sem avanço, o maestro encerra o
 processo, libera a GPU e registra o item em travados.jsonl (04/10: uma rodada ficou 11 h presa no Apple Vision com a
-vez e a fila inteira esperou). Quem nunca chama avancei não é vigiado (só o aviso de vez presa). O item que já travou
+vez e a fila inteira esperou; 16 min = acima do timeout de 900 s das chamadas ao Ollama em todos os repositórios, então
+um avancei por resposta de modelo basta). Quem nunca chama avancei não é vigiado (só o aviso de vez presa). O item que já travou
 `travamentos(repo, item)` vezes o repositório pode pôr em quarentena (pular) — a regra é: mais uma tentativa, depois
 quarentena. `cliente_gpu.avancei(item)` (do módulo) marca a vez em curso deste processo, sem passar a Vez adiante.
 
@@ -54,6 +55,7 @@ GPU seguidas e devolve quando vem tarefa sem GPU, quando o modelo muda ou quando
 """
 import json
 import os
+import threading
 import time
 import uuid
 from contextlib import ExitStack, contextmanager
@@ -62,6 +64,7 @@ from pathlib import Path
 
 VEZ = Path.home() / 'dados' / 'ialocal.maestro' / 'dados' / 'gpu' / 'vez.json'
 ATUAL = None  # a Vez em curso deste processo (avancei() do módulo marca nela)
+TRAVA_DO_PEDIDO = threading.Lock()  # as threads do mesmo processo (as perguntas em paralelo do extrator) gravam uma por vez
 
 
 def _agora():
@@ -119,12 +122,16 @@ class Vez:
     def avancei(self, item=None):
         """O sinal de vida: o trabalho avançou agora (e, com item, o item em curso mudou). Grava no pedido, que o
         maestro lê a cada ciclo; o primeiro avancei liga o vigia para esta vez."""
-        if item is not None:
-            self.item = str(item)[:200]
-        self.avancos += 1
-        if self.pedido is not None and self.pedido.exists():
-            _gravar(self.pedido, {**_ler(self.pedido), 'vigia': True, 'avanco_em': _agora().isoformat(), 'item': self.item,
-                                  'avancos': self.avancos})
+        with TRAVA_DO_PEDIDO:
+            if item is not None:
+                self.item = str(item)[:200]
+            self.avancos += 1
+            try:  # o sinal de vida nunca derruba o trabalho: sem gravar, o vigia só vê o avanço anterior
+                if self.pedido is not None and self.pedido.exists():
+                    _gravar(self.pedido, {**_ler(self.pedido), 'vigia': True, 'avanco_em': _agora().isoformat(), 'item': self.item,
+                                          'avancos': self.avancos})
+            except OSError:
+                pass
 
     def contar(self, unidade, n=1):
         """+n da unidade de trabalho útil feita nesta vez ('paginas', 'fotos', 'pranchas', 'documentos', 'perguntas')."""
