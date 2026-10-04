@@ -18,8 +18,8 @@
                  "prompt": "organizar_tabela",
                  "_": "o modelo do dispositivo da Apple, só texto, com o mesmo pedido do qwen3"}
   },
-  "gpu": {"prioridade": 7, "espera_max_s": 900,
-          "_": "a vez da GPU para os locais: a bancada é de fundo (prioridade 7, a da rodada, atrás da extração de documentos, 5) e desiste depois de espera_max_s — os locais ficam de fora daquela rodada e o placar diz. Rodando à mão com o extrator ocupado: --prioridade 4 passa à frente dos documentos (devolve a vez entre recortes)"},
+  "gpu": {"prioridade": 7, "espera_max_s": 1800,
+          "_": "a vez da GPU para os locais: a bancada é de fundo (prioridade 7, a da rodada, atrás da extração de documentos, 5) e desiste depois de espera_max_s (30 min: a rodada do projeto, prioridade 7, tem pedaço de 20 min no maestro e devolve entre pranchas; 15 min não bastava) — os locais ficam de fora daquela rodada e o placar diz. Rodando à mão com o extrator ocupado: --prioridade 4 passa à frente dos documentos (devolve a vez entre recortes)"},
   "criterios": {
     "acrescenta_pp": 0.10,
     "inventadas_max": 0.02,
