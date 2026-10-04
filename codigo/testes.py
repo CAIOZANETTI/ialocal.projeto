@@ -501,8 +501,7 @@ def testar_agentes(raiz):
     endereco, pedidos, servidor = servidor_nvidia(responder)
     os.environ['NVIDIA_API_KEY'] = 'nvapi-segredo-do-teste'
     AGENTES.update(endpoint=endereco, espera_s=0, ligado=True, prazo_fim='2999-12-31')
-    for agente in AGENTES['agentes'].values():
-        agente['por_minuto'] = 6000
+    AGENTES['provedores']['nvidia']['por_minuto'] = 6000
     try:
         imagem = raiz / 'agentes' / 'Tabela 01.png'
         imagem.parent.mkdir()
@@ -515,6 +514,11 @@ def testar_agentes(raiz):
                  and parse['caixas'][0]['classe'] == 'Table',
                  'sonda: a tabela do Kimi (HTML em cerca) e a do Parse (marcas de posição com a classe) viram linhas; contra o gabarito de '
                  'Cambé, 1 certa (código, quantidade e unidade), a de quantidade errada só achada e a de código inventado contada')
+        meta = kimi['meta']
+        conferir(meta['motivos'] == ['429'] and 0.3 <= meta['segundos_util'] < 1.5 and 0.3 <= meta['segundos_falhas'] < 1.5
+                 and meta['segundos_espera'] >= 0,
+                 f"o tempo separa o modelo do plano: útil {meta['segundos_util']} s (a tentativa que deu certo), perdido "
+                 f"{meta['segundos_falhas']} s na tentativa recusada (429) e {meta['segundos_espera']} s de espera")
         conferir(kimi['meta']['tentativas'] == 2 and primeira == 3
                  and all(p['autorizacao'] == 'Bearer nvapi-segredo-do-teste' for p in pedidos)
                  and all(p['corpo']['messages'][0]['content'][-1]['image_url']['url'].startswith('data:image/png;base64,') for p in pedidos)
@@ -601,10 +605,12 @@ def testar_curadoria():
 
 
 def testar_bancada(raiz):
-    """A bancada da F2 com os leitores falsos: na tabela 01 de Cambé (9 linhas no gabarito) o Kimi lê as 9, o Parse 7
-    certas, 1 errada e 1 inventada, o glm-ocr 5; o Vision vê todos os números. A curadoria local confirma 5 e a
-    local+kimi 9 (+44 pp): o Kimi continua; o Parse inventa e escreve número no recorte em branco: descontinua. No
-    boletim com texto real, o gabarito é a leitura do código: o Kimi acerta tudo, o Parse erra um N-SPT e inventa um metro."""
+    """A bancada da F2 com todos os candidatos falsos: na tabela 01 de Cambé (9 linhas no gabarito) o Kimi lê as 9, o
+    Parse 7 certas, 1 errada e 1 inventada, o glm-ocr 5, o qwen3 monta as 9 com o texto do Vision, e o Vision vê todos
+    os números (presença, sem estrutura). A curadoria local confirma 5; com o Kimi ou o qwen3, 9. Kimi e qwen3
+    continuam; o Parse inventa e escreve número no recorte em branco: descontinua. O tempo útil, a taxa de erro e o
+    tempo perdido (429 do plano, fila da GPU) saem separados. No boletim com texto real, o gabarito é a leitura do
+    código: o Kimi acerta tudo, o Parse erra um N-SPT e inventa um metro."""
     import agentes
     import bancada
     import shutil
@@ -620,25 +626,35 @@ def testar_bancada(raiz):
     vision = '\n'.join(' '.join(linha(g)) for g in gabarito)
     texto_boletim = '\n'.join(BOLETIM)
     errado = texto_boletim.replace('3,00 10/15 12/15 15/15', '3,00 10/15 12/15 16/15') + '\n4,00 20/15 22/15 25/15'
+    texto_de = lambda linhas: '\n'.join(' '.join(c) for c in linhas)
 
     def externos(imagens, modo):
         lidas = {}
         for imagem in imagens:
             nome = Path(imagem).name
             if nome.startswith('Tabela'):
-                textos = {'kimi': ('', kimi), 'parse': ('', parse)}
+                textos = {'kimi': (texto_de(kimi), kimi), 'parse': (texto_de(parse), parse)}
             elif 'pagina' in nome:
                 textos = {'kimi': (texto_boletim, []), 'parse': (errado, [])}
             else:
                 textos = {'kimi': ('', []), 'parse': ('LEGENDA 1 2', [])}
             for agente, (texto, linhas) in textos.items():
+                meta = {'segundos_util': 20.0 if agente == 'kimi' else 30.0, 'segundos_espera': 5.0, 'segundos_falhas': 0.0,
+                        'tentativas': 2, 'motivos': ['429'], 'congelado': False}
                 lidas[(agente, str(imagem))] = {'agente': agente, 'recorte': str(imagem), 'texto': texto, 'linhas': linhas,
-                                                'segundos': 20.0 if agente == 'kimi' else 30.0, 'erro': ''}
+                                                'segundos': 25.0, 'erro': '', 'meta': meta}
         return lidas
 
     def locais(imagens, modo):
-        return {str(i): {'linhas': glm if Path(i).name.startswith('Tabela') else [], 'texto': '', 'segundos': 5.0, 'erro': '',
-                         'vision': vision if Path(i).name.startswith('Tabela') else ''} for i in imagens}
+        lidas = {}
+        for imagem in imagens:
+            tabela = Path(imagem).name.startswith('Tabela')
+            lidas[str(imagem)] = {
+                'vision': {'linhas': [], 'texto': vision if tabela else '', 'erro': '', 'util': 1.0, 'congelado': False},
+                'glm_ocr': {'linhas': glm if tabela else [], 'texto': texto_de(glm) if tabela else '', 'erro': '', 'util': 8.0, 'congelado': False}}
+            if tabela:
+                lidas[str(imagem)]['qwen3'] = {'linhas': kimi, 'texto': texto_de(kimi), 'erro': '', 'util': 12.0, 'congelado': False}
+        return lidas, 9.0
     bancada.externos, bancada.locais = externos, locais
     bancada.tabelas()
     bancada.controle()
@@ -649,13 +665,22 @@ def testar_bancada(raiz):
     pega = lambda conjunto, leitor: saida.filter((pl.col('conjunto') == conjunto) & (pl.col('leitor') == leitor)).to_dicts()[0]
     conferir((pega('tabelas', 'kimi')['certas'], pega('tabelas', 'parse')['certas'], pega('tabelas', 'parse')['erradas'],
               pega('tabelas', 'parse')['inventadas'], pega('tabelas', 'local')['confirmadas_certas'],
-              pega('tabelas', 'local+kimi')['confirmadas_certas'], pega('tabelas', 'local+parse')['confirmadas_erradas'])
-             == (9, 7, 1, 1, 5, 9, 0),
-             'bancada das tabelas: cada leitor contra as 9 linhas do gabarito; a curadoria local confirma 5 e a local+kimi 9; '
-             'a linha errada do Parse não vira confirmada (o Vision não viu o 99)')
-    conferir(pega('tabelas', 'kimi')['veredito'] == 'continua' and pega('tabelas', 'parse')['veredito'] == 'descontinua'
+              pega('tabelas', 'local+kimi')['confirmadas_certas'], pega('tabelas', 'local+qwen3')['confirmadas_certas'],
+              pega('tabelas', 'local+parse')['confirmadas_erradas'], pega('tabelas', 'vision')['presenca'], pega('tabelas', 'vision')['certas'])
+             == (9, 7, 1, 1, 5, 9, 9, 0, 1.0, 0),
+             'bancada das tabelas com todos os candidatos: cada leitor contra as 9 linhas; a curadoria local confirma 5, com o '
+             'Kimi ou com o qwen3 (que monta a tabela com o texto do Vision) 9; a linha errada do Parse não vira confirmada; '
+             'o Vision, sem estrutura de tabela, é medido pela presença (9 de 9)')
+    kimi_t, glm_t = pega('tabelas', 'kimi'), pega('tabelas', 'glm_ocr')
+    conferir(kimi_t['util_mediana_s'] == 20.0 and kimi_t['n_429'] == 1 and kimi_t['perdido_pct'] == 0.2 and kimi_t['taxa_erro'] == 0
+             and kimi_t['provedor'] == 'nvidia' and glm_t['provedor'] == 'gpu' and glm_t['perdido_pct'] == round(3 / 11, 3),
+             'as quatro medidas separadas: tempo útil 20 s, erro 0 %, perdido 20 % do tempo (o 429 do plano) e 1 recusa no Kimi; '
+             'no glm-ocr, a fila da GPU (9 s rateados entre 3 chamadas locais) é o perdido')
+    conferir(pega('tabelas', 'kimi')['veredito'] == 'continua' and pega('tabelas', 'qwen3')['veredito'] == 'continua'
+             and pega('tabelas', 'parse')['veredito'] == 'descontinua'
              and 'inventa no controle' in pega('tabelas', 'parse')['motivo'] and pega('controle', 'parse')['inventadas'] == 3,
-             f"veredito pelos critérios do §7: kimi continua; parse descontinua ({pega('tabelas', 'parse')['motivo']})")
+             f"veredito pelos critérios do §7 para todos os candidatos: kimi e qwen3 continuam; parse descontinua "
+             f"({pega('tabelas', 'parse')['motivo']})")
     kimi_b, parse_b = pega('sondagem', 'kimi'), pega('sondagem', 'parse')
     conferir(kimi_b['erradas'] == kimi_b['faltou'] == kimi_b['inventadas'] == 0 and kimi_b['certas'] >= 8
              and parse_b['erradas'] == 1 and parse_b['inventadas'] == 1,

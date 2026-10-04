@@ -1,0 +1,28 @@
+{
+  "metadata": {
+    "o_que_e": "A bancada dos leitores (notas/plano_agentes_nvidia.md §6–§7): todos os candidatos que o mini tem ou chama, na mesma régua. Pedido do Caio (04/10): comparar todas as IAs, não só as duas novas; medir qualidade, tempo útil, taxa de erro e tempo perdido com as novas tentativas; limite de taxa por provedor; isolar o comportamento do plano gratuito do modelo. Mudar um número aqui muda o veredito: por PR.",
+    "atualizado_em": "2026-10-04"
+  },
+  "locais": {
+    "glm_ocr": {"motor": "ollama", "modelo": "glm-ocr:latest", "papel": "leitor", "natureza": "generativo", "provedor": "gpu",
+                "_": "o OCR por modelo da rodada de hoje; na tabela, o pedido de tabela (prompts/prancha_tabela.txt) com as faixas contra o laço"},
+    "gemma3": {"motor": "ollama", "modelo": "gemma3:12b", "papel": "leitor", "natureza": "generativo", "provedor": "gpu",
+               "prompt": {"texto": "agente_texto", "tabela": "agente_tabela"},
+               "_": "VLM local (o do ialocal.foto); inventou cotas na folha inteira (T1, T3 de 26/09): entra para medir, não por confiança"},
+    "vision": {"motor": "vision", "papel": "testemunha", "natureza": "testemunha", "provedor": "local",
+               "_": "o OCR do macOS: não gera texto, não continua sequência. É a testemunha da curadoria; como leitor, mede só presença (texto sem estrutura de tabela)"},
+    "qwen3": {"motor": "ollama", "modelo": "qwen3:8b", "papel": "organizador", "natureza": "generativo", "provedor": "gpu",
+              "prompt": "organizar_tabela",
+              "_": "só texto: monta a tabela com os textos que o Vision leu (T9b de 26/09: 0 inventados). Não lê imagem"},
+    "apple_fm": {"motor": "apple", "papel": "organizador", "natureza": "generativo", "provedor": "local",
+                 "prompt": "organizar_tabela",
+                 "_": "o modelo do dispositivo da Apple, só texto, com o mesmo pedido do qwen3"}
+  },
+  "criterios": {
+    "acrescenta_pp": 0.10,
+    "inventadas_max": 0.02,
+    "taxa_erro_max": 0.10,
+    "util_mediana_max_s": 60,
+    "_": "§7 do plano, escritos antes de rodar. 'Opera' olha o tempo útil (a tentativa que deu certo) e o erro final, nunca o tempo perdido: esperar pelo 429 ou pelo 502 é custo do plano gratuito, sai em coluna à parte"
+  }
+}

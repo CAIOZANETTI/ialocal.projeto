@@ -137,6 +137,31 @@ placar por `groupby(['conjunto', 'leitor'])`: precisão, cobertura, inventados, 
 tokens. **Valor marginal**: cobertura certa da curadoria local (glm-ocr + Vision) contra local + kimi, local + parse e
 local + os dois — quanto cada agente acrescenta, não quanto acerta sozinho.
 
+## 6-A. Todos os candidatos, quatro medidas e o limite por provedor (pedido do Caio, 04/10)
+
+> "A gente devia comparar todas as IAs que a gente tem, não só as duas novas. O benchmark tem que medir qualidade, tempo
+> útil, taxa de erro e tempo perdido com o retry, e ter limitador de taxa por provedor, senão a comparação fica
+> injusta. Hoje vocês estão medindo mais o comportamento do plano gratuito do que o modelo."
+
+| candidato | onde | lê | papel na bancada |
+|---|---|---|---|
+| glm-ocr | Ollama (GPU do mini) | imagem | a base: a curadoria `local` é ele com o Vision |
+| gemma3:12b | Ollama | imagem | leitor (inventou na folha inteira em 26/09: entra para medir) |
+| Vision | macOS | imagem | testemunha; como leitor, só **presença** (não tem estrutura de tabela) |
+| qwen3:8b | Ollama | texto | **organizador**: monta a tabela com o texto do Vision (T9b: 0 inventados) |
+| Apple FM | dispositivo | texto | organizador, com o mesmo pedido |
+| Kimi K3 | NVIDIA | imagem | agente externo |
+| Nemotron Parse 2.0 | NVIDIA | imagem | agente externo (parser de documento da NVIDIA) |
+
+**As quatro medidas, separadas** (por conjunto e leitor, em `bancada_agentes.csv`): **qualidade** (linha certa,
+presença, inventadas, confirmadas erradas); **tempo útil** (só a tentativa que deu certo); **taxa de erro** (o que
+falhou depois de todas as tentativas); **tempo perdido** (ritmo do provedor, esperas, tentativas recusadas, fila da GPU),
+com a contagem de 429 e 5xx. O perdido é do plano gratuito ou da fila, **não entra no veredito**.
+
+**Limite por provedor:** o Kimi e o Parse dividem o limite da conta (`provedores.nvidia`: 36/min, 6 abertas), em vez,
+recorte a recorte; os locais vão um por vez na vez da GPU. O tempo útil de cada chamada é comparável entre todos; o
+tempo de parede, não (paralelo na NVIDIA, em fila no mini). `--refazer` mede o tempo de novo, nas mesmas condições.
+
 ## 7. Critérios — escritos antes de rodar (premissas, mudam por PR)
 
 Um agente **continua** se, nas bancadas B1 a B3:

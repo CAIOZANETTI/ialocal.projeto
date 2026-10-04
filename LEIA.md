@@ -23,7 +23,8 @@ python3 -m venv .venv && .venv/bin/pip install polars pdfplumber pypdfium2 pillo
 .venv/bin/python codigo/ciclo.py status     # só regrava saidas/status.json
 .venv/bin/python codigo/mini.py instalar    # agenda a rodada e o atualizar a cada 5 min (com o python do .venv)
 .venv/bin/python codigo/agentes.py sondar   # os agentes da NVIDIA (exceção §5.6) leem a tabela 01 de Cambé: formato, tempo, placar
-.venv/bin/python codigo/bancada.py tudo     # F2: tabelas de Cambé, controle sem número e boletins; placar e veredito de cada agente
+.venv/bin/python codigo/bancada.py tudo     # F2: todos os leitores (glm-ocr, gemma3, Vision, qwen3, Apple FM, Kimi, Parse) contra o gabarito; placar e veredito
+.venv/bin/python codigo/bancada.py tudo --refazer   # o mesmo, chamando de novo o congelado: o tempo útil medido nas mesmas condições
 ```
 
 **O clone pede uma chave de acesso própria** (como os outros `ialocal.*`):
@@ -53,7 +54,7 @@ codigo/ciclo.py         a rodada: o que está pendente, código antes, IA na vez
 codigo/entrega.py       lê o que o extrator entregou (só lê): PDFs A3 ou maiores e o mapa das obras; e os anexos das respostas
 codigo/respostas.py     as respostas da equipe às demandas (guardadas pelo ialocal.web): PDFs para a rodada, CSV gabarito, o resultado
 codigo/ia.py            a porta para os modelos locais (Ollama, Vision, Apple FM) e, na exceção §5.6, a API da NVIDIA (nvidia), com congelamento das respostas
-codigo/bancada.py       a bancada dos agentes: tabelas de Cambé, controle sem número, boletins; placar e veredito (saidas/bancada_agentes.csv)
+codigo/bancada.py       a bancada de todos os leitores: qualidade, tempo útil, taxa de erro e tempo perdido; placar e veredito (saidas/bancada_agentes.csv)
 codigo/curadoria.py     Python decide o que vale entre N leitores: confirmada (com testemunha), confirmada_ia, divergente, so_<leitor>
 codigo/agentes.py       os agentes externos (Kimi K3, Nemotron Parse 2.0): leitura por agente, em paralelo, registro, sonda contra o gabarito de Cambé
 codigo/comum.py         pastas, conceitos, Parquet com troca por chave, CSV para o Drive
@@ -65,7 +66,8 @@ codigo/versoes.jsonl    0v1…: data, resumo e as tarefas que cada versão muda 
 conceitos/prancha.json  o que reconhece a prancha, famílias, carimbo (campos por rótulo-âncora, revisões), eixo, fatias, padrões, conferência
 conceitos/sondagem.json o boletim: como reconhecer, por onde ler cada página, os padrões do cabeçalho, do N-SPT e das camadas
 conceitos/ia.json       modelos e parâmetros das chamadas (cópia do extratores.json do extrator, 2v93)
-conceitos/agentes.json  os agentes externos: ligado, prazo da exceção, obras, modelos, ritmo, tentativas, reservas
+conceitos/agentes.json  os agentes externos: ligado, prazo da exceção, obras, modelos, o limite por provedor, tentativas, reservas
+conceitos/bancada.json  os candidatos do mini na bancada (glm-ocr, gemma3, Vision, qwen3, Apple FM) e os critérios do veredito
 conceitos/demandas.json o que o projeto pede ao Caio e à equipe (id, gabarito, texto do e-mail, aberta)
 conceitos/operacao.json de onde lê a entrega e as respostas, para onde publica, limites, a prioridade na GPU
 conceitos/prompts/      prompts versionados (o hash entra na chave de congelamento)

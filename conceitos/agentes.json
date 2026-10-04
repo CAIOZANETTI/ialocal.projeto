@@ -21,23 +21,26 @@
   "_tentativas": "429, 5xx, timeout e queda de rede tentam de novo depois de Retry-After (ou espera_s × 2ⁿ) com sorteio de até 1 s; outro 4xx falha na hora",
   "gratuito_conferido_em": "",
   "_gratuito_conferido_em": "data em que o Caio viu o selo Free Endpoint na página dos dois modelos (F0); o preço muda: modelo que deixar de ser gratuito sai com ligado false",
+  "provedores": {
+    "nvidia": {"por_minuto": 36, "simultaneas": 6,
+               "_": "o limite é da conta (a NVIDIA mostra 40/min para a macminicaio), não do modelo: o Kimi e o Parse dividem os mesmos 36/min e as mesmas 6 chamadas abertas, em vez. 36 e não 40: folga para o relógio deles. Cada agente diz o seu provedor"}
+  },
   "agentes": {
     "kimi": {
       "modelo": "moonshotai/kimi-k3",
       "tipo": "vlm",
+      "provedor": "nvidia",
       "natureza": "generativo",
       "prompt": {"texto": "agente_texto", "tabela": "agente_tabela"},
       "max_tokens": 8192,
       "lado_max_px": 2048,
-      "simultaneas": 6,
-      "_simultaneas": "04/10, primeira bancada: o Kimi leva 9 a 51 s por tabela (raciocínio sempre ligado); 6 de cada vez a ~20 s dão ~18 pedidos/min, dentro do limite da conta (40/min com o Parse)",
-      "por_minuto": 20,
       "timeout_s": 300,
       "_": "VLM generalista, primeiro no OmniDocBench (91,1); raciocínio sempre ligado (o raciocínio vem em reasoning_content e fica de fora: só o content é leitura). Transcreve: os números saem do texto pelos mesmos padrões do código (prancha.json, sondagem.json)"
     },
     "parse": {
       "modelo": "nvidia/nemotron-parse-2.0",
       "tipo": "parser",
+      "provedor": "nvidia",
       "natureza": "generativo",
       "ferramenta": "",
       "controle": "</s><s><predict_bbox><predict_classes><output_markdown><predict_no_text_in_pic>",
@@ -45,8 +48,6 @@
       "max_tokens": null,
       "_max_tokens": "04/10, segunda sonda: 9.000 passou do max_model_len do modelo hospedado (400). Sem max_tokens o servidor usa o que cabe depois da imagem",
       "lado_max_px": 2048,
-      "simultaneas": 4,
-      "por_minuto": 20,
       "timeout_s": 90,
       "_": "parser de documento < 1 B: texto com caixa (normalizada 0–1), classe do elemento e tabela; recomendado de 1.024×1.280 a 1.664×2.048 px. A resposta pode vir em tool_calls (JSON) ou em texto com marcas <x_><y_><class_>: os dois são lidos (a sonda diz qual)"
     }
