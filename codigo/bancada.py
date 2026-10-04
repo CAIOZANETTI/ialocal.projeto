@@ -10,6 +10,7 @@ Candidatos e critérios em conceitos/bancada.json.
     .venv/bin/python codigo/bancada.py tudo               # os três conjuntos e o placar
         --sem-local   só os agentes externos (o veredito fica provisório)
         --refazer     chama de novo o que está congelado: o tempo medido nas mesmas condições para todos
+        --prioridade N  a vez da GPU com outra prioridade (4: à frente da extração de documentos, que é 5)
 
 Quatro medidas, separadas (pedido do Caio, 04/10): QUALIDADE (linha certa, presença do número no texto, invenção,
 confirmada errada), TEMPO ÚTIL (a chamada que deu certo), TAXA DE ERRO (o que falhou depois de todas as tentativas) e
@@ -105,17 +106,27 @@ def ler_um_local(nome, imagem, modo, texto_vision):
             'congelado': bool(chamadas) and all(m.get('congelado') for m in chamadas)}
 
 
+PRIORIDADE = None  # --prioridade N na linha de comando; sem ela, bancada.json → gpu.prioridade
+
+
 def locais(imagens, modo):
     """recorte → {candidato: leitura} de cada imagem, na vez da GPU do maestro (um de cada vez), e a espera pela vez
-    (tempo perdido da fila, rateado entre as chamadas). O Vision lê primeiro: os organizadores usam o texto dele."""
-    GPU = comum.configuracao('operacao')['gpu']
+    (tempo perdido da fila, rateado entre as chamadas). O Vision lê primeiro: os organizadores usam o texto dele. Sem a
+    vez em bancada.json → gpu.espera_max_s, os locais ficam de fora desta rodada (e o placar diz)."""
+    GPU = {**comum.configuracao('operacao')['gpu'], **comum.configuracao('bancada')['gpu']}
+    if PRIORIDADE is not None:
+        GPU['prioridade'] = PRIORIDADE
     nomes = sorted(locais_da_bancada(), key=lambda n: (n != 'vision', locais_da_bancada()[n]['papel'] == 'organizador'))
-    print(f"locais: {', '.join(nomes)} em {len(imagens)} recortes; pedindo a vez da GPU ao maestro (prioridade {GPU['prioridade']}); "
-          '--sem-local pula esta parte', flush=True)
+    print(f"locais: {', '.join(nomes)} em {len(imagens)} recortes; pedindo a vez da GPU ao maestro (prioridade {GPU['prioridade']}, "
+          f"desiste em {GPU['espera_max_s'] // 60} min); --prioridade 4 passa à frente dos documentos, --sem-local pula", flush=True)
     lidas, marca, sem_ollama = {}, time.perf_counter(), False
-    with cliente_gpu.vez_da_gpu('ialocal.projeto', str(comum.DADOS / 'gpu'), GPU['prioridade'], GPU['modelo'], 'bancada') as vez:
+    with cliente_gpu.vez_da_gpu('ialocal.projeto', str(comum.DADOS / 'gpu'), GPU['prioridade'], GPU['modelo'], 'bancada',
+                                espera_max_s=GPU['espera_max_s']) as vez:
         espera = time.perf_counter() - marca
-        print(f'locais: vez da GPU depois de {espera:.0f} s', flush=True)
+        if vez.negada:
+            print(f'locais: sem a vez da GPU em {espera:.0f} s (o maestro deu a outros): ficam de fora desta rodada', flush=True)
+            return {}, 0.0
+        print(f"locais: vez da GPU depois de {espera:.0f} s{'' if vez.com_maestro else ' (maestro fora do ar: sem trava)'}", flush=True)
         for imagem in imagens:
             if not vez.minha():
                 print('locais: a vez da GPU foi pedida de volta; o resto fica para a próxima rodada', flush=True)
@@ -459,6 +470,11 @@ def principal(argumentos):
         return
     com_local = '--sem-local' not in resto
     ia.REFAZER = '--refazer' in resto
+    global PRIORIDADE
+    if '--prioridade' in resto:
+        posicao = resto.index('--prioridade')
+        PRIORIDADE = int(resto[posicao + 1])
+        resto = resto[:posicao] + resto[posicao + 2:]
     resto = [r for r in resto if not r.startswith('--')]
     if comando in ('tabelas', 'tudo'):
         tabelas(com_local)
