@@ -111,7 +111,7 @@ def ler_com_parse(nome, imagem, modo):
     """O Nemotron Parse: o texto de cada elemento com a caixa e a classe; as tabelas que ele achou viram linhas (em
     qualquer modo: o parse não recebe pedido, só a ferramenta ou as marcas de controle)."""
     AGENTE = configuracao()['agentes'][nome]
-    opcoes = {'max_tokens': AGENTE['max_tokens']}
+    opcoes = {'max_tokens': AGENTE['max_tokens']} if AGENTE.get('max_tokens') else {}
     if AGENTE.get('ferramenta'):
         opcoes['tools'] = [{'type': 'function', 'function': {'name': AGENTE['ferramenta']}}]
     bruta, meta = ia.nvidia(AGENTE['modelo'], AGENTE.get('controle', ''), [imagem], opcoes,
@@ -214,7 +214,7 @@ def sondar(imagens=None):
               f"{meta.get('modelo', '')[:28]:<28} tokens {meta.get('tokens_entrada')}/{meta.get('tokens_saida')}  "
               f"linhas {len(lida['linhas'])}  caixas {len(lida['caixas'])}"
               + (f"  Cambé: {placar['certas']}/{placar['gabarito']} certas, {placar['inventadas']} inventadas" if placar else '')
-              + (f"  ERRO {lida['erro'][:120]}" if lida['erro'] else ''), flush=True)
+              + (f"  ERRO {lida['erro'][:400]}" if lida['erro'] else ''), flush=True)
     return resultados
 
 
