@@ -11,6 +11,7 @@ import math
 import os
 import sys
 import tempfile
+import time
 import types
 from pathlib import Path
 
@@ -434,6 +435,148 @@ def testar_respostas(raiz):
              'resposta nova da mesma demanda: lida na rodada seguinte, e um resultado novo (outro id) com tudo o que chegou')
 
 
+def servidor_nvidia(responder):
+    """A API da NVIDIA falsa, numa thread em 127.0.0.1: cada POST guarda o pedido e devolve responder(corpo) —
+    (código HTTP, corpo da resposta, cabeçalhos). Devolve (endereço, pedidos, servidor)."""
+    import threading
+    from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+    pedidos = []
+
+    class Falsa(BaseHTTPRequestHandler):
+        def do_POST(self):
+            corpo = json.loads(self.rfile.read(int(self.headers['Content-Length'])))
+            pedidos.append({'corpo': corpo, 'autorizacao': self.headers.get('Authorization'), 'em': time.monotonic()})
+            codigo, resposta, cabecalhos = responder(corpo)
+            texto = json.dumps(resposta).encode()
+            self.send_response(codigo)
+            for nome, valor in {'Content-Type': 'application/json', **cabecalhos}.items():
+                self.send_header(nome, valor)
+            self.send_header('Content-Length', str(len(texto)))
+            self.end_headers()
+            self.wfile.write(texto)
+
+        def log_message(self, *argumentos):
+            pass
+
+    servidor = ThreadingHTTPServer(('127.0.0.1', 0), Falsa)
+    threading.Thread(target=servidor.serve_forever, daemon=True).start()
+    return f'http://127.0.0.1:{servidor.server_port}/v1/chat/completions', pedidos, servidor
+
+
+def resposta_nvidia(modelo, conteudo='', ferramentas=()):
+    return {'model': modelo, 'usage': {'prompt_tokens': 1200, 'completion_tokens': 80},
+            'choices': [{'finish_reason': 'stop', 'message': {'role': 'assistant', 'content': conteudo, 'reasoning_content': 'pensando…',
+                                                              'tool_calls': [{'type': 'function', 'function': {'name': 'markdown_bbox', 'arguments': a}}
+                                                                             for a in ferramentas]}}]}
+
+
+def testar_agentes(raiz):
+    """Os agentes externos (MASTER-PLAN §5.6) pela API falsa: os dois leem a mesma imagem em paralelo; o 429 espera e
+    tenta de novo; a resposta é congelada (a segunda sonda não chama) e a chave da API não vai ao congelamento; a tabela
+    do Kimi (HTML em cerca) e a do Parse (caixas nos argumentos da ferramenta) viram linhas, medidas contra o gabarito
+    de Cambé; erro de um agente vira leitura vazia com o motivo; desligado, fora do prazo ou sem chave, nada é chamado."""
+    import agentes
+    from PIL import Image
+    AGENTES = comum.configuracao('agentes')
+    original = json.loads(json.dumps(AGENTES))
+    agentes.REGISTRO, agentes.SONDA = comum.DADOS / 'agentes.jsonl', comum.DADOS / 'agentes_sonda.jsonl'
+    TABELA = ('<table><tr><td>CÓDIGO</td><td>Nº</td><td>DISCRIMINAÇÃO</td><td>QUANT.</td><td>UND.</td></tr>'
+              '<tr><td>298738</td><td>S/N</td><td>TUBO POLIETILENO PE 100 PN 10 DE 63</td><td>1634,9</td><td>M</td></tr>'
+              '<tr><td>294924</td><td>S/N</td><td>LUVA POLIETILENO</td><td>38</td><td>UN.</td></tr>'
+              '<tr><td>999999</td><td>S/N</td><td>INVENTADA</td><td>1</td><td>UN</td></tr></table>')
+    vez = {'kimi': 0}
+
+    def responder(corpo):
+        time.sleep(0.4)
+        if corpo['model'] == 'moonshotai/kimi-k3':
+            vez['kimi'] += 1
+            if vez['kimi'] == 1:
+                return 429, {'error': 'Too Many Requests'}, {'Retry-After': '0'}
+            if 'erro400' in json.dumps(corpo):
+                return 400, {'error': 'bad request'}, {}
+            return 200, resposta_nvidia('moonshotai/kimi-k3', f'```html\n{TABELA}\n```'), {}
+        caixas = [[{'bbox': {'xmin': 0.05, 'ymin': 0.1, 'xmax': 0.95, 'ymax': 0.9}, 'text': TABELA, 'type': 'Table'},
+                   {'bbox': {'xmin': 0.05, 'ymin': 0.0, 'xmax': 0.5, 'ymax': 0.05}, 'text': 'TABELA 01', 'type': 'Title'}]]
+        return 200, resposta_nvidia('nvidia/nemotron-parse-2.0', '', [json.dumps(caixas)]), {}
+
+    endereco, pedidos, servidor = servidor_nvidia(responder)
+    os.environ['NVIDIA_API_KEY'] = 'nvapi-segredo-do-teste'
+    AGENTES.update(endpoint=endereco, espera_s=0, ligado=True, prazo_fim='2999-12-31')
+    for agente in AGENTES['agentes'].values():
+        agente['por_minuto'] = 6000
+    try:
+        imagem = raiz / 'agentes' / 'Tabela 01.png'
+        imagem.parent.mkdir()
+        Image.new('RGB', (900, 600), 'white').save(imagem)
+        lidas = {l['agente']: l for l in agentes.sondar([imagem])}
+        primeira = len(pedidos)
+        kimi, parse = lidas['kimi'], lidas['parse']
+        conferir(kimi['placar'] == {'gabarito': 9, 'achadas': 2, 'certas': 1, 'inventadas': 1, 'lidas': 4}
+                 and parse['placar']['certas'] == 1 and parse['caixas'][0]['caixa'] == (0.05, 0.1, 0.95, 0.9)
+                 and parse['caixas'][0]['classe'] == 'Table',
+                 'sonda: a tabela do Kimi (HTML em cerca) e a do Parse (caixas da ferramenta) viram linhas; contra o gabarito de '
+                 'Cambé, 1 certa (código, quantidade e unidade), a de quantidade errada só achada e a de código inventado contada')
+        conferir(kimi['meta']['tentativas'] == 2 and primeira == 3
+                 and all(p['autorizacao'] == 'Bearer nvapi-segredo-do-teste' for p in pedidos)
+                 and all(p['corpo']['messages'][0]['content'][-1]['image_url']['url'].startswith('data:image/png;base64,') for p in pedidos)
+                 and next(p for p in pedidos if 'parse' in p['corpo']['model'])['corpo']['tools'][0]['function']['name'] == 'markdown_bbox',
+                 'a porta: 429 espera o Retry-After e tenta de novo; a chave vai no cabeçalho; a imagem como data URI; o Parse com a ferramenta')
+        agentes.sondar([imagem])
+        conferir(len(pedidos) == primeira and 'nvapi-segredo' not in ia.CONGELAMENTO.read_text()
+                 and 'pensando' not in ia.CONGELAMENTO.read_text(),
+                 'a resposta é congelada (a segunda sonda não chama a API); nem a chave nem o raciocínio vão ao congelamento')
+        recortes = []
+        for numero in range(2):
+            recortes.append(raiz / 'agentes' / f'fatia{numero}.png')
+            Image.new('RGB', (300, 300), (numero, 255, 255)).save(recortes[-1])
+        marca, antes = time.monotonic(), len(pedidos)
+        lidas = list(agentes.em_paralelo(recortes, modo='tabela'))
+        segundos = time.monotonic() - marca
+        conferir(len(lidas) == 4 and len(pedidos) - antes == 4 and segundos < 1.2 and not any(l['erro'] for l in lidas),
+                 f'em paralelo: 2 recortes × 2 agentes, cada pedido de 0,4 s, em {segundos:.1f} s (um por vez seriam 1,6 s)')
+        AGENTES['agentes']['kimi']['prompt'] = {**AGENTES['agentes']['kimi']['prompt'], 'texto': 'agente_texto'}
+        AGENTES['agentes']['kimi']['max_tokens'] = 'erro400'
+        errada = agentes.ler_com_agente('kimi', recortes[0])
+        conferir(errada['erro'].startswith('RuntimeError: NVIDIA 400') and errada['linhas'] == [],
+                 'erro 400 de um agente: leitura vazia com o motivo, sem tentar de novo e sem subir erro')
+        antes = len(pedidos)
+        motivos = []
+        for mudanca in ({'ligado': False}, {'prazo_fim': '2020-01-01'}, {'obras_permitidas': ['orcamentos/saic']}):
+            AGENTES.update({'ligado': True, 'prazo_fim': '2999-12-31', 'obras_permitidas': ['*'], **mudanca})
+            motivos.append(agentes.ler_com_agente('parse', recortes[0], obra='orcamentos/outra')['erro'])
+        AGENTES.update(ligado=True, prazo_fim='2999-12-31', obras_permitidas=['*'])
+        del os.environ['NVIDIA_API_KEY']
+        AGENTES['chave'] = str(raiz / 'sem_chave')
+        motivos.append(agentes.ler_com_agente('parse', recortes[0])['erro'])
+        conferir(len(pedidos) == antes and [m.split(' ')[0] for m in motivos] == ['agentes', 'fora', 'obra', 'sem'],
+                 'desligado, fora do prazo da exceção, obra fora da lista ou sem chave: nada é chamado, e o motivo fica')
+        registro = [json.loads(l) for l in agentes.REGISTRO.read_text().splitlines()]
+        conferir(all(r['agente'] in ('kimi', 'parse') and 'versao_codigo' in r for r in registro)
+                 and any(r['congelado'] for r in registro) and 'nvapi-segredo' not in agentes.REGISTRO.read_text(),
+                 'cada chamada fica em dados/agentes.jsonl (agente, modelo, recorte, obra, tempo, tokens, erro), sem a chave')
+    finally:
+        servidor.shutdown()
+        os.environ.pop('NVIDIA_API_KEY', None)
+        AGENTES.clear()
+        AGENTES.update(original)
+
+
+def testar_formatos_dos_agentes():
+    """O que os agentes podem devolver: o Parse em marcas <x_><y_>…<class_> no texto; a tabela em LaTeX (o modo markdown
+    do Parse) e em markdown com barras; o raciocínio que vaza em <think> sai."""
+    import agentes
+    marcas = '<x_0.1><y_0.2>EST 77<x_0.3><y_0.25><class_Text><x_0.1><y_0.5>1:2000<x_0.2><y_0.55><class_Text>'
+    elementos = agentes.elementos_do_parse({'texto': marcas, 'ferramentas': []})
+    conferir([e['texto'] for e in elementos] == ['EST 77', '1:2000'] and elementos[0]['caixa'] == (0.1, 0.2, 0.3, 0.25),
+             'Parse sem ferramenta: as marcas de posição viram elementos com caixa')
+    latex = '\\begin{tabular}{lll}\\hline 298738 & TUBO & 1634,9 \\\\ \\multicolumn{2}{c}{TOTAL} & 1634,9 \\\\ \\hline\\end{tabular}'
+    barras = '| CÓDIGO | QUANT. |\n|---|---|\n| 298738 | 1634,9 |\n| 298738 | 1634,9 |'
+    conferir(agentes.linhas_da_tabela(latex) == [['298738', 'TUBO', '1634,9'], ['TOTAL', '1634,9']]
+             and agentes.linhas_da_tabela(barras) == [['CÓDIGO', 'QUANT.'], ['298738', '1634,9']]
+             and agentes.sem_cerca('<think>hmm</think>\n```\nEST 77\n```') == 'EST 77',
+             'tabela em LaTeX e em markdown viram linhas (a repetida sai); o <think> e a cerca saem')
+
+
 def principal():
     with tempfile.TemporaryDirectory() as temporaria:
         raiz = Path(temporaria)
@@ -456,6 +599,8 @@ def principal():
         testar_carimbo_desenhado(raiz)
         testar_sondagem(raiz)
         testar_respostas(raiz)
+        testar_formatos_dos_agentes()
+        testar_agentes(raiz)
 
 
 if __name__ == '__main__':

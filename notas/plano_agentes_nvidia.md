@@ -6,6 +6,12 @@ determinística; começar com dois; se der certo, continua e busca mais; se não
 `PLANO_MULTIAGENTES_NVIDIA_EXTRACAO_PDF.md` (04/10), adaptado ao que o repositório já tem. Exceção de dados: MASTER-PLAN
 §5.6 (`ialocal.maestro`, v7.10).
 
+**Decisão do Caio de 04/10/2026, depois da primeira versão deste plano:** "pode mandar os projetos, porque todos eles
+são de domínio público, são da Sanepar, e pode mandar também o boletim de sondagem — é amostra de solo; o boletim é o
+mais difícil, é o que vai precisar de mais ajuda". Consequências: a máscara do carimbo fica **desligada**
+(`agentes.json → mascarar_carimbo: false`), `obras_permitidas: ["*"]`, e o boletim entra na bancada (B5) como prioridade.
+**F1 feita na 0v5** (porta, sonda, paralelo, testes).
+
 ## 1. O que muda e o que não muda
 
 | fica como está | entra |
@@ -52,7 +58,7 @@ enorme com raciocínio), troca-se uma linha do `agentes.json`.
 | 1.2 | acesso "para fins de teste limitados", **sem uso em produção** | é bancada e protótipo; nada publicado depende só do agente |
 | 2.3 | não guarda nem usa o conteúdo ao fim da sessão, **salvo** 2.4 e 3.3 | — |
 | 3.3 (iv) | coleta **conteúdo enviado e gerado "para melhorar produtos e serviços da NVIDIA, inclusive modelos de IA"** | **não atende** à condição do MASTER-PLAN §5.5 ("termos que não usam o dado para treino"): por isso é exceção própria, §5.6, com o risco aceito pelo Caio |
-| 2.6 (a), 4.3 | não enviar informação **confidencial**, dado pessoal, informação governamental | carimbo (nomes, CREA, ART) **nunca** sai; a região do carimbo é **pintada de branco** em toda fatia; só obras listadas pelo Caio |
+| 2.6 (a), 4.3 | não enviar informação **confidencial**, dado pessoal, informação governamental | o Caio decidiu (04/10) que o acervo é projeto público da Sanepar e que o boletim pode ir; o carimbo e o boletim têm nome de engenheiro e de sondador — risco aceito. A máscara do carimbo existe como chave (`mascarar_carimbo`) se a decisão mudar |
 | limites | por modelo, não publicados (cerca de 40 pedidos/min relatados); créditos viraram limite de taxa | ritmo por agente em `agentes.json`; 429 com espera |
 
 ## 4. Arquitetura — dentro do que existe
@@ -79,7 +85,7 @@ ler_prancha (código, sem mudança)
 | `conceitos/agentes.json` **novo** | `ligado`, `prazo_fim`, `obras_permitidas`, endpoint, arquivo da chave, os agentes (modelo, tipo, prompt, `max_tokens`, `simultaneas`, `por_minuto`, `timeout_s`), `gratuito_conferido_em`, os critérios da bancada | — |
 | `conceitos/prompts/agente_fatia.txt`, `agente_tabela.txt` **novos** | o pedido ao VLM: as `_regras.txt` na frente e a resposta em JSON (`linhas` ou `valores`) | — |
 | `codigo/ia.py` | `nvidia(modelo, mensagens, opcoes)`: urllib, chave lida de `~/.config/ialocal/nvidia_api_key`, **fora da chave do congelamento**; 429 → espera `Retry-After` com jitter, 3 tentativas; o modelo e a data que a resposta devolve vão ao `meta` (o remoto não tem digest) | ~70 |
-| `codigo/agentes.py` **novo** | `mascarar` (pinta o carimbo), `ler_com_kimi`, `ler_com_parse` (cada um devolve `{'texto', 'linhas', 'caixas', 'erro'}`), `em_paralelo` (`ThreadPoolExecutor`, um semáforo e um ritmo por agente), `permitido` (ligado, prazo, obra), CLI `sondar`, `bancada`, `placar` | ~200 |
+| `codigo/agentes.py` **novo** | `ler_com_kimi`, `ler_com_parse` (cada um devolve `{'texto', 'linhas', 'caixas', 'erro'}`), `em_paralelo` (`ThreadPoolExecutor`, um semáforo e um ritmo por agente), `permitido` (ligado, prazo, obra, chave), CLI `sondar` (F1, feito); `bancada` e `placar` (F2); `mascarar` só se `mascarar_carimbo` voltar a true | ~200 |
 | `codigo/curadoria.py` **novo** | a regra de §5, pura (dict entra, dict sai) | ~80 |
 | `codigo/testes.py` | servidor NVIDIA falso (`http.server` numa thread): resposta, 429 uma vez, timeout; máscara; curadoria; desligado e prazo vencido não chamam | ~120 |
 | `codigo/versoes.jsonl` | 0v5, `muda: []` (a bancada não mexe no que já foi lido) | 1 |
@@ -122,8 +128,9 @@ Nenhuma regra escolhe "a resposta com mais campos" nem a mais longa.
 |---|---|---|---|
 | **B1 tabelas Cambé** (`amostras/tabelas/216_cambe`) | 18 imagens, **242 linhas transcritas pelo Caio** (código; nº; discriminação; quantidade; unidade) | linha certa (código + quantidade + unidade), célula certa, linha inventada | sim: recortes de relação de materiais, sem nomes |
 | **B2 controle negativo** | 6 recortes sem número (ruas e lotes, folha em branco, legenda), como o T3 de 26/09 | qualquer número lido é invenção | sim, se da obra permitida |
-| **B3 fatias da AAT-06** | as fatias do teste de mesa com o gabarito de `teste_prancha_2026-09-26.md` (estacas, cotas, escala) | valor certo por padrão; sequência continuada | sim, **com o carimbo pintado** |
+| **B3 fatias da AAT-06** | as fatias do teste de mesa com o gabarito de `teste_prancha_2026-09-26.md` (estacas, cotas, escala) | valor certo por padrão; sequência continuada | sim (decisão de 04/10) |
 | B4 tabelas Foz (`211_foz`) | 78 imagens **sem transcrição** | só concordância entre leitores; vira gabarito se o Caio transcrever 10 (demanda nova) | sim |
+| **B5 boletins de sondagem** (prioridade do Caio: "o mais difícil") | as páginas digitalizadas dos boletins do acervo e os que chegarem pela demanda `projeto-boletins-reais` (com o CSV gabarito: furo, coordenadas, cota da boca, N.A., profundidade final, N-SPT por metro) | campo certo e N-SPT certo por metro, pelos mesmos padrões de `sondagem.json`; a camada do perfil por faixa de profundidade; o agente lê a página inteira (Kimi: transcrição; Parse: a tabela do boletim com caixa) | sim (decisão de 04/10) |
 
 Saídas: `dados/bancada_agentes.parquet` (uma linha por recorte × leitor × valor) e `saidas/bancada_agentes.csv`; o
 placar por `groupby(['conjunto', 'leitor'])`: precisão, cobertura, inventados, falhas, segundos (mediana e p90),
@@ -149,9 +156,9 @@ acrescenta nada": o plano termina com menos complexidade.
 | fase | o quê | quem | pronto quando |
 |---|---|---|---|
 | **F0** decisão | aprovar o PR do MASTER-PLAN §5.6; criar a conta NVIDIA Developer com o e-mail do Caio; conferir o selo **Free Endpoint** nos dois modelos; gerar a chave e gravar no mini em `~/.config/ialocal/nvidia_api_key` (`chmod 600`); dizer as `obras_permitidas` | Caio, ~30 min | chave no mini, PR aprovado |
-| **F1** porta e sonda | `ia.nvidia`, `agentes.json`, `agentes.py sondar`: uma imagem sintética do `testes.py` a cada agente — autenticação, imagem aceita, formato da resposta, tempo, cabeçalhos de limite. Testes com servidor falso | código | `testes.py` passa; `dados/agentes_sonda.jsonl` com os dois respondendo |
-| **F2** bancada de tabelas | B1 e B2 com os quatro leitores (local no mini, na vez da GPU; externos em paralelo); placar e curadoria | código + mini | `bancada_agentes.csv` no Drive, `_sistema/projeto/` |
-| **F3** bancada de fatias | B3 (e B4 se houver transcrição): fatias com o carimbo pintado; parse com a fatia completada a 1.280 px | código + mini | placar das fatias |
+| **F1** porta e sonda — **feita (0v5)** | `ia.nvidia`, `agentes.json`, `agentes.py sondar`: a tabela 01 de Cambé a cada agente, em paralelo — autenticação, imagem aceita, formato da resposta (o Parse em tool_calls ou em marcas: os dois são lidos), tempo, tokens, placar contra o gabarito. Testes com a API falsa | código | `testes.py` passa (feito); **no mini, com a chave:** `dados/agentes_sonda.jsonl` com os dois respondendo |
+| **F2** bancada de tabelas e boletins | B1, B2 e **B5** com os quatro leitores (local no mini, na vez da GPU; externos em paralelo); placar e curadoria | código + mini | `bancada_agentes.csv` no Drive, `_sistema/projeto/` |
+| **F3** bancada de fatias | B3 (e B4 se houver transcrição): as fatias da folha; parse com a fatia completada a 1.280 px | código + mini | placar das fatias |
 | **F4** veredito | os critérios do §7, agente por agente; registro em `notas/` e no §17 do MASTER-PLAN | Caio | continua, troca ou descontinua |
 | **F5** se passar | tarefa `ler_prancha_agentes` na rodada, antes da fila da GPU (rede, não GPU); a curadoria do §5 em `prancha_leitura` com colunas novas (`leitores`, `status_curadoria`) **ao lado** do `status` de hoje; versão 1v0 (o contrato muda); o terceiro agente entra só pela bancada | código | CSVs com as colunas; status com os agentes |
 
@@ -159,7 +166,7 @@ acrescenta nada": o plano termina com menos complexidade.
 
 | risco | o que segura |
 |---|---|
-| NVIDIA usa o conteúdo para melhorar modelos (termos 3.3) | só recortes sem nomes, carimbo pintado, obras listadas, prazo; aceito pelo Caio no §5.6 |
+| NVIDIA usa o conteúdo para melhorar modelos (termos 3.3) | acervo público da Sanepar (decisão de 04/10), prazo, interruptor, registro de cada envio; risco aceito pelo Caio no §5.6 |
 | gratuito muda, modelo sai do catálogo | `gratuito_conferido_em`; `ligado: false` não quebra nada; a resposta congelada continua valendo para a bancada |
 | modelo remoto muda por trás do mesmo nome, temperatura 0 não garante a mesma resposta | o `meta` guarda o modelo e a data devolvidos; a bancada roda de novo antes do veredito da F5 |
 | limite de taxa, lentidão do Kimi K3 | semáforo e ritmo por agente; reserva GLM-5.3 Flash |

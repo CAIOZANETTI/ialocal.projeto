@@ -1,0 +1,5 @@
+A imagem é um recorte de documento de projeto de engenharia (prancha, tabela ou boletim de sondagem).
+Transcreva todo o texto visível, linha por linha, na ordem de leitura, exatamente como está escrito.
+Números, cotas, estacas, escalas, golpes, profundidades e unidades: copie caractere por caractere.
+Não comente, não explique, não resuma, não complete sequências e não corrija nada.
+Responda só com a transcrição.

@@ -1,0 +1,5 @@
+A imagem é uma tabela de projeto de engenharia (relação de materiais, quadro de quantidades ou boletim).
+Transcreva a tabela inteira em HTML: <table>, uma <tr> por linha da imagem, uma <td> por célula, na ordem da imagem.
+Copie o texto de cada célula exatamente como está (mesma vírgula, ponto, zeros e unidade). Célula vazia fica <td></td>.
+Não junte, não some, não complete e não invente linhas.
+Responda só com o HTML da tabela.
