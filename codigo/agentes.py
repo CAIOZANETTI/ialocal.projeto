@@ -123,7 +123,8 @@ def falha_da_resposta(texto, meta):
                            + (f", em laço de {laco.group(1)!r}" if laco else ''), meta)
     if not (texto or '').strip():
         raise RespostaRuim(f"vazia: {meta.get('tokens_saida')} tokens e nenhum texto"
-                           + (f" ({meta['caracteres_raciocinio']} caracteres de raciocínio)" if meta.get('caracteres_raciocinio') else ''), meta)
+                           + (f" ({meta['caracteres_raciocinio']} caracteres de raciocínio)" if meta.get('caracteres_raciocinio') else '')
+                           + f", fim {meta.get('fim')}" + (f"; pensou: {meta['raciocinio_sem_resposta']!r}" if meta.get('raciocinio_sem_resposta') else ''), meta)
     if laco:
         raise RespostaRuim(f"degenerada: {laco.group(0)[:30]!r} em {len(texto)} caracteres", meta)
 
