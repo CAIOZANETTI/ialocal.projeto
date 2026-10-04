@@ -100,8 +100,10 @@ def ler_com_kimi(nome, imagem, modo):
     AGENTE = configuracao()['agentes'][nome]
     pedido = ia.ler_prompt(AGENTE['prompt'][modo])[0]
     bruta, meta = ia.nvidia(AGENTE['modelo'], pedido, [imagem], {'max_tokens': AGENTE['max_tokens']},
-                            AGENTE['lado_max_px'], AGENTE['timeout_s'], AGENTE['por_minuto'])
+                            AGENTE['lado_max_px'], AGENTE['timeout_s'], AGENTE['provedor'])
     conteudo = sem_cerca(json.loads(bruta)['texto'])
+    if not conteudo and meta.get('fim') == 'length':  # o raciocínio gastou o max_tokens antes da resposta: erro, não leitura vazia
+        raise RuntimeError(f"cortado: o raciocínio gastou os {AGENTE['max_tokens']} tokens antes da resposta ({meta.get('tokens_saida')} saíram)")
     linhas = linhas_da_tabela(conteudo) if modo == 'tabela' else []
     texto = '\n'.join(' '.join(celulas) for celulas in linhas) if linhas else conteudo
     return {'texto': texto, 'linhas': linhas, 'caixas': [], 'meta': meta}
@@ -115,7 +117,7 @@ def ler_com_parse(nome, imagem, modo):
     if AGENTE.get('ferramenta'):
         opcoes['tools'] = [{'type': 'function', 'function': {'name': AGENTE['ferramenta']}}]
     bruta, meta = ia.nvidia(AGENTE['modelo'], AGENTE.get('controle', ''), [imagem], opcoes,
-                            AGENTE['lado_max_px'], AGENTE['timeout_s'], AGENTE['por_minuto'])
+                            AGENTE['lado_max_px'], AGENTE['timeout_s'], AGENTE['provedor'])
     elementos = elementos_do_parse(json.loads(bruta))
     linhas = [l for e in elementos if e['classe'].lower() == 'table' or '<tr' in e['texto'] for l in linhas_da_tabela(e['texto'])]
     return {'texto': '\n'.join(e['texto'] for e in elementos), 'linhas': linhas,
@@ -147,22 +149,29 @@ def ler_com_agente(nome, imagem, modo='texto', obra=None):
 
 
 def em_paralelo(recortes, nomes=None, modo='texto', obra=None, progresso=False):
-    """Cada recorte por cada agente ao mesmo tempo, `simultaneas` pedidos por agente (e o ritmo por_minuto do ia.nvidia);
-    devolve as leituras à medida que chegam, com o agente e o recorte. Falha de um não para os outros. `progresso`:
-    uma linha na tela por leitura que volta (a bancada)."""
-    AGENTES = configuracao()['agentes']
+    """Cada recorte por cada agente ao mesmo tempo; uma fila por provedor, com as `simultaneas` dele (e o ritmo
+    por_minuto do ia.nvidia, também por provedor): os agentes do mesmo provedor dividem o limite da conta, em vez —
+    recorte a recorte, um de cada agente —, e a comparação entre eles não depende de quem pediu primeiro. Devolve as
+    leituras à medida que chegam. Falha de um não para os outros. `progresso`: uma linha na tela por leitura."""
+    CONFIGURACAO = configuracao()
+    AGENTES, PROVEDORES = CONFIGURACAO['agentes'], CONFIGURACAO['provedores']
     nomes = list(nomes or AGENTES)
     ia.congelados()  # carregado antes das threads: todas acrescentam no mesmo dicionário
-    filas = {nome: ThreadPoolExecutor(max_workers=AGENTES[nome]['simultaneas'], thread_name_prefix=nome) for nome in nomes}
+    filas = {p: ThreadPoolExecutor(max_workers=PROVEDORES[p]['simultaneas'], thread_name_prefix=p)
+             for p in {AGENTES[n]['provedor'] for n in nomes}}
     terminou = False
     try:
-        pedidos = {filas[nome].submit(ler_com_agente, nome, recorte, modo, obra): (nome, recorte) for recorte in recortes for nome in nomes}
+        pedidos = {filas[AGENTES[nome]['provedor']].submit(ler_com_agente, nome, recorte, modo, obra): (nome, recorte)
+                   for recorte in recortes for nome in nomes}
         for numero, feito in enumerate(as_completed(pedidos), 1):
             nome, recorte = pedidos[feito]
             lida = {'agente': nome, 'recorte': str(recorte), **feito.result()}
             if progresso:
+                meta = lida['meta']
                 print(f"{numero:>4}/{len(pedidos)}  {nome:<6} {Path(recorte).name[:34]:<34} {lida['segundos']:6.1f} s  "
-                      f"{'congelado' if lida['meta'].get('congelado') else '':<9} linhas {len(lida['linhas']):>3}"
+                      f"{'congelado' if meta.get('congelado') else '':<9} linhas {len(lida['linhas']):>3}"
+                      + (f"  útil {meta['segundos_util']:.1f} s, perdido {meta['segundos_espera'] + meta['segundos_falhas']:.1f} s"
+                         if 'segundos_util' in meta else '')
                       + (f"  tentativas {lida['meta']['tentativas']} ({','.join(lida['meta'].get('motivos', []))})"
                          if lida['meta'].get('tentativas', 1) > 1 else '') + (f"  ERRO {lida['erro'][:100]}" if lida['erro'] else ''), flush=True)
             yield lida

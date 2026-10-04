@@ -27,6 +27,8 @@ from pathlib import Path
 import comum
 
 CONGELAMENTO = comum.DADOS / 'congelamento.jsonl'
+REFAZER = False  # a bancada com --refazer: chama de novo e regrava, para medir o tempo nas mesmas condições
+CHAMADAS = threading.local()  # o meta de cada resposta (guardada ou nova) desta thread: quem mede soma o tempo útil
 OLLAMA = 'http://localhost:11434'
 REPETICAO = 'token repeat limit'  # o 500 do Ollama quando o modelo entra em laço (glm-ocr, ollama#18609)
 
@@ -49,17 +51,33 @@ def congelados():
 def congelado(chave, chamar):
     """Resposta guardada para a mesma chave; senão chama e acrescenta ao JSONL."""
     assinatura = hashlib.sha256(json.dumps(chave, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
-    guardado = congelados().get(assinatura)
+    guardado = None if REFAZER else congelados().get(assinatura)
     if guardado:
-        return guardado['resposta'], {**guardado['meta'], 'congelado': True}
+        meta = {**guardado['meta'], 'congelado': True}
+        anotar(meta)
+        return guardado['resposta'], meta
     marca = time.perf_counter()
     resposta, meta = chamar()
     meta = {**meta, 'segundos': round(time.perf_counter() - marca, 2), 'congelado': False}
+    anotar(meta)
     registro = {'assinatura': assinatura, 'chave': chave, 'resposta': resposta, 'meta': meta,
                 'em': datetime.now().isoformat(timespec='seconds')}
     comum.anexar(CONGELAMENTO, json.dumps(registro, ensure_ascii=False) + '\n')
     congelados()[assinatura] = registro
     return resposta, meta
+
+
+def anotar(meta):
+    if not hasattr(CHAMADAS, 'lista'):
+        CHAMADAS.lista = []
+    CHAMADAS.lista.append(meta)
+
+
+def medir():
+    """Zera a lista desta thread; quem mede chama antes e lê CHAMADAS.lista depois (uma leitura pode ser várias
+    chamadas: as faixas do glm-ocr)."""
+    CHAMADAS.lista = []
+    return CHAMADAS.lista
 
 
 def instalado(modulo):
@@ -133,23 +151,28 @@ def chave_nvidia():
 RITMO, RITMO_TRAVA = {}, threading.Lock()
 
 
-def esperar_vez(modelo, por_minuto):
-    """Um pedido do mesmo modelo a cada 60/por_minuto s, entre todas as threads: o limite do gratuito não é publicado."""
+def esperar_vez(provedor, por_minuto):
+    """Um pedido ao mesmo provedor a cada 60/por_minuto s, entre todas as threads e todos os modelos dele: o limite
+    da conta é um só (a NVIDIA mostra 40/min para a macminicaio). Devolve quanto esperou."""
     with RITMO_TRAVA:
-        trava, ultimo = RITMO.setdefault(modelo, (threading.Lock(), [0.0]))
+        trava, ultimo = RITMO.setdefault(provedor, (threading.Lock(), [0.0]))
     with trava:
-        espera = ultimo[0] + 60 / por_minuto - time.monotonic()
-        if espera > 0:
+        espera = max(0.0, ultimo[0] + 60 / por_minuto - time.monotonic())
+        if espera:
             time.sleep(espera)
         ultimo[0] = time.monotonic()
+    return espera
 
 
-def nvidia(modelo, pedido, imagens=(), opcoes=None, lado_max_px=2048, timeout_s=300, por_minuto=20):
+def nvidia(modelo, pedido, imagens=(), opcoes=None, lado_max_px=2048, timeout_s=300, provedor='nvidia'):
     """Resposta de um modelo do catálogo da NVIDIA (API no formato OpenAI): `pedido` é o texto, as imagens vão como data
     URI. Devolve o JSON {'texto', 'ferramentas'} (o content e os argumentos das tool_calls; o raciocínio fica de fora).
     429, 5xx, timeout e queda de rede tentam de novo (agentes.json → tentativas); outro 4xx sobe na hora. A chave da API
-    não entra na chave do congelamento; o remoto não tem digest: o modelo e os tokens que a resposta diz vão ao meta."""
+    não entra na chave do congelamento; o remoto não tem digest: o modelo e os tokens que a resposta diz vão ao meta.
+    O tempo separa o modelo do plano: segundos_util (a tentativa que deu certo), segundos_espera (o ritmo do provedor
+    e as esperas entre tentativas) e segundos_falhas (as tentativas que falharam)."""
     AGENTES = comum.configuracao('agentes')
+    POR_MINUTO = AGENTES['provedores'][provedor]['por_minuto']
     partes = ([{'type': 'text', 'text': pedido}] if pedido else []) + [
         {'type': 'image_url', 'image_url': {'url': 'data:image/png;base64,' + base64.b64encode(imagem_para_ia(i, lado_max_px)).decode()}}
         for i in imagens]
@@ -161,13 +184,17 @@ def nvidia(modelo, pedido, imagens=(), opcoes=None, lado_max_px=2048, timeout_s=
         envio = urllib.request.Request(AGENTES['endpoint'], data=json.dumps(corpo).encode(), headers={
             'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': f'Bearer {chave_nvidia()}'})
         motivos = []  # por que cada tentativa anterior falhou: 429 (o limite), 5xx (o servidor) ou sem resposta
+        espera_total = falhas_total = 0.0
         for tentativa in range(AGENTES['tentativas'] + 1):
-            esperar_vez(modelo, por_minuto)
+            espera_total += esperar_vez(provedor, POR_MINUTO)
+            inicio = time.perf_counter()
             try:
                 with urllib.request.urlopen(envio, timeout=timeout_s) as resposta:
                     inteira = json.load(resposta)
+                util = time.perf_counter() - inicio
                 break
             except urllib.error.HTTPError as falha:
+                falhas_total += time.perf_counter() - inicio
                 motivo = f'NVIDIA {falha.code} ({modelo}): {falha.read().decode(errors="replace")[:600]}'
                 if (falha.code != 429 and falha.code < 500) or tentativa == AGENTES['tentativas']:
                     raise RuntimeError(motivo) from falha
@@ -175,18 +202,22 @@ def nvidia(modelo, pedido, imagens=(), opcoes=None, lado_max_px=2048, timeout_s=
                 pedida = falha.headers.get('Retry-After', '')
                 espera = float(pedida) if re.fullmatch(r'\d+(?:\.\d+)?', pedida.strip()) else AGENTES['espera_s'] * 2 ** tentativa
             except (urllib.error.URLError, TimeoutError, ConnectionError) as falha:
+                falhas_total += time.perf_counter() - inicio
                 if tentativa == AGENTES['tentativas']:
                     raise RuntimeError(f'NVIDIA sem resposta ({modelo}): {falha}') from falha
                 motivos.append(type(falha).__name__)
                 espera = AGENTES['espera_s'] * 2 ** tentativa
-            time.sleep(min(espera, AGENTES['espera_max_s']) + random.random() * min(1, AGENTES['espera_s']))
+            pausa = min(espera, AGENTES['espera_max_s']) + random.random() * min(1, AGENTES['espera_s'])
+            time.sleep(pausa)
+            espera_total += pausa
         escolha, uso = inteira['choices'][0], inteira.get('usage') or {}
         mensagem = escolha.get('message') or {}
         resposta = {'texto': mensagem.get('content') or '',
                     'ferramentas': [c['function']['arguments'] for c in mensagem.get('tool_calls') or []]}
         return json.dumps(resposta, ensure_ascii=False), {
             'motor': 'nvidia', 'modelo': inteira.get('model') or modelo, 'fim': escolha.get('finish_reason'),
-            'tokens_entrada': uso.get('prompt_tokens'), 'tokens_saida': uso.get('completion_tokens'), 'tentativas': tentativa + 1, 'motivos': motivos}
+            'tokens_entrada': uso.get('prompt_tokens'), 'tokens_saida': uso.get('completion_tokens'), 'tentativas': tentativa + 1, 'motivos': motivos,
+            'segundos_util': round(util, 2), 'segundos_espera': round(espera_total, 2), 'segundos_falhas': round(falhas_total, 2)}
     return congelado(chave, chamar)
 
 
