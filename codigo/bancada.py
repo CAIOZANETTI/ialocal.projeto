@@ -151,7 +151,7 @@ def locais(imagens, modo):
 
 def externos(imagens, modo):
     """(agente, recorte) → leitura de cada agente externo, em paralelo, uma fila por provedor."""
-    print(f'agentes: {len(imagens)} recortes × {len(comum.configuracao("agentes")["agentes"])} agentes, modo {modo}', flush=True)
+    print(f"agentes: {len(imagens)} recortes × {len(agentes.ligados())} ({', '.join(agentes.ligados())}), modo {modo}", flush=True)
     return {(l['agente'], l['recorte']): l for l in agentes.em_paralelo(imagens, modo=modo, progresso=True)}
 
 
