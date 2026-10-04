@@ -786,6 +786,20 @@ def testar_sinal_de_vida_e_quarentena(raiz):
                  'quarentena: o documento que travou 2 vezes sai da fila de IA; o que travou 1 vez tenta de novo')
     finally:
         travados.unlink()
+    import subprocess
+    pedidos = raiz / 'pedidos_cede'
+    pedidos.mkdir()
+    morto = subprocess.Popen([sys.executable, '-c', 'pass'])
+    morto.wait()
+    escrever = lambda nome, tarefa, pid: (pedidos / f'{nome}.json').write_text(json.dumps({'tarefa': tarefa, 'pid': pid}))
+    escrever('rodada', 'prancha', os.getppid())
+    escrever('propria', 'bancada', os.getpid())
+    escrever('morta', 'bancada', morto.pid)
+    sem_bancada = ciclo.bancada_esperando(pedidos)
+    escrever('viva', 'bancada', os.getppid())
+    conferir(not sem_bancada and ciclo.bancada_esperando(pedidos),
+             'a rodada cede a vez entre um documento e outro quando a bancada viva do repositório espera (a de processo morto, '
+             'o próprio pedido e o de outra tarefa não contam)')
 
 
 def principal():

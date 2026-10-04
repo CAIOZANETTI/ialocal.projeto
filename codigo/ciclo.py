@@ -12,6 +12,7 @@ declara em `muda` (codigo/versoes.jsonl) e a de documento cujo conteúdo mudou. 
 """
 import fcntl
 import json
+import os
 import sys
 import time
 import traceback
@@ -69,6 +70,21 @@ def situacao(documentos):
         estados[documento['id']] = 'falhou' if falhas[(documento['id'], documento['versao'], tarefa)] >= TENTATIVAS \
             or (tarefa.endswith('_ia') and em_quarentena(documento)) else tarefa
     return estados
+
+
+def bancada_esperando(pasta=None):
+    """A bancada (bancada.py, tarefa 'bancada') do próprio repositório pediu a vez da GPU e está viva: a rodada cede
+    entre um documento e outro, sem esperar o fim do pedaço (04/10: a bancada esperou 40 min a rodada de prioridade 7,
+    porque a vez só volta no fim do pedaço de 20 min e cada prancha leva até 20)."""
+    for arquivo in (pasta or comum.DADOS / 'gpu' / 'pedidos').glob('*.json'):
+        try:
+            pedido = json.loads(arquivo.read_text())
+            if pedido.get('tarefa') == 'bancada' and pedido.get('pid') != os.getpid():
+                os.kill(pedido['pid'], 0)
+                return True
+        except (OSError, ValueError, KeyError, TypeError):
+            continue
+    return False
 
 
 def em_quarentena(documento):
@@ -229,6 +245,9 @@ def rodada():
         with cliente_gpu.vez_da_gpu('ialocal.projeto', str(comum.DADOS / 'gpu'), GPU['prioridade'], GPU['modelo'], 'prancha') as vez:
             for documento in fila:
                 if not vez.minha() or not seguir():  # alguém mais importante espera, ou a rodada acabou: a próxima pede de novo
+                    break
+                if bancada_esperando():
+                    print(f"{time.strftime('%d/%m %H:%M:%S')}  a bancada pediu a vez da GPU: a rodada cede (a próxima continua)", flush=True)
                     break
                 vez.avancei(documento['id'])  # o item em curso: travado aqui, o vigia do maestro encerra e o registra
                 executar(estados[documento['id']], documento, rodada_em)
