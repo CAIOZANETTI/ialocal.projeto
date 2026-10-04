@@ -70,6 +70,8 @@ def ler_local(imagem, modo):
 def locais(imagens, modo):
     """recorte → leitura local de cada imagem, na vez da GPU do maestro (a bancada é de fundo: prioridade da rodada)."""
     GPU = comum.configuracao('operacao')['gpu']
+    print(f"local: pedindo a vez da GPU ao maestro (prioridade {GPU['prioridade']}) para {len(imagens)} recortes; "
+          '--sem-local pula esta parte', flush=True)
     lidas = {}
     with cliente_gpu.vez_da_gpu('ialocal.projeto', str(comum.DADOS / 'gpu'), GPU['prioridade'], GPU['modelo'], 'bancada') as vez:
         for imagem in imagens:
@@ -77,6 +79,8 @@ def locais(imagens, modo):
                 break
             marca = time.perf_counter()
             linhas, texto, vision, erro = ler_local(imagem, modo)
+            print(f'local  {Path(imagem).name[:34]:<34} {time.perf_counter() - marca:6.1f} s  linhas {len(linhas):>3}'
+                  + (f'  ERRO {erro[:100]}' if erro else ''), flush=True)
             lidas[str(imagem)] = {'linhas': linhas, 'texto': texto, 'vision': vision, 'erro': erro,
                                   'segundos': round(time.perf_counter() - marca, 2)}
             if erro.startswith('glm-ocr'):  # sem Ollama não adianta tentar as outras
@@ -86,7 +90,8 @@ def locais(imagens, modo):
 
 def externos(imagens, modo):
     """(agente, recorte) → leitura de cada agente, em paralelo."""
-    return {(l['agente'], l['recorte']): l for l in agentes.em_paralelo(imagens, modo=modo)}
+    print(f'agentes: {len(imagens)} recortes × {len(comum.configuracao("agentes")["agentes"])} agentes, modo {modo}', flush=True)
+    return {(l['agente'], l['recorte']): l for l in agentes.em_paralelo(imagens, modo=modo, progresso=True)}
 
 
 def tabelas(com_local=True):
@@ -359,4 +364,4 @@ def principal(argumentos):
 
 
 if __name__ == '__main__':
-    principal(sys.argv[1:])
+    agentes.sair_no_ctrl_c(principal, sys.argv[1:])

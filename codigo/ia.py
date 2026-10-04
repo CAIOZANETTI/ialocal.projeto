@@ -179,7 +179,7 @@ def nvidia(modelo, pedido, imagens=(), opcoes=None, lado_max_px=2048, timeout_s=
                     raise RuntimeError(f'NVIDIA sem resposta ({modelo}): {falha}') from falha
                 motivos.append(type(falha).__name__)
                 espera = AGENTES['espera_s'] * 2 ** tentativa
-            time.sleep(espera + random.random() * min(1, AGENTES['espera_s']))
+            time.sleep(min(espera, AGENTES['espera_max_s']) + random.random() * min(1, AGENTES['espera_s']))
         escolha, uso = inteira['choices'][0], inteira.get('usage') or {}
         mensagem = escolha.get('message') or {}
         resposta = {'texto': mensagem.get('content') or '',
