@@ -522,11 +522,14 @@ def testar_agentes(raiz):
         conferir(kimi['meta']['tentativas'] == 2 and primeira == 3
                  and all(p['autorizacao'] == 'Bearer nvapi-segredo-do-teste' for p in pedidos)
                  and all(p['corpo']['messages'][0]['content'][-1]['image_url']['url'].startswith('data:image/png;base64,') for p in pedidos)
-                 and (lambda corpo: 'tools' not in corpo and 'max_tokens' not in corpo
+                 and next(p for p in pedidos if 'kimi' in p['corpo']['model'])['corpo']['temperature'] == 0.6
+                 and (lambda corpo: 'tools' not in corpo and 'max_tokens' not in corpo and corpo['temperature'] == 0
+                      and corpo['repetition_penalty'] == 1.1 and corpo['top_k'] == 1 and corpo['skip_special_tokens'] is False
                       and corpo['messages'][0]['content'][0]['text'].startswith('</s><s><predict_bbox>'))(
                      next(p for p in pedidos if 'parse' in p['corpo']['model'])['corpo']),
                  'a porta: 429 espera o Retry-After e tenta de novo; a chave vai no cabeçalho; a imagem como data URI; o Parse com as '
-                 'marcas de controle antes da imagem e sem ferramenta (a API recusou o tool_choice na sonda de 04/10)')
+                 'marcas de controle antes da imagem e sem ferramenta (a API recusou o tool_choice na sonda de 04/10), com '
+                 'repetition_penalty 1,1, top_k 1 e as marcas preservadas; o Kimi a temperatura 0,6 (a 0 degenerou)')
         agentes.sondar([imagem])
         import contextlib
         saida = io.StringIO()
@@ -584,6 +587,17 @@ def testar_formatos_dos_agentes():
     conferir([e['texto'] for e in elementos] == ['EST 77', '1:2000'] and elementos[0]['caixa'] == (0.1, 0.2, 0.3, 0.25)
              and ferramenta == [{'classe': 'Text', 'texto': 'EST 77', 'caixa': (0.1, 0.2, 0.3, 0.25)}],
              'Parse: as marcas de posição no texto e os argumentos da ferramenta viram elementos com caixa')
+    motivos = []
+    for texto, meta in (('', {'fim': 'stop', 'tokens_saida': 32}), ('<table' + '!' * 30, {'fim': 'stop'}),
+                        ('', {'fim': 'length', 'tokens_saida': 4090}), ('<table><tr><td>298738</td></tr></table>', {'fim': 'stop'})):
+        try:
+            agentes.falha_da_resposta(texto, meta)
+            motivos.append('ok')
+        except RuntimeError as falha:
+            motivos.append(str(falha).split(':')[0])
+    conferir(motivos == ['vazia', 'degenerada', 'cortada', 'ok'],
+             'resposta que não é leitura vira erro (taxa de erro), não leitura vazia: vazia, degenerada (o "!!!!" do Kimi a '
+             'temperatura 0) e cortada no limite (o laço de 4.090 tokens do Parse)')
     latex = '\\begin{tabular}{lll}\\hline 298738 & TUBO & 1634,9 \\\\ \\multicolumn{2}{c}{TOTAL} & 1634,9 \\\\ \\hline\\end{tabular}'
     barras = '| CÓDIGO | QUANT. |\n|---|---|\n| 298738 | 1634,9 |\n| 298738 | 1634,9 |'
     conferir(agentes.linhas_da_tabela(latex) == [['298738', 'TUBO', '1634,9'], ['TOTAL', '1634,9']]

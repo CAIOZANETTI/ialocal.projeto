@@ -97,16 +97,31 @@ def elementos_do_parse(resposta):
     return elementos
 
 
+DEGENERADA = re.compile(r'(.)\1{19,}')
+
+
+def falha_da_resposta(texto, meta):
+    """Resposta que não é leitura sobe como erro (conta na taxa de erro, não como leitura vazia): vazia, cortada no
+    limite (fim length: o raciocínio ou um laço gastou os tokens) ou degenerada (o mesmo caractere 20 vezes seguidas:
+    04/10, o Kimi a temperatura 0 devolveu '<table!!!!…' e o Parse 4.090 tokens de laço que a API apagou)."""
+    if meta.get('fim') == 'length':
+        raise RuntimeError(f"cortada: chegou ao limite com {meta.get('tokens_saida')} tokens e {len(texto or '')} caracteres de resposta")
+    if not (texto or '').strip():
+        raise RuntimeError(f"vazia: {meta.get('tokens_saida')} tokens e nenhum texto"
+                           + (f" ({meta['caracteres_raciocinio']} caracteres de raciocínio)" if meta.get('caracteres_raciocinio') else ''))
+    if DEGENERADA.search(texto):
+        raise RuntimeError(f"degenerada: {DEGENERADA.search(texto).group(0)[:30]!r} em {len(texto)} caracteres")
+
+
 def ler_com_kimi(nome, imagem, modo):
     """Um VLM do catálogo (o Kimi K3 ou um reserva do mesmo tipo): transcreve o recorte (modo texto) ou a tabela em HTML
     (modo tabela), com as regras comuns na frente do pedido."""
     AGENTE = configuracao()['agentes'][nome]
     pedido = ia.ler_prompt(AGENTE['prompt'][modo])[0]
-    bruta, meta = ia.nvidia(AGENTE['modelo'], pedido, [imagem], {'max_tokens': AGENTE['max_tokens']},
+    bruta, meta = ia.nvidia(AGENTE['modelo'], pedido, [imagem], {'max_tokens': AGENTE['max_tokens'], **AGENTE.get('opcoes', {})},
                             AGENTE['lado_max_px'], AGENTE['timeout_s'], AGENTE['provedor'])
     conteudo = sem_cerca(json.loads(bruta)['texto'])
-    if not conteudo and meta.get('fim') == 'length':  # o raciocínio gastou o max_tokens antes da resposta: erro, não leitura vazia
-        raise RuntimeError(f"cortado: o raciocínio gastou os {AGENTE['max_tokens']} tokens antes da resposta ({meta.get('tokens_saida')} saíram)")
+    falha_da_resposta(conteudo, meta)
     linhas = linhas_da_tabela(conteudo) if modo == 'tabela' else []
     texto = '\n'.join(' '.join(celulas) for celulas in linhas) if linhas else conteudo
     return {'texto': texto, 'linhas': linhas, 'caixas': [], 'meta': meta}
@@ -116,12 +131,15 @@ def ler_com_parse(nome, imagem, modo):
     """O Nemotron Parse: o texto de cada elemento com a caixa e a classe; as tabelas que ele achou viram linhas (em
     qualquer modo: o parse não recebe pedido, só a ferramenta ou as marcas de controle)."""
     AGENTE = configuracao()['agentes'][nome]
-    opcoes = {'max_tokens': AGENTE['max_tokens']} if AGENTE.get('max_tokens') else {}
+    opcoes = {**({'max_tokens': AGENTE['max_tokens']} if AGENTE.get('max_tokens') else {}), **AGENTE.get('opcoes', {})}
     if AGENTE.get('ferramenta'):
         opcoes['tools'] = [{'type': 'function', 'function': {'name': AGENTE['ferramenta']}}]
     bruta, meta = ia.nvidia(AGENTE['modelo'], AGENTE.get('controle', ''), [imagem], opcoes,
                             AGENTE['lado_max_px'], AGENTE['timeout_s'], AGENTE['provedor'])
-    elementos = elementos_do_parse(json.loads(bruta))
+    resposta = json.loads(bruta)
+    if not resposta['ferramentas']:
+        falha_da_resposta(resposta['texto'], meta)
+    elementos = elementos_do_parse(resposta)
     linhas = [l for e in elementos if e['classe'].lower() == 'table' or '<tr' in e['texto'] for l in linhas_da_tabela(e['texto'])]
     return {'texto': '\n'.join(e['texto'] for e in elementos), 'linhas': linhas,
             'caixas': [{'classe': e['classe'], 'caixa': e['caixa'], 'texto': e['texto'][:200]} for e in elementos], 'meta': meta}
