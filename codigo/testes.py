@@ -683,6 +683,70 @@ def testar_grade():
              'relação empilhada repete o código; sem cabeçalho, código, unidade e quantidade pelas pontas; legenda não é linha')
 
 
+VISION_TABELA_01 = """CÓDIGO@0.017-0.084 N°@0.096-0.124 DISCRIMINAÇÃO@0.411-0.555 QUANT.@0.848-0.925 UND@0.927-0.970
+REDE@0.398-0.445 DE@0.448-0.467 DISTRIBUIÇÃO@0.470-0.591
+298738@0.019-0.085 S/N@0.087-0.126 TUBO@0.128-0.181 POLIETILENO@0.184-0.290 PE@0.292-0.312 100@0.314-0.348 PN@0.350-0.375 10@0.377-0.401 (ROLO@0.404-0.454 COM@0.457-0.496 50,0@0.498-0.539 M)@0.541-0.563 DE@0.566-0.590 63@0.592-0.616 1634,9@0.848-0.912
+294924@0.019-0.088 S/N@0.090-0.131 LUVA@0.133-0.181 POLIETILENO@0.183-0.289 PE@0.291-0.311 100@0.314-0.347 PN@0.349-0.374 16@0.376-0.398 PARA@0.401-0.446 ELTROFUSAO@0.448-0.554 DE@0.556-0.579 63@0.581-0.605 33@0.867-0.892 UN.@0.936-0.967
+309341Śł@0.019-0.089 S/N@0.086-0.129 TE@0.132-0.156 POLIETILENO@0.158-0.262 PARA@0.265-0.308 ELETROFUSAO@0.310-0.426 BBP@0.429-0.460 PE@0.463-0.484 100@0.487-0.521 PN@0.523-0.547 16@0.550-0.571 DE@0.574-0.598 63@0.600-0.624 UN.@0.936-0.967
+275476@0.017-0.084 S/N@0.086-0.125 TE@0.128-0.154 FD@0.156-0.180 JE@0.182-0.198 BBB@0.200-0.234 PARA@0.237-0.281 PVC@0.283-0.317 PBA@0.320-0.353 COM@0.356-0.397 ANEIS@0.400-0.446 CONFORME@0.449-0.545 NBR@0.547-0.581 15880@0.584-0.638 DNSO@0.641-0.696 UN.@0.936-0.967
+275522@0.019-0.088 S/N@0.090-0.129 LUVA@0.131-0.181 DE@0.183-0.206 CORRER@0.208-0.274 FD@0.276-0.297 JE@0.299-0.318 PARA@0.320-0.365 PVC@0.367-0.401 PBA@0.403-0.438 COM@0.440-0.479 ANEIS@0.481-0.529 CONFORME@0.531-0.626 NBR@0.628-0.664 15880@0.666-0.722 DN5O@0.724-0.773 UN.@0.936-0.967
+277428@0.017-0.085 S/N@0.088-0.128 CAP@0.132-0.166 FD@0.169-0.194 JE@0.197-0.212 PARA@0.215-0.259 PVC@0.262-0.296 PBA@0.299-0.330 COM@0.334-0.374 ANEL@0.377-0.421 CONFORME@0.424-0.517 NBR@0.520-0.554 15880@0.557-0.610 DN50@0.613-0.667 UN.@0.936-0.970
+310410@0.019-0.084 S/N@0.086-0.125 LUVA@0.127-0.181 TRANSICAO@0.183-0.274 POLIETILENO@0.276-0.384 PE@0.386-0.407 100@0.409-0.442 PN@0.444-0.469 16@0.471-0.494 ELETROFUSAO@0.496-0.610 ROSCA@0.612-0.668 MACHO@0.670-0.734 DE@0.736-0.759 63@0.761-0.784 POL@0.786-0.821 2@0.823-0.837 З@0.873-0.887 UN.@0.936-0.967
+30791@0.022-0.080 S/N@0.094-0.129 LUVA@0.131-0.181 FG@0.183-0.206 BSP@0.208-0.239 POL@0.241-0.276 2"@0.278-0.301 З@0.873-0.887 UN.@0.936-0.967
+20117@0.022-0.086 S/N@0.094-0.130 ADAPTADOR@0.133-0.237 PVC@0.239-0.273 JE@0.275-0.292 BOLSA/ROSCA@0.295-0.411 COM@0.413-0.452 ANEL@0.454-0.498 DN50@0.500-0.548 POL@0.551-0.585 2"@0.587-0.608 UN.@0.936-0.967"""
+# o que o Vision do mini leu na Tabela 01 de Cambé (04/10): pulou os algarismos sozinhos (6, 2, 3, 1, 3) e a unidade M,
+# leu o 3 como o З cirílico e grudou 'Śł' no código 309341
+
+
+def testar_grade_com_o_vision():
+    """A grade com as palavras que o Vision do mini leu na Tabela 01 de Cambé: sem releitura, só 3 linhas (e o З vira
+    3); com a releitura das 6 células vazias (5 quantidades e a unidade M), as 9 do gabarito certas; o código com
+    'Śł' grudado é o 309341."""
+    import agentes
+    import bancada
+    import curadoria
+    import grade
+    palavras = palavras_de([[(t.rsplit('@', 1)[0], float(t.rsplit('@', 1)[1].split('-')[0]), float(t.rsplit('@', 1)[1].split('-')[1]))
+                             for t in linha.split(' ')] for linha in VISION_TABELA_01.splitlines()])
+    pedidas = []
+
+    def reler(caixas):
+        pedidas.extend(caixas)
+        return ['M', '6', '| 2 |', '3', '1', '3']
+    gabarito = agentes.gabarito_cambe()['TABELA 01']
+    certas = lambda linhas: sum(r['resultado'] == 'certa' for r in bancada.comparar(curadoria.por_codigo(linhas), gabarito, {}, {}, None))
+    sem, com = grade.montar(palavras), grade.montar(palavras, reler)
+    conferir((len(sem), certas(sem), certas(com), len(pedidas)) == (3, 3, 9, 6) and com[2][0] == '309341'
+             and all(0.62 < c[0] < 0.86 and c[2] == pedidas[1][2] for c in pedidas[1:]) and pedidas[0][0] > 0.92,
+             'grade com o Vision real da Tabela 01: sem releitura 3 linhas; relidas as 6 células vazias (o traço da grade sai), '
+             '9 de 9 certas; o código com lixo grudado é o 309341')
+
+
+def testar_celulas():
+    """A releitura da célula: o recorte sai ampliado, sem os traços da grade (a coluna inteira escura) e com o
+    algarismo; as células vão todas num processo só do Vision."""
+    from PIL import Image, ImageDraw
+    pasta = Path(tempfile.mkdtemp())
+    imagem = Image.new('RGB', (200, 40), 'white')
+    desenho = ImageDraw.Draw(imagem)
+    desenho.line([(150, 0), (150, 39)], fill='black', width=2)  # traço da grade
+    desenho.line([(110, 12), (110, 28)], fill='black', width=2)  # o "1"
+    imagem.save(pasta / 'tabela.png')
+    recorte = ia.recortar_celulas(pasta / 'tabela.png', [(0.5, 0.2, 0.9, 0.8)], pasta / 'celulas')[0]
+    grande = Image.open(recorte).convert('L')
+    escuros = lambda x0, x1: sum(1 for x in range(x0, x1) for y in range(grande.height) if grande.getpixel((x, y)) < 128)
+    original = ia.VISION_CELULAS
+    try:
+        ia.VISION_CELULAS = [sys.executable, '-c', 'import json, sys; print(json.dumps({"textos": [str(len(sys.argv) - 1)] * (len(sys.argv) - 1)}))']
+        lidos = ia.ler_celulas(pasta / 'tabela.png', [(0.5, 0.2, 0.9, 0.8), (0.1, 0.2, 0.4, 0.8)], pasta / 'celulas')
+    finally:
+        ia.VISION_CELULAS = original
+    # no recorte (x de 100 a 180, margem 12, ampliado 4×): o "1" em x 10 → (12 + 10) × 4; o traço em x 50 → (12 + 50) × 4
+    conferir(grande.size == ((80 + 1 + 24) * 4, (24 + 1 + 24) * 4) and escuros(80, 100) > 0 and escuros(240, 260) == 0
+             and lidos == ['2', '2'],
+             'célula relida: recorte ampliado 4×, o traço da grade apagado e o algarismo mantido; as células num processo só do Vision')
+
+
 def testar_palavras_do_vision():
     """As caixas das palavras do Vision: a do trecho (boundingBoxForRange), com a origem passada para cima; e, quando o
     Vision devolve a linha inteira para cada palavra, a fatia da linha na proporção dos caracteres."""
@@ -922,6 +986,8 @@ def principal():
         testar_agentes(raiz)
         testar_curadoria()
         testar_grade()
+        testar_grade_com_o_vision()
+        testar_celulas()
         testar_palavras_do_vision()
         testar_curadoria_repetidos()
         testar_rapido()

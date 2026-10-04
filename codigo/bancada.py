@@ -120,22 +120,27 @@ def ler_um_local(nome, imagem, modo, texto_vision):
             'congelado': bool(chamadas) and all(m.get('congelado') for m in chamadas)}
 
 
-def ler_codigo(vision, modo):
-    """O leitor só de código: a tabela pelas caixas das palavras que o Vision leu (codigo/grade.py), sem modelo. O tempo
-    útil é o do Vision mais o da geometria (milissegundos): o custo inteiro do leitor. No modo texto (controle), o texto
+def ler_codigo(vision, modo, imagem):
+    """O leitor só de código: a tabela pelas caixas das palavras que o Vision leu (codigo/grade.py), sem modelo; a
+    célula de quantidade ou de unidade que ficou vazia é relida pelo Vision no recorte dela (ia.ler_celulas). O tempo
+    útil é o do Vision mais o da releitura e da geometria: o custo inteiro do leitor. No modo texto (controle), o texto
     é o das linhas que a grade montou: número fora de linha de material não sai."""
     if vision['erro']:
         return {'linhas': [], 'texto': '', 'erro': f"sem o Vision ({vision['erro']})"[:300], 'util': None, 'congelado': False}
-    marca = time.perf_counter()
-    linhas = grade.montar(vision.get('palavras') or [])
-    return {'linhas': linhas, 'texto': grade.texto(linhas), 'erro': '', 'congelado': False,
+    marca, erro = time.perf_counter(), ''
+    reler = lambda caixas: ia.ler_celulas(imagem, caixas, PASTA / 'celulas')
+    try:
+        linhas = grade.montar(vision.get('palavras') or [], reler)
+    except (OSError, RuntimeError, ValueError) as falha:  # a releitura falhou: a tabela sem ela, e o motivo
+        linhas, erro = grade.montar(vision.get('palavras') or []), f'releitura das células: {type(falha).__name__}: {falha}'[:300]
+    return {'linhas': linhas, 'texto': grade.texto(linhas), 'erro': '', 'aviso': erro, 'congelado': False,
             'util': round((vision['util'] or 0) + time.perf_counter() - marca, 2)}
 
 
 def mostrar(fase, nome, imagem, lida):
     print(f"{fase:<6} {nome:<9} {Path(imagem).name[:30]:<30} útil {lida['util'] or 0:6.1f} s  "
           f"{'congelado' if lida['congelado'] else '':<9} linhas {len(lida['linhas']):>3}"
-          + (f"  ERRO {lida['erro'][:100]}" if lida['erro'] else ''), flush=True)
+          + (f"  ERRO {lida['erro'][:100]}" if lida['erro'] else '') + (f"  AVISO {lida['aviso'][:100]}" if lida.get('aviso') else ''), flush=True)
 
 
 def codigo_primeiro(imagens, modo, com_grade=True):
@@ -150,7 +155,7 @@ def codigo_primeiro(imagens, modo, com_grade=True):
     for imagem in imagens:
         leituras = {'vision': ler_um_local('vision', imagem, modo, '')}
         if com_grade:
-            leituras['codigo'] = ler_codigo(leituras['vision'], modo)
+            leituras['codigo'] = ler_codigo(leituras['vision'], modo, imagem)
         for nome, lida in leituras.items():
             mostrar('código', nome, imagem, lida)
         lidas[str(imagem)] = leituras
