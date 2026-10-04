@@ -732,6 +732,27 @@ def testar_vision_com_prazo():
         ia.VISION, IA['vision_timeout_s'] = original, prazo
 
 
+def testar_sinal_de_vida_e_quarentena(raiz):
+    """O vigia de progresso do maestro (0v66): cada resposta de modelo dá o sinal de vida da vez da GPU (o pedido passa a
+    ser vigiado, com o item em curso); o documento que o vigia registrou travado 2 vezes fica em quarentena — fora da
+    fila de IA —, o que travou uma vez tenta de novo."""
+    pasta = raiz / 'gpu_sinal'
+    with cliente_gpu.vez_da_gpu('ialocal.projeto', str(pasta), 7, 'glm-ocr', 'prancha') as vez:
+        vez.avancei('DOC/1')
+        ia.congelado({'teste': 'sinal de vida'}, lambda: ('resposta', {}))
+        pedido = json.loads(next((pasta / 'pedidos').glob('*.json')).read_text())
+    conferir(pedido['vigia'] and pedido['item'] == 'DOC/1' and pedido['avancos'] == 2,
+             'sinal de vida: o item em curso e cada resposta de modelo marcam avanço no pedido da vez da GPU')
+    travados = cliente_gpu.VEZ.with_name('travados.jsonl')
+    travados.parent.mkdir(parents=True, exist_ok=True)
+    travados.write_text(''.join(json.dumps({'repo': 'ialocal.projeto', 'item': i}) + '\n' for i in ('DOC/1', 'DOC/1', 'DOC/2')))
+    try:
+        conferir(ciclo.em_quarentena({'id': 'DOC/1'}) and not ciclo.em_quarentena({'id': 'DOC/2'}),
+                 'quarentena: o documento que travou 2 vezes sai da fila de IA; o que travou 1 vez tenta de novo')
+    finally:
+        travados.unlink()
+
+
 def principal():
     with tempfile.TemporaryDirectory() as temporaria:
         raiz = Path(temporaria)
@@ -756,6 +777,7 @@ def principal():
         testar_respostas(raiz)
         testar_formatos_dos_agentes()
         testar_vision_com_prazo()
+        testar_sinal_de_vida_e_quarentena(raiz)
         testar_agentes(raiz)
         testar_curadoria()
         testar_bancada(raiz)

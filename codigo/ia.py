@@ -25,6 +25,7 @@ import zlib
 from datetime import datetime
 from pathlib import Path
 
+import cliente_gpu
 import comum
 
 CONGELAMENTO = comum.DADOS / 'congelamento.jsonl'
@@ -69,6 +70,9 @@ def congelado(chave, chamar):
 
 
 def anotar(meta):
+    """Guarda o meta da resposta para quem mede e dá o sinal de vida da vez da GPU (maestro 0v66): cada resposta de
+    modelo é um avanço de verdade; sem vez, não faz nada."""
+    cliente_gpu.avancei()
     if not hasattr(CHAMADAS, 'lista'):
         CHAMADAS.lista = []
     CHAMADAS.lista.append(meta)
@@ -343,6 +347,7 @@ def ler_com_vision(caminho):
         raise RuntimeError(f'Vision travou: passou de {PRAZO} s em {Path(caminho).name} (processo encerrado)') from falha
     if feito.returncode != 0:
         raise RuntimeError(f'Vision: {feito.stderr.strip()[-300:]}')
+    cliente_gpu.avancei()
     return {'texto': json.loads(feito.stdout)['texto']}
 
 

@@ -24,6 +24,8 @@
   "tentativas": 3,
   "gpu": {
     "prioridade": 7,
+    "quarentena_travamentos": 2,
+    "_quarentena_travamentos": "o vigia de progresso do maestro (0v66) encerra a rodada que fica 10 min sem avançar e registra o documento em travados.jsonl; o documento que travou isso vezes sai da fila de IA (falhou, motivo quarentena). 04/10: uma rodada ficou 11 h presa no Apple Vision",
     "modelo": "glm-ocr",
     "_gpu": "a leitura de IA da prancha pede a vez ao maestro (cliente_gpu.py) uma prancha por pedaço; prioridade 7, atrás da extração de documentos (5) e à frente da conferência do revisor (8): é a decisão do Caio de 26/09 (extrator 2v29) — documentos primeiro, projetos depois —, agora pela trava e não por uma cota diária"
   }
