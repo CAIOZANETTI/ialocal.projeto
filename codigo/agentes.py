@@ -113,8 +113,7 @@ def ler_com_parse(nome, imagem, modo):
     AGENTE = configuracao()['agentes'][nome]
     opcoes = {'max_tokens': AGENTE['max_tokens']}
     if AGENTE.get('ferramenta'):
-        ferramenta = {'type': 'function', 'function': {'name': AGENTE['ferramenta']}}
-        opcoes.update(tools=[ferramenta], tool_choice=ferramenta)
+        opcoes['tools'] = [{'type': 'function', 'function': {'name': AGENTE['ferramenta']}}]
     bruta, meta = ia.nvidia(AGENTE['modelo'], AGENTE.get('controle', ''), [imagem], opcoes,
                             AGENTE['lado_max_px'], AGENTE['timeout_s'], AGENTE['por_minuto'])
     elementos = elementos_do_parse(json.loads(bruta))
@@ -137,7 +136,7 @@ def ler_com_agente(nome, imagem, modo='texto', obra=None):
     try:
         lida = {**LEITORES[AGENTE['tipo']](nome, imagem, modo), 'erro': ''}
     except (RuntimeError, OSError, ValueError, KeyError, TypeError) as falha:
-        lida = {'texto': '', 'linhas': [], 'caixas': [], 'meta': {}, 'erro': f'{type(falha).__name__}: {falha}'[:400]}
+        lida = {'texto': '', 'linhas': [], 'caixas': [], 'meta': {}, 'erro': f'{type(falha).__name__}: {falha}'[:800]}
     lida['segundos'] = round(time.perf_counter() - marca, 2)
     comum.anexar(REGISTRO, json.dumps({
         'em': comum.agora(), 'agente': nome, 'modelo': AGENTE['modelo'], 'modelo_devolvido': lida['meta'].get('modelo', ''),
