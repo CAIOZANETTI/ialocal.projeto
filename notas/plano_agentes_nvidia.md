@@ -126,7 +126,7 @@ Nenhuma regra escolhe "a resposta com mais campos" nem a mais longa.
 
 | conjunto | o que tem | o que mede | sai do mini? |
 |---|---|---|---|
-| **B1 tabelas Cambé** (`amostras/tabelas/216_cambe`) | 18 imagens, **242 linhas transcritas pelo Caio** (código; nº; discriminação; quantidade; unidade) | linha certa (código + quantidade + unidade), célula certa, linha inventada | sim: recortes de relação de materiais, sem nomes |
+| **B1 tabelas Cambé** (`amostras/tabelas/216_cambe`) | 18 imagens, **188 linhas de material transcritas pelo Caio** (17 tabelas) (código; nº; discriminação; quantidade; unidade) | linha certa (código + quantidade + unidade), célula certa, linha inventada | sim: recortes de relação de materiais, sem nomes |
 | **B2 controle negativo** | 6 recortes sem número (ruas e lotes, folha em branco, legenda), como o T3 de 26/09 | qualquer número lido é invenção | sim, se da obra permitida |
 | **B3 fatias da AAT-06** | as fatias do teste de mesa com o gabarito de `teste_prancha_2026-09-26.md` (estacas, cotas, escala) | valor certo por padrão; sequência continuada | sim (decisão de 04/10) |
 | B4 tabelas Foz (`211_foz`) | 78 imagens **sem transcrição** | só concordância entre leitores; vira gabarito se o Caio transcrever 10 (demanda nova) | sim |
@@ -157,7 +157,7 @@ acrescenta nada": o plano termina com menos complexidade.
 |---|---|---|---|
 | **F0** decisão | aprovar o PR do MASTER-PLAN §5.6; criar a conta NVIDIA Developer com a conta do mini (`macminicaio@gmail.com`, feito em 04/10; limite de 40 pedidos por minuto por conta); conferir o selo **Free Endpoint** nos dois modelos; gerar a chave e gravar no mini em `~/.config/ialocal/nvidia_api_key` (`chmod 600`); dizer as `obras_permitidas` | Caio, ~30 min | chave no mini, PR aprovado |
 | **F1** porta e sonda — **feita (0v5)** | `ia.nvidia`, `agentes.json`, `agentes.py sondar`: a tabela 01 de Cambé a cada agente, em paralelo — autenticação, imagem aceita, formato da resposta (o Parse em tool_calls ou em marcas: os dois são lidos), tempo, tokens, placar contra o gabarito. Testes com a API falsa | código | `testes.py` passa (feito); **no mini, com a chave:** `dados/agentes_sonda.jsonl` com os dois respondendo |
-| **F2** bancada de tabelas e boletins | B1, B2 e **B5** com os quatro leitores (local no mini, na vez da GPU; externos em paralelo); placar e curadoria | código + mini | `bancada_agentes.csv` no Drive, `_sistema/projeto/` |
+| **F2** bancada de tabelas e boletins — **código feito (0v8)** | B1, B2 e **B5** com os quatro leitores (`bancada.py tudo`) (local no mini, na vez da GPU; externos em paralelo); placar e curadoria | código + mini | `bancada_agentes.csv` no Drive, `_sistema/projeto/` |
 | **F3** bancada de fatias | B3 (e B4 se houver transcrição): as fatias da folha; parse com a fatia completada a 1.280 px | código + mini | placar das fatias |
 | **F4** veredito | os critérios do §7, agente por agente; registro em `notas/` e no §17 do MASTER-PLAN | Caio | continua, troca ou descontinua |
 | **F5** se passar | tarefa `ler_prancha_agentes` na rodada, antes da fila da GPU (rede, não GPU); a curadoria do §5 em `prancha_leitura` com colunas novas (`leitores`, `status_curadoria`) **ao lado** do `status` de hoje; versão 1v0 (o contrato muda); o terceiro agente entra só pela bancada | código | CSVs com as colunas; status com os agentes |

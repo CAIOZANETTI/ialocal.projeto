@@ -160,6 +160,7 @@ def nvidia(modelo, pedido, imagens=(), opcoes=None, lado_max_px=2048, timeout_s=
     def chamar():
         envio = urllib.request.Request(AGENTES['endpoint'], data=json.dumps(corpo).encode(), headers={
             'Content-Type': 'application/json', 'Accept': 'application/json', 'Authorization': f'Bearer {chave_nvidia()}'})
+        motivos = []  # por que cada tentativa anterior falhou: 429 (o limite), 5xx (o servidor) ou sem resposta
         for tentativa in range(AGENTES['tentativas'] + 1):
             esperar_vez(modelo, por_minuto)
             try:
@@ -170,11 +171,13 @@ def nvidia(modelo, pedido, imagens=(), opcoes=None, lado_max_px=2048, timeout_s=
                 motivo = f'NVIDIA {falha.code} ({modelo}): {falha.read().decode(errors="replace")[:600]}'
                 if (falha.code != 429 and falha.code < 500) or tentativa == AGENTES['tentativas']:
                     raise RuntimeError(motivo) from falha
+                motivos.append(str(falha.code))
                 pedida = falha.headers.get('Retry-After', '')
                 espera = float(pedida) if re.fullmatch(r'\d+(?:\.\d+)?', pedida.strip()) else AGENTES['espera_s'] * 2 ** tentativa
             except (urllib.error.URLError, TimeoutError, ConnectionError) as falha:
                 if tentativa == AGENTES['tentativas']:
                     raise RuntimeError(f'NVIDIA sem resposta ({modelo}): {falha}') from falha
+                motivos.append(type(falha).__name__)
                 espera = AGENTES['espera_s'] * 2 ** tentativa
             time.sleep(espera + random.random() * min(1, AGENTES['espera_s']))
         escolha, uso = inteira['choices'][0], inteira.get('usage') or {}
@@ -183,7 +186,7 @@ def nvidia(modelo, pedido, imagens=(), opcoes=None, lado_max_px=2048, timeout_s=
                     'ferramentas': [c['function']['arguments'] for c in mensagem.get('tool_calls') or []]}
         return json.dumps(resposta, ensure_ascii=False), {
             'motor': 'nvidia', 'modelo': inteira.get('model') or modelo, 'fim': escolha.get('finish_reason'),
-            'tokens_entrada': uso.get('prompt_tokens'), 'tokens_saida': uso.get('completion_tokens'), 'tentativas': tentativa + 1}
+            'tokens_entrada': uso.get('prompt_tokens'), 'tokens_saida': uso.get('completion_tokens'), 'tentativas': tentativa + 1, 'motivos': motivos}
     return congelado(chave, chamar)
 
 

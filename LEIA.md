@@ -23,6 +23,7 @@ python3 -m venv .venv && .venv/bin/pip install polars pdfplumber pypdfium2 pillo
 .venv/bin/python codigo/ciclo.py status     # só regrava saidas/status.json
 .venv/bin/python codigo/mini.py instalar    # agenda a rodada e o atualizar a cada 5 min (com o python do .venv)
 .venv/bin/python codigo/agentes.py sondar   # os agentes da NVIDIA (exceção §5.6) leem a tabela 01 de Cambé: formato, tempo, placar
+.venv/bin/python codigo/bancada.py tudo     # F2: tabelas de Cambé, controle sem número e boletins; placar e veredito de cada agente
 ```
 
 **O clone pede uma chave de acesso própria** (como os outros `ialocal.*`):
@@ -52,6 +53,8 @@ codigo/ciclo.py         a rodada: o que está pendente, código antes, IA na vez
 codigo/entrega.py       lê o que o extrator entregou (só lê): PDFs A3 ou maiores e o mapa das obras; e os anexos das respostas
 codigo/respostas.py     as respostas da equipe às demandas (guardadas pelo ialocal.web): PDFs para a rodada, CSV gabarito, o resultado
 codigo/ia.py            a porta para os modelos locais (Ollama, Vision, Apple FM) e, na exceção §5.6, a API da NVIDIA (nvidia), com congelamento das respostas
+codigo/bancada.py       a bancada dos agentes: tabelas de Cambé, controle sem número, boletins; placar e veredito (saidas/bancada_agentes.csv)
+codigo/curadoria.py     Python decide o que vale entre N leitores: confirmada (com testemunha), confirmada_ia, divergente, so_<leitor>
 codigo/agentes.py       os agentes externos (Kimi K3, Nemotron Parse 2.0): leitura por agente, em paralelo, registro, sonda contra o gabarito de Cambé
 codigo/comum.py         pastas, conceitos, Parquet com troca por chave, CSV para o Drive
 codigo/cliente_gpu.py   cópia do cliente da trava de GPU do ialocal.maestro (não editar aqui)
@@ -72,7 +75,7 @@ notas/                  plano_projeto.md (tese e itens), testes de mesa de 26/09
                         plano_agentes_nvidia.md (dois agentes externos gratuitos em paralelo; exceção do MASTER-PLAN §5.6)
 
 dados/    prancha, prancha_leitura, prancha_tabela, carimbo, sondagem, sondagem_campo, sondagem_spt, sondagem_camada (.parquet), recortes/, congelamento.jsonl,
-          execucoes.jsonl, falhas.jsonl, agentes.jsonl (cada chamada externa), agentes_sonda.jsonl, gpu/ (pedidos ao maestro), launchd.log — regenerável, fora do git
+          execucoes.jsonl, falhas.jsonl, agentes.jsonl (cada chamada externa), agentes_sonda.jsonl, bancada_*.parquet, bancada/ (recortes da bancada), gpu/ (pedidos ao maestro), launchd.log — regenerável, fora do git
 saidas/   status.json (formato comum, o maestro lê) e os CSVs publicados — fora do git
 
 Drive  saida/<acervo>/<obra>/projeto/   pranchas.csv, prancha_leituras.csv, prancha_tabelas.csv, carimbos.csv, sondagens.csv,
@@ -120,6 +123,6 @@ Drive  saida/<acervo>/<obra>/projeto/   pranchas.csv, prancha_leituras.csv, pran
   do catálogo da NVIDIA leem os mesmos recortes que o glm-ocr e o Vision, em paralelo e fora da vez da GPU. São
   leitores candidatos: o número que só eles leram nunca vira `confirmado`. A chave fica fora do git, em
   `~/.config/ialocal/nvidia_api_key` (`chmod 600`; criar em build.nvidia.com com a conta do Developer Program). Desligar:
-  `agentes.json → ligado: false` por PR. Por ora só a sonda e a bancada chamam; a rodada não (`notas/plano_agentes_nvidia.md`).
+  `agentes.json → ligado: false` por PR. Por ora só a sonda e a bancada (`bancada.py`, 0v8) chamam; a rodada não (`notas/plano_agentes_nvidia.md`).
 - **A bancada E3 (qualidade) continua no extrator** por ora: a classe `prancha_pdf` mede os modelos numa amostra, à
   parte da produção. Trazê-la para cá é o passo seguinte, junto com os itens pendentes do `plano_projeto.md` §9.
