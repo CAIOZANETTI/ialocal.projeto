@@ -6,10 +6,13 @@ confirmado é a curadoria em Python, e confirmado continua exigindo uma testemun
 
     .venv/bin/python codigo/agentes.py sondar              # F1: a imagem da sonda (agentes.json → sonda) a cada agente
     .venv/bin/python codigo/agentes.py sondar <imagem>…    # outras imagens (a tabela de Cambé com o nome dela é medida)
+    .venv/bin/python codigo/agentes.py respostas [filtro]  # a última resposta crua de cada agente por recorte (fim, tokens, começo)
 """
+import hashlib
 import json
 import re
 import sys
+import threading
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date
@@ -127,6 +130,18 @@ def ler_com_parse(nome, imagem, modo):
 LEITORES = {'vlm': ler_com_kimi, 'parser': ler_com_parse}
 
 
+VAGAS, VAGAS_TRAVA = {}, threading.Lock()
+
+
+def vaga(nome):
+    """As chamadas abertas do próprio agente, dentro das do provedor (agentes.json → <agente>.simultaneas): o Kimi tem
+    limite próprio, menor que o da conta (04/10: 429 em série com 6 abertas)."""
+    with VAGAS_TRAVA:
+        if nome not in VAGAS:
+            VAGAS[nome] = threading.BoundedSemaphore(configuracao()['agentes'][nome].get('simultaneas', 10 ** 6))
+        return VAGAS[nome]
+
+
 def ler_com_agente(nome, imagem, modo='texto', obra=None):
     """Um recorte por um agente; nunca sobe erro: falha (do agente ou da permissão) vira leitura vazia com o motivo, e a
     leitura segue com os outros. Toda chamada fica em dados/agentes.jsonl (o registro da exceção §5.6)."""
@@ -136,7 +151,8 @@ def ler_com_agente(nome, imagem, modo='texto', obra=None):
         return {'texto': '', 'linhas': [], 'caixas': [], 'meta': {}, 'erro': motivo, 'segundos': 0.0}
     AGENTE = configuracao()['agentes'][nome]
     try:
-        lida = {**LEITORES[AGENTE['tipo']](nome, imagem, modo), 'erro': ''}
+        with vaga(nome):
+            lida = {**LEITORES[AGENTE['tipo']](nome, imagem, modo), 'erro': ''}
     except (RuntimeError, OSError, ValueError, KeyError, TypeError) as falha:
         lida = {'texto': '', 'linhas': [], 'caixas': [], 'meta': {}, 'erro': f'{type(falha).__name__}: {falha}'[:800]}
     lida['segundos'] = round(time.perf_counter() - marca, 2)
@@ -247,8 +263,34 @@ def sair_no_ctrl_c(funcao, *argumentos):
         os._exit(130)
 
 
+def respostas(filtro='', extras=()):
+    """A última resposta guardada de cada agente para cada recorte conhecido (tabelas de Cambé e os recortes da
+    bancada), crua: como parou (fim), tokens, tamanho, quantas linhas de tabela e o começo do texto. É o que diz por que
+    uma leitura veio vazia sem erro."""
+    imagens = [*(comum.RAIZ / 'amostras' / 'tabelas').rglob('*.png'), *(comum.DADOS / 'bancada').rglob('*.png'), *map(Path, extras)]
+    nomes = {hashlib.sha256(p.read_bytes()).hexdigest(): p.name if 'bancada' not in str(p) else f'{p.parent.name}/{p.name}'
+             for p in imagens}
+    ultimas = {}
+    for registro in map(json.loads, ia.CONGELAMENTO.read_text().splitlines()):
+        chave = registro['chave']
+        if chave.get('motor') == 'nvidia' and chave.get('imagens') and chave['imagens'][0] in nomes:
+            ultimas[(chave['modelo'], nomes[chave['imagens'][0]], json.dumps(chave.get('opcoes'), sort_keys=True))] = registro
+    for (modelo, recorte, _), registro in sorted(ultimas.items()):
+        if filtro and filtro not in f'{modelo} {recorte}':
+            continue
+        bruta, meta = json.loads(registro['resposta']), registro['meta']
+        texto = sem_cerca(bruta['texto'])
+        linhas = linhas_da_tabela(texto) if 'kimi' in modelo else \
+            [l for e in elementos_do_parse(bruta) if e['classe'].lower() == 'table' or '<tr' in e['texto'] for l in linhas_da_tabela(e['texto'])]
+        print(f"{registro['em'][5:16]} {modelo.split('/')[-1][:18]:<18} {recorte[:34]:<34} fim {meta.get('fim')} "
+              f"tokens {meta.get('tokens_saida')} texto {len(bruta['texto'])} linhas {len(linhas)}")
+        print('    ' + repr(bruta['texto'][:400]))
+
+
 if __name__ == '__main__':
     if sys.argv[1:2] == ['sondar']:
         sair_no_ctrl_c(sondar, sys.argv[2:])
+    elif sys.argv[1:2] == ['respostas']:
+        respostas(' '.join(sys.argv[2:]))
     else:
         print(__doc__)

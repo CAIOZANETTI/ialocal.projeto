@@ -35,6 +35,8 @@
       "max_tokens": 8192,
       "lado_max_px": 2048,
       "timeout_s": 300,
+      "simultaneas": 3,
+      "_simultaneas": "04/10, bancada --refazer: com 6 abertas o Kimi levou 429 em série (até 5 recusas, 110 s perdidos numa tabela) dentro dos 36/min da conta: o limite dele é menor que o da conta. 3 abertas do Kimi dentro das 6 do provedor",
       "_": "VLM generalista, primeiro no OmniDocBench (91,1); raciocínio sempre ligado (o raciocínio vem em reasoning_content e fica de fora: só o content é leitura). Transcreve: os números saem do texto pelos mesmos padrões do código (prancha.json, sondagem.json)"
     },
     "parse": {

@@ -528,6 +528,12 @@ def testar_agentes(raiz):
                  'a porta: 429 espera o Retry-After e tenta de novo; a chave vai no cabeçalho; a imagem como data URI; o Parse com as '
                  'marcas de controle antes da imagem e sem ferramenta (a API recusou o tool_choice na sonda de 04/10)')
         agentes.sondar([imagem])
+        import contextlib
+        saida = io.StringIO()
+        with contextlib.redirect_stdout(saida):
+            agentes.respostas('kimi', [imagem])
+        conferir('kimi-k3' in saida.getvalue() and 'linhas 4' in saida.getvalue() and 'fim stop' in saida.getvalue(),
+                 'agentes.py respostas: a última resposta crua de cada agente por recorte, com como parou e quantas linhas deu')
         conferir(len(pedidos) == primeira and 'nvapi-segredo' not in ia.CONGELAMENTO.read_text()
                  and 'pensando' not in ia.CONGELAMENTO.read_text(),
                  'a resposta é congelada (a segunda sonda não chama a API); nem a chave nem o raciocínio vão ao congelamento')
