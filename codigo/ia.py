@@ -212,12 +212,13 @@ def nvidia(modelo, pedido, imagens=(), opcoes=None, lado_max_px=2048, timeout_s=
             espera_total += pausa
         escolha, uso = inteira['choices'][0], inteira.get('usage') or {}
         mensagem = escolha.get('message') or {}
+        raciocinio = mensagem.get('reasoning_content') or mensagem.get('reasoning') or ''
         resposta = {'texto': mensagem.get('content') or '',
                     'ferramentas': [c['function']['arguments'] for c in mensagem.get('tool_calls') or []]}
         return json.dumps(resposta, ensure_ascii=False), {
             'motor': 'nvidia', 'modelo': inteira.get('model') or modelo, 'fim': escolha.get('finish_reason'),
             'tokens_entrada': uso.get('prompt_tokens'), 'tokens_saida': uso.get('completion_tokens'), 'tentativas': tentativa + 1, 'motivos': motivos,
-            'segundos_util': round(util, 2), 'segundos_espera': round(espera_total, 2), 'segundos_falhas': round(falhas_total, 2)}
+            'caracteres_raciocinio': len(raciocinio), 'segundos_util': round(util, 2), 'segundos_espera': round(espera_total, 2), 'segundos_falhas': round(falhas_total, 2)}
     return congelado(chave, chamar)
 
 
