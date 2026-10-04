@@ -22,7 +22,9 @@ import json
 import re
 import subprocess
 import sys
+import threading
 import time
+from datetime import datetime
 from pathlib import Path
 
 import polars as pl
@@ -109,6 +111,30 @@ def ler_um_local(nome, imagem, modo, texto_vision):
 PRIORIDADE = None  # --prioridade N na linha de comando; sem ela, bancada.json → gpu.prioridade
 
 
+def quem_tem_a_vez(vez_arquivo=None, agora=None):
+    """Uma linha com quem está com a GPU (dados/gpu/vez.json do maestro): o repositório, há quanto tempo e quando
+    devolve. A vez passa no fim do pedaço do dono, entre um item e outro (preempção cooperativa), não no meio."""
+    vez = (cliente_gpu._ler(Path(vez_arquivo) if vez_arquivo else cliente_gpu.VEZ).get('vez')) or {}
+    if not vez:
+        return 'a GPU está livre; o maestro concede no próximo ciclo'
+    agora = agora or datetime.now()
+    minutos = lambda campo: (agora - datetime.fromisoformat(vez[campo])).total_seconds() / 60 if vez.get(campo) else None
+    desde, ate = minutos('desde'), minutos('posse_ate')
+    linha = f"com {vez.get('repo', '?')} (prioridade {vez.get('prioridade', '?')}, modelo {vez.get('modelo') or '?'})"
+    linha += f" há {desde:.0f} min" if desde is not None else ''
+    if vez.get('devolver') or (ate is not None and ate >= 0):
+        return linha + '; o pedaço dele venceu: devolve ao terminar o item em curso'
+    return linha + (f'; o pedaço vence em {-ate:.0f} min' if ate is not None else '')
+
+
+def avisar_a_espera(parar, intervalo_s=30, vez_arquivo=None):
+    """Enquanto a bancada espera a vez, a cada intervalo_s diz quem está com a GPU (04/10: parada 30 min em 'pedindo a
+    vez' sem dizer nada, parecia travada)."""
+    marca = time.perf_counter()
+    while not parar.wait(intervalo_s):
+        print(f'locais: esperando a vez há {(time.perf_counter() - marca) / 60:.0f} min; {quem_tem_a_vez(vez_arquivo)}', flush=True)
+
+
 def locais(imagens, modo):
     """recorte → {candidato: leitura} de cada imagem, na vez da GPU do maestro (um de cada vez), e a espera pela vez
     (tempo perdido da fila, rateado entre as chamadas). O Vision lê primeiro: os organizadores usam o texto dele. Sem a
@@ -120,8 +146,12 @@ def locais(imagens, modo):
     print(f"locais: {', '.join(nomes)} em {len(imagens)} recortes; pedindo a vez da GPU ao maestro (prioridade {GPU['prioridade']}, "
           f"desiste em {GPU['espera_max_s'] // 60} min); --prioridade 4 passa à frente dos documentos, --sem-local pula", flush=True)
     lidas, marca, sem_ollama = {}, time.perf_counter(), False
+    print(f'locais: {quem_tem_a_vez()}', flush=True)
+    parar = threading.Event()
+    threading.Thread(target=avisar_a_espera, args=(parar,), daemon=True).start()
     with cliente_gpu.vez_da_gpu('ialocal.projeto', str(comum.DADOS / 'gpu'), GPU['prioridade'], GPU['modelo'], 'bancada',
                                 espera_max_s=GPU['espera_max_s']) as vez:
+        parar.set()
         espera = time.perf_counter() - marca
         if vez.negada:
             print(f'locais: sem a vez da GPU em {espera:.0f} s (o maestro deu a outros): ficam de fora desta rodada', flush=True)
