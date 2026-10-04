@@ -582,6 +582,88 @@ def testar_formatos_dos_agentes():
              'tabela em LaTeX e em markdown viram linhas (a repetida sai); o <think> e a cerca saem')
 
 
+def testar_curadoria():
+    """A curadoria em Python: o valor com testemunha (Vision) e mais um leitor é confirmada; dois generativos de
+    famílias diferentes sem testemunha, confirmada_ia (não é fato); um só leitor, so_<leitor>; valores diferentes sem
+    testemunha, divergente. Contra a testemunha, a quantidade que o Vision viu vence a maioria."""
+    import curadoria
+    linha = lambda codigo, quant, und='UN.': [codigo, 'S/N', 'MATERIAL', quant, und]
+    curadas = curadoria.curar_tabela({
+        'glm_ocr': [linha('298738', '1634,9', 'M'), linha('294924', '38'), linha('309341', '6')],
+        'kimi': [linha('298738', '1634,9', 'M.'), linha('294924', '33'), linha('275476', '2'), linha('309341', '9')],
+        'parse': [linha('294924', '38'), linha('275476', '2'), linha('277428', '1')]},
+        testemunha='298738 S/N TUBO 1634,9 M\n294924 S/N LUVA 33 UN.')
+    conferir({c: (v['status'], v['quant']) for c, v in curadas.items()} == {
+        '298738': ('confirmada', '1634.9'), '294924': ('confirmada', '33'), '275476': ('confirmada_ia', '2'),
+        '277428': ('so_parse', '1'), '309341': ('divergente', '6')},
+        'curadoria: Vision e mais um leitor confirmam (a unidade M. é M); o 33 que o Vision viu vence o 38 de dois '
+        'generativos; dois generativos sem testemunha, confirmada_ia; um só, so_parse; dois valores sem testemunha, divergente')
+
+
+def testar_bancada(raiz):
+    """A bancada da F2 com os leitores falsos: na tabela 01 de Cambé (9 linhas no gabarito) o Kimi lê as 9, o Parse 7
+    certas, 1 errada e 1 inventada, o glm-ocr 5; o Vision vê todos os números. A curadoria local confirma 5 e a
+    local+kimi 9 (+44 pp): o Kimi continua; o Parse inventa e escreve número no recorte em branco: descontinua. No
+    boletim com texto real, o gabarito é a leitura do código: o Kimi acerta tudo, o Parse erra um N-SPT e inventa um metro."""
+    import agentes
+    import bancada
+    import shutil
+    pasta = raiz / 'cambe'
+    pasta.mkdir()
+    shutil.copy(comum.RAIZ / 'amostras' / 'tabelas' / '216_cambe' / 'Tabela 01.png', pasta / 'Tabela 01.png')
+    bancada.CAMBE, bancada.PASTA = pasta, comum.DADOS / 'bancada'
+    gabarito = agentes.gabarito_cambe()['TABELA 01']
+    linha = lambda g, quant=None: [g['codigo'], 'S/N', 'MATERIAL', quant or g['quant'], g['und']]
+    kimi = [linha(g) for g in gabarito]
+    parse = [linha(g) for g in gabarito[:7]] + [linha(gabarito[7], '99'), ['123456', 'S/N', 'X', '1', 'UN']]
+    glm = [linha(g) for g in gabarito[:5]]
+    vision = '\n'.join(' '.join(linha(g)) for g in gabarito)
+    texto_boletim = '\n'.join(BOLETIM)
+    errado = texto_boletim.replace('3,00 10/15 12/15 15/15', '3,00 10/15 12/15 16/15') + '\n4,00 20/15 22/15 25/15'
+
+    def externos(imagens, modo):
+        lidas = {}
+        for imagem in imagens:
+            nome = Path(imagem).name
+            if nome.startswith('Tabela'):
+                textos = {'kimi': ('', kimi), 'parse': ('', parse)}
+            elif 'pagina' in nome:
+                textos = {'kimi': (texto_boletim, []), 'parse': (errado, [])}
+            else:
+                textos = {'kimi': ('', []), 'parse': ('LEGENDA 1 2', [])}
+            for agente, (texto, linhas) in textos.items():
+                lidas[(agente, str(imagem))] = {'agente': agente, 'recorte': str(imagem), 'texto': texto, 'linhas': linhas,
+                                                'segundos': 20.0 if agente == 'kimi' else 30.0, 'erro': ''}
+        return lidas
+
+    def locais(imagens, modo):
+        return {str(i): {'linhas': glm if Path(i).name.startswith('Tabela') else [], 'texto': '', 'segundos': 5.0, 'erro': '',
+                         'vision': vision if Path(i).name.startswith('Tabela') else ''} for i in imagens}
+    bancada.externos, bancada.locais = externos, locais
+    bancada.tabelas()
+    bancada.controle()
+    boletim = raiz / 'SP-03.pdf'
+    boletim.write_bytes(pdf_de_texto(BOLETIM))
+    bancada.sondagem_bancada([boletim], com_local=False)
+    saida = bancada.placar(publicar=False)
+    pega = lambda conjunto, leitor: saida.filter((pl.col('conjunto') == conjunto) & (pl.col('leitor') == leitor)).to_dicts()[0]
+    conferir((pega('tabelas', 'kimi')['certas'], pega('tabelas', 'parse')['certas'], pega('tabelas', 'parse')['erradas'],
+              pega('tabelas', 'parse')['inventadas'], pega('tabelas', 'local')['confirmadas_certas'],
+              pega('tabelas', 'local+kimi')['confirmadas_certas'], pega('tabelas', 'local+parse')['confirmadas_erradas'])
+             == (9, 7, 1, 1, 5, 9, 0),
+             'bancada das tabelas: cada leitor contra as 9 linhas do gabarito; a curadoria local confirma 5 e a local+kimi 9; '
+             'a linha errada do Parse não vira confirmada (o Vision não viu o 99)')
+    conferir(pega('tabelas', 'kimi')['veredito'] == 'continua' and pega('tabelas', 'parse')['veredito'] == 'descontinua'
+             and 'inventa no controle' in pega('tabelas', 'parse')['motivo'] and pega('controle', 'parse')['inventadas'] == 3,
+             f"veredito pelos critérios do §7: kimi continua; parse descontinua ({pega('tabelas', 'parse')['motivo']})")
+    kimi_b, parse_b = pega('sondagem', 'kimi'), pega('sondagem', 'parse')
+    conferir(kimi_b['erradas'] == kimi_b['faltou'] == kimi_b['inventadas'] == 0 and kimi_b['certas'] >= 8
+             and parse_b['erradas'] == 1 and parse_b['inventadas'] == 1,
+             f"bancada do boletim com texto real (gabarito = leitura do código): kimi {kimi_b['certas']} certas; parse erra o "
+             f"N-SPT do 3º metro e inventa o 4º")
+    conferir((comum.SAIDAS / 'bancada_agentes.csv').exists(), 'o placar sai em saidas/bancada_agentes.csv (no mini, também no Drive)')
+
+
 def principal():
     with tempfile.TemporaryDirectory() as temporaria:
         raiz = Path(temporaria)
@@ -606,6 +688,8 @@ def principal():
         testar_respostas(raiz)
         testar_formatos_dos_agentes()
         testar_agentes(raiz)
+        testar_curadoria()
+        testar_bancada(raiz)
 
 
 if __name__ == '__main__':
