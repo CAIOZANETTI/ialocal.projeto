@@ -13,6 +13,7 @@ import sys
 import tempfile
 import time
 import types
+from datetime import datetime
 from pathlib import Path
 
 import polars as pl
@@ -698,6 +699,18 @@ def testar_bancada(raiz):
             if tabela:
                 lidas[str(imagem)]['qwen3'] = {'linhas': kimi, 'texto': texto_de(kimi), 'erro': '', 'util': 12.0, 'congelado': False}
         return lidas, 9.0
+    arquivo, agora = raiz / 'vez.json', datetime(2026, 10, 4, 22, 0)
+    arquivo.write_text(json.dumps({'vez': {'repo': 'ialocal.extrator', 'prioridade': 5, 'modelo': 'glm-ocr', 'devolver': False,
+                                           'desde': '2026-10-04T21:52:00', 'posse_ate': '2026-10-04T22:02:00'}}))
+    no_pedaco = bancada.quem_tem_a_vez(arquivo, agora)
+    arquivo.write_text(json.dumps({'vez': {'repo': 'ialocal.extrator', 'prioridade': 5, 'devolver': True,
+                                           'desde': '2026-10-04T21:40:00', 'posse_ate': '2026-10-04T21:50:00'}}))
+    vencido = bancada.quem_tem_a_vez(arquivo, agora)
+    arquivo.write_text(json.dumps({'vez': None}))
+    conferir(no_pedaco == 'com ialocal.extrator (prioridade 5, modelo glm-ocr) há 8 min; o pedaço vence em 2 min'
+             and vencido.endswith('há 20 min; o pedaço dele venceu: devolve ao terminar o item em curso')
+             and bancada.quem_tem_a_vez(arquivo, agora).startswith('a GPU está livre'),
+             f'esperando a vez, a bancada diz quem está com a GPU e quando devolve: {no_pedaco}')
     bancada.externos, bancada.locais = externos, locais
     bancada.tabelas()
     bancada.controle()
