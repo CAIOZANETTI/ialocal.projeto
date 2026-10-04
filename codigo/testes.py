@@ -495,9 +495,8 @@ def testar_agentes(raiz):
             if 'erro400' in json.dumps(corpo):
                 return 400, {'error': 'bad request'}, {}
             return 200, resposta_nvidia('moonshotai/kimi-k3', f'```html\n{TABELA}\n```'), {}
-        caixas = [[{'bbox': {'xmin': 0.05, 'ymin': 0.1, 'xmax': 0.95, 'ymax': 0.9}, 'text': TABELA, 'type': 'Table'},
-                   {'bbox': {'xmin': 0.05, 'ymin': 0.0, 'xmax': 0.5, 'ymax': 0.05}, 'text': 'TABELA 01', 'type': 'Title'}]]
-        return 200, resposta_nvidia('nvidia/nemotron-parse-2.0', '', [json.dumps(caixas)]), {}
+        marcas = f'<x_0.05><y_0.1>{TABELA}<x_0.95><y_0.9><class_Table><x_0.05><y_0.0>TABELA 01<x_0.5><y_0.05><class_Title>'
+        return 200, resposta_nvidia('nvidia/nemotron-parse-2.0', marcas), {}
 
     endereco, pedidos, servidor = servidor_nvidia(responder)
     os.environ['NVIDIA_API_KEY'] = 'nvapi-segredo-do-teste'
@@ -514,13 +513,15 @@ def testar_agentes(raiz):
         conferir(kimi['placar'] == {'gabarito': 9, 'achadas': 2, 'certas': 1, 'inventadas': 1, 'lidas': 4}
                  and parse['placar']['certas'] == 1 and parse['caixas'][0]['caixa'] == (0.05, 0.1, 0.95, 0.9)
                  and parse['caixas'][0]['classe'] == 'Table',
-                 'sonda: a tabela do Kimi (HTML em cerca) e a do Parse (caixas da ferramenta) viram linhas; contra o gabarito de '
+                 'sonda: a tabela do Kimi (HTML em cerca) e a do Parse (marcas de posição com a classe) viram linhas; contra o gabarito de '
                  'Cambé, 1 certa (código, quantidade e unidade), a de quantidade errada só achada e a de código inventado contada')
         conferir(kimi['meta']['tentativas'] == 2 and primeira == 3
                  and all(p['autorizacao'] == 'Bearer nvapi-segredo-do-teste' for p in pedidos)
                  and all(p['corpo']['messages'][0]['content'][-1]['image_url']['url'].startswith('data:image/png;base64,') for p in pedidos)
-                 and next(p for p in pedidos if 'parse' in p['corpo']['model'])['corpo']['tools'][0]['function']['name'] == 'markdown_bbox',
-                 'a porta: 429 espera o Retry-After e tenta de novo; a chave vai no cabeçalho; a imagem como data URI; o Parse com a ferramenta')
+                 and (lambda corpo: 'tools' not in corpo and corpo['messages'][0]['content'][0]['text'].startswith('</s><s><predict_bbox>'))(
+                     next(p for p in pedidos if 'parse' in p['corpo']['model'])['corpo']),
+                 'a porta: 429 espera o Retry-After e tenta de novo; a chave vai no cabeçalho; a imagem como data URI; o Parse com as '
+                 'marcas de controle antes da imagem e sem ferramenta (a API recusou o tool_choice na sonda de 04/10)')
         agentes.sondar([imagem])
         conferir(len(pedidos) == primeira and 'nvapi-segredo' not in ia.CONGELAMENTO.read_text()
                  and 'pensando' not in ia.CONGELAMENTO.read_text(),
@@ -567,8 +568,11 @@ def testar_formatos_dos_agentes():
     import agentes
     marcas = '<x_0.1><y_0.2>EST 77<x_0.3><y_0.25><class_Text><x_0.1><y_0.5>1:2000<x_0.2><y_0.55><class_Text>'
     elementos = agentes.elementos_do_parse({'texto': marcas, 'ferramentas': []})
-    conferir([e['texto'] for e in elementos] == ['EST 77', '1:2000'] and elementos[0]['caixa'] == (0.1, 0.2, 0.3, 0.25),
-             'Parse sem ferramenta: as marcas de posição viram elementos com caixa')
+    ferramenta = agentes.elementos_do_parse({'texto': '', 'ferramentas': [json.dumps(
+        [[{'bbox': {'xmin': 0.1, 'ymin': 0.2, 'xmax': 0.3, 'ymax': 0.25}, 'text': 'EST 77', 'type': 'Text'}]])]})
+    conferir([e['texto'] for e in elementos] == ['EST 77', '1:2000'] and elementos[0]['caixa'] == (0.1, 0.2, 0.3, 0.25)
+             and ferramenta == [{'classe': 'Text', 'texto': 'EST 77', 'caixa': (0.1, 0.2, 0.3, 0.25)}],
+             'Parse: as marcas de posição no texto e os argumentos da ferramenta viram elementos com caixa')
     latex = '\\begin{tabular}{lll}\\hline 298738 & TUBO & 1634,9 \\\\ \\multicolumn{2}{c}{TOTAL} & 1634,9 \\\\ \\hline\\end{tabular}'
     barras = '| CÓDIGO | QUANT. |\n|---|---|\n| 298738 | 1634,9 |\n| 298738 | 1634,9 |'
     conferir(agentes.linhas_da_tabela(latex) == [['298738', 'TUBO', '1634,9'], ['TOTAL', '1634,9']]

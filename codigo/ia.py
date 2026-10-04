@@ -167,7 +167,7 @@ def nvidia(modelo, pedido, imagens=(), opcoes=None, lado_max_px=2048, timeout_s=
                     inteira = json.load(resposta)
                 break
             except urllib.error.HTTPError as falha:
-                motivo = f'NVIDIA {falha.code} ({modelo}): {falha.read().decode(errors="replace")[:300]}'
+                motivo = f'NVIDIA {falha.code} ({modelo}): {falha.read().decode(errors="replace")[:600]}'
                 if (falha.code != 429 and falha.code < 500) or tentativa == AGENTES['tentativas']:
                     raise RuntimeError(motivo) from falha
                 pedida = falha.headers.get('Retry-After', '')

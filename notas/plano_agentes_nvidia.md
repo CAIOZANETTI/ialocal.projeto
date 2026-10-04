@@ -155,7 +155,7 @@ acrescenta nada": o plano termina com menos complexidade.
 
 | fase | o quê | quem | pronto quando |
 |---|---|---|---|
-| **F0** decisão | aprovar o PR do MASTER-PLAN §5.6; criar a conta NVIDIA Developer com o e-mail do Caio; conferir o selo **Free Endpoint** nos dois modelos; gerar a chave e gravar no mini em `~/.config/ialocal/nvidia_api_key` (`chmod 600`); dizer as `obras_permitidas` | Caio, ~30 min | chave no mini, PR aprovado |
+| **F0** decisão | aprovar o PR do MASTER-PLAN §5.6; criar a conta NVIDIA Developer com a conta do mini (`macminicaio@gmail.com`, feito em 04/10; limite de 40 pedidos por minuto por conta); conferir o selo **Free Endpoint** nos dois modelos; gerar a chave e gravar no mini em `~/.config/ialocal/nvidia_api_key` (`chmod 600`); dizer as `obras_permitidas` | Caio, ~30 min | chave no mini, PR aprovado |
 | **F1** porta e sonda — **feita (0v5)** | `ia.nvidia`, `agentes.json`, `agentes.py sondar`: a tabela 01 de Cambé a cada agente, em paralelo — autenticação, imagem aceita, formato da resposta (o Parse em tool_calls ou em marcas: os dois são lidos), tempo, tokens, placar contra o gabarito. Testes com a API falsa | código | `testes.py` passa (feito); **no mini, com a chave:** `dados/agentes_sonda.jsonl` com os dois respondendo |
 | **F2** bancada de tabelas e boletins | B1, B2 e **B5** com os quatro leitores (local no mini, na vez da GPU; externos em paralelo); placar e curadoria | código + mini | `bancada_agentes.csv` no Drive, `_sistema/projeto/` |
 | **F3** bancada de fatias | B3 (e B4 se houver transcrição): as fatias da folha; parse com a fatia completada a 1.280 px | código + mini | placar das fatias |
