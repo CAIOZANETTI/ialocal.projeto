@@ -187,6 +187,13 @@ acrescenta nada": o plano termina com menos complexidade.
 | **F4** veredito | os critérios do §7, agente por agente; registro em `notas/` e no §17 do MASTER-PLAN | Caio | continua, troca ou descontinua |
 | **F5** se passar | tarefa `ler_prancha_agentes` na rodada, antes da fila da GPU (rede, não GPU); a curadoria do §5 em `prancha_leitura` com colunas novas (`leitores`, `status_curadoria`) **ao lado** do `status` de hoje; versão 1v0 (o contrato muda); o terceiro agente entra só pela bancada | código | CSVs com as colunas; status com os agentes |
 
+**Parse descontinuado (04/10, 0v17).** Na bancada das 17 tabelas de Cambé, as 17 respostas do Nemotron Parse 2.0 voltaram
+cortadas no limite com 4.090 tokens e 12.270 caracteres, exatamente 3 caracteres por token: o mesmo laço em toda tabela,
+mesmo com os parâmetros da documentação da NVIDIA. Pelo §7 ele não acrescenta (falhou em 1), então fica com
+`ligado: false`; o código, o congelamento e o placar ficam. A vaga dele vai para um reserva só pela bancada. Na mesma
+rodada, todas as linhas saíram em 0,0 s: a bancada só repetia as falhas guardadas no congelamento. Desde a 0v17, a
+resposta ruim que vem do congelamento ganha uma nova chamada, e a ruim da rodada conta como erro.
+
 ## 9. Riscos
 
 | risco | o que segura |

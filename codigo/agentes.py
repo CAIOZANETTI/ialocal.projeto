@@ -31,6 +31,12 @@ def configuracao():
     return comum.configuracao('agentes')
 
 
+def ligados():
+    """Os agentes que a bancada e a leitura chamam: os descontinuados (agentes.json → <agente>.ligado false, §7 do
+    plano) ficam com o código, o congelamento e o placar, mas não são chamados."""
+    return [nome for nome, agente in configuracao()['agentes'].items() if agente.get('ligado', True)]
+
+
 def permitido(obra=None):
     """'' se o agente pode ser chamado; senão o motivo: desligado, fora do prazo da exceção, sem chave ou obra fora da
     lista. Quem chama não chama e grava o motivo."""
@@ -97,29 +103,38 @@ def elementos_do_parse(resposta):
     return elementos
 
 
-DEGENERADA = re.compile(r'(.)\1{19,}')
+DEGENERADA = re.compile(r'(.{1,12}?)\1{19,}', re.DOTALL)
+
+
+class RespostaRuim(RuntimeError):
+    """Resposta que não é leitura; `congelada`: veio do congelamento (a falha de uma rodada anterior)."""
+    def __init__(self, motivo, meta):
+        super().__init__(motivo)
+        self.congelada = bool(meta.get('congelado'))
 
 
 def falha_da_resposta(texto, meta):
     """Resposta que não é leitura sobe como erro (conta na taxa de erro, não como leitura vazia): vazia, cortada no
     limite (fim length: o raciocínio ou um laço gastou os tokens) ou degenerada (o mesmo caractere 20 vezes seguidas:
     04/10, o Kimi a temperatura 0 devolveu '<table!!!!…' e o Parse 4.090 tokens de laço que a API apagou)."""
+    laco = DEGENERADA.search(texto or '')
     if meta.get('fim') == 'length':
-        raise RuntimeError(f"cortada: chegou ao limite com {meta.get('tokens_saida')} tokens e {len(texto or '')} caracteres de resposta")
+        raise RespostaRuim(f"cortada: chegou ao limite com {meta.get('tokens_saida')} tokens e {len(texto or '')} caracteres de resposta"
+                           + (f", em laço de {laco.group(1)!r}" if laco else ''), meta)
     if not (texto or '').strip():
-        raise RuntimeError(f"vazia: {meta.get('tokens_saida')} tokens e nenhum texto"
-                           + (f" ({meta['caracteres_raciocinio']} caracteres de raciocínio)" if meta.get('caracteres_raciocinio') else ''))
-    if DEGENERADA.search(texto):
-        raise RuntimeError(f"degenerada: {DEGENERADA.search(texto).group(0)[:30]!r} em {len(texto)} caracteres")
+        raise RespostaRuim(f"vazia: {meta.get('tokens_saida')} tokens e nenhum texto"
+                           + (f" ({meta['caracteres_raciocinio']} caracteres de raciocínio)" if meta.get('caracteres_raciocinio') else ''), meta)
+    if laco:
+        raise RespostaRuim(f"degenerada: {laco.group(0)[:30]!r} em {len(texto)} caracteres", meta)
 
 
-def ler_com_kimi(nome, imagem, modo):
+def ler_com_kimi(nome, imagem, modo, refazer=False):
     """Um VLM do catálogo (o Kimi K3 ou um reserva do mesmo tipo): transcreve o recorte (modo texto) ou a tabela em HTML
     (modo tabela), com as regras comuns na frente do pedido."""
     AGENTE = configuracao()['agentes'][nome]
     pedido = ia.ler_prompt(AGENTE['prompt'][modo])[0]
     bruta, meta = ia.nvidia(AGENTE['modelo'], pedido, [imagem], {'max_tokens': AGENTE['max_tokens'], **AGENTE.get('opcoes', {})},
-                            AGENTE['lado_max_px'], AGENTE['timeout_s'], AGENTE['provedor'])
+                            AGENTE['lado_max_px'], AGENTE['timeout_s'], AGENTE['provedor'], refazer)
     conteudo = sem_cerca(json.loads(bruta)['texto'])
     falha_da_resposta(conteudo, meta)
     linhas = linhas_da_tabela(conteudo) if modo == 'tabela' else []
@@ -127,7 +142,7 @@ def ler_com_kimi(nome, imagem, modo):
     return {'texto': texto, 'linhas': linhas, 'caixas': [], 'meta': meta}
 
 
-def ler_com_parse(nome, imagem, modo):
+def ler_com_parse(nome, imagem, modo, refazer=False):
     """O Nemotron Parse: o texto de cada elemento com a caixa e a classe; as tabelas que ele achou viram linhas (em
     qualquer modo: o parse não recebe pedido, só a ferramenta ou as marcas de controle)."""
     AGENTE = configuracao()['agentes'][nome]
@@ -135,7 +150,7 @@ def ler_com_parse(nome, imagem, modo):
     if AGENTE.get('ferramenta'):
         opcoes['tools'] = [{'type': 'function', 'function': {'name': AGENTE['ferramenta']}}]
     bruta, meta = ia.nvidia(AGENTE['modelo'], AGENTE.get('controle', ''), [imagem], opcoes,
-                            AGENTE['lado_max_px'], AGENTE['timeout_s'], AGENTE['provedor'])
+                            AGENTE['lado_max_px'], AGENTE['timeout_s'], AGENTE['provedor'], refazer)
     resposta = json.loads(bruta)
     if not resposta['ferramentas']:
         falha_da_resposta(resposta['texto'], meta)
@@ -162,7 +177,9 @@ def vaga(nome):
 
 def ler_com_agente(nome, imagem, modo='texto', obra=None):
     """Um recorte por um agente; nunca sobe erro: falha (do agente ou da permissão) vira leitura vazia com o motivo, e a
-    leitura segue com os outros. Toda chamada fica em dados/agentes.jsonl (o registro da exceção §5.6)."""
+    leitura segue com os outros. A resposta ruim que veio do congelamento ganha uma nova chamada (04/10: a bancada
+    repetia em 0,0 s as vazias do Kimi de uma rodada anterior, sem chamar ninguém); a ruim desta rodada fica e conta.
+    Toda chamada fica em dados/agentes.jsonl (o registro da exceção §5.6)."""
     marca = time.perf_counter()
     motivo = permitido(obra)
     if motivo:
@@ -170,7 +187,12 @@ def ler_com_agente(nome, imagem, modo='texto', obra=None):
     AGENTE = configuracao()['agentes'][nome]
     try:
         with vaga(nome):
-            lida = {**LEITORES[AGENTE['tipo']](nome, imagem, modo), 'erro': ''}
+            try:
+                lida = {**LEITORES[AGENTE['tipo']](nome, imagem, modo), 'erro': ''}
+            except RespostaRuim as falha:
+                if not falha.congelada:
+                    raise
+                lida = {**LEITORES[AGENTE['tipo']](nome, imagem, modo, refazer=True), 'erro': ''}
     except (RuntimeError, OSError, ValueError, KeyError, TypeError) as falha:
         lida = {'texto': '', 'linhas': [], 'caixas': [], 'meta': {}, 'erro': f'{type(falha).__name__}: {falha}'[:800]}
     lida['segundos'] = round(time.perf_counter() - marca, 2)
@@ -189,7 +211,7 @@ def em_paralelo(recortes, nomes=None, modo='texto', obra=None, progresso=False):
     leituras à medida que chegam. Falha de um não para os outros. `progresso`: uma linha na tela por leitura."""
     CONFIGURACAO = configuracao()
     AGENTES, PROVEDORES = CONFIGURACAO['agentes'], CONFIGURACAO['provedores']
-    nomes = list(nomes or AGENTES)
+    nomes = list(nomes or ligados())
     ia.congelados()  # carregado antes das threads: todas acrescentam no mesmo dicionário
     filas = {p: ThreadPoolExecutor(max_workers=PROVEDORES[p]['simultaneas'], thread_name_prefix=p)
              for p in {AGENTES[n]['provedor'] for n in nomes}}

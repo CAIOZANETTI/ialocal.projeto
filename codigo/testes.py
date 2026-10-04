@@ -486,7 +486,7 @@ def testar_agentes(raiz):
               '<tr><td>298738</td><td>S/N</td><td>TUBO POLIETILENO PE 100 PN 10 DE 63</td><td>1634,9</td><td>M</td></tr>'
               '<tr><td>294924</td><td>S/N</td><td>LUVA POLIETILENO</td><td>38</td><td>UN.</td></tr>'
               '<tr><td>999999</td><td>S/N</td><td>INVENTADA</td><td>1</td><td>UN</td></tr></table>')
-    vez = {'kimi': 0}
+    vez = {'kimi': 0, 'vazia': False}
 
     def responder(corpo):
         time.sleep(0.4)
@@ -496,13 +496,14 @@ def testar_agentes(raiz):
                 return 429, {'error': 'Too Many Requests'}, {'Retry-After': '0'}
             if 'erro400' in json.dumps(corpo):
                 return 400, {'error': 'bad request'}, {}
-            return 200, resposta_nvidia('moonshotai/kimi-k3', f'```html\n{TABELA}\n```'), {}
+            return 200, resposta_nvidia('moonshotai/kimi-k3', '' if vez['vazia'] else f'```html\n{TABELA}\n```'), {}
         marcas = f'<x_0.05><y_0.1>{TABELA}<x_0.95><y_0.9><class_Table><x_0.05><y_0.0>TABELA 01<x_0.5><y_0.05><class_Title>'
         return 200, resposta_nvidia('nvidia/nemotron-parse-2.0', marcas), {}
 
     endereco, pedidos, servidor = servidor_nvidia(responder)
     os.environ['NVIDIA_API_KEY'] = 'nvapi-segredo-do-teste'
     AGENTES.update(endpoint=endereco, espera_s=0, ligado=True, prazo_fim='2999-12-31')
+    AGENTES['agentes']['parse']['ligado'] = True  # descontinuado no mini (04/10); o código dele segue testado
     AGENTES['provedores']['nvidia']['por_minuto'] = 6000
     try:
         imagem = raiz / 'agentes' / 'Tabela 01.png'
@@ -551,6 +552,25 @@ def testar_agentes(raiz):
         segundos = time.monotonic() - marca
         conferir(len(lidas) == 4 and len(pedidos) - antes == 4 and segundos < 1.2 and not any(l['erro'] for l in lidas),
                  f'em paralelo: 2 recortes × 2 agentes, cada pedido de 0,4 s, em {segundos:.1f} s (um por vez seriam 1,6 s)')
+        AGENTES['agentes']['parse']['ligado'] = False
+        antes = len(pedidos)
+        nova = raiz / 'agentes' / 'nova.png'
+        Image.new('RGB', (300, 300), (7, 7, 7)).save(nova)
+        so_kimi = list(agentes.em_paralelo([nova], modo='tabela'))
+        AGENTES['agentes']['parse']['ligado'] = True
+        conferir([l['agente'] for l in so_kimi] == ['kimi'] and len(pedidos) - antes == 1 and agentes.ligados() == ['kimi', 'parse'],
+                 'agente descontinuado (ligado false, §7 do plano): a leitura em paralelo não o chama; o código e o congelamento ficam')
+        vazio = raiz / 'agentes' / 'vazio.png'
+        Image.new('RGB', (300, 300), (9, 9, 9)).save(vazio)
+        vez['vazia'], antes = True, len(pedidos)
+        primeira_vazia = agentes.ler_com_agente('kimi', vazio, 'tabela')
+        vez['vazia'] = False
+        nova_chance = agentes.ler_com_agente('kimi', vazio, 'tabela')
+        de_novo = agentes.ler_com_agente('kimi', vazio, 'tabela')
+        conferir(primeira_vazia['erro'].startswith('RespostaRuim: vazia') and len(nova_chance['linhas']) == 4
+                 and not nova_chance['meta']['congelado'] and de_novo['meta']['congelado'] and len(pedidos) - antes == 2,
+                 'a resposta ruim desta rodada conta como erro; a que veio do congelamento ganha uma nova chamada (04/10: a bancada '
+                 'repetia em 0,0 s as vazias do Kimi), e a boa fica no lugar dela')
         AGENTES['agentes']['kimi']['prompt'] = {**AGENTES['agentes']['kimi']['prompt'], 'texto': 'agente_texto'}
         AGENTES['agentes']['kimi']['max_tokens'] = 'erro400'
         errada = agentes.ler_com_agente('kimi', recortes[0])
@@ -591,13 +611,14 @@ def testar_formatos_dos_agentes():
              'Parse: as marcas de posição no texto e os argumentos da ferramenta viram elementos com caixa')
     motivos = []
     for texto, meta in (('', {'fim': 'stop', 'tokens_saida': 32}), ('<table' + '!' * 30, {'fim': 'stop'}),
-                        ('', {'fim': 'length', 'tokens_saida': 4090}), ('<table><tr><td>298738</td></tr></table>', {'fim': 'stop'})):
+                        ('<x_' * 40, {'fim': 'length', 'tokens_saida': 4090}), ('<table><tr><td>298738</td></tr></table>', {'fim': 'stop'})):
         try:
             agentes.falha_da_resposta(texto, meta)
             motivos.append('ok')
         except RuntimeError as falha:
             motivos.append(str(falha).split(':')[0])
-    conferir(motivos == ['vazia', 'degenerada', 'cortada', 'ok'],
+            ultimo = str(falha) if 'cortada' in str(falha) else locals().get('ultimo', '')
+    conferir(motivos == ['vazia', 'degenerada', 'cortada', 'ok'] and "em laço de '<x_'" in ultimo,
              'resposta que não é leitura vira erro (taxa de erro), não leitura vazia: vazia, degenerada (o "!!!!" do Kimi a '
              'temperatura 0) e cortada no limite (o laço de 4.090 tokens do Parse)')
     latex = '\\begin{tabular}{lll}\\hline 298738 & TUBO & 1634,9 \\\\ \\multicolumn{2}{c}{TOTAL} & 1634,9 \\\\ \\hline\\end{tabular}'
