@@ -4,6 +4,8 @@
     "atualizado_em": "2026-10-04"
   },
   "locais": {
+    "codigo": {"motor": "codigo", "papel": "leitor", "natureza": "codigo", "provedor": "local",
+               "_": "sem modelo: a tabela pelas caixas das palavras do Vision (codigo/grade.py, regras em grade abaixo). Roda na 1ª fase, antes de qualquer IA, sem a vez da GPU. Não gera texto; o valor que só ele leu não se confirma pelo Vision (curadoria.DERIVADOS)"},
     "glm_ocr": {"motor": "ollama", "modelo": "glm-ocr:latest", "papel": "leitor", "natureza": "generativo", "provedor": "gpu",
                 "_": "o OCR por modelo da rodada de hoje; na tabela, o pedido de tabela (prompts/prancha_tabela.txt) com as faixas contra o laço"},
     "gemma3": {"motor": "ollama", "modelo": "gemma3:12b", "papel": "leitor", "natureza": "generativo", "provedor": "gpu",
@@ -18,6 +20,15 @@
                  "prompt": "organizar_tabela",
                  "_": "o modelo do dispositivo da Apple, só texto, com o mesmo pedido do qwen3"}
   },
+  "grade": {
+    "mesma_linha": 0.5,
+    "cabecalho": {"codigo": ["CODIGO", "COD"], "numero": ["N°", "Nº", "NO", "N"], "discriminacao": ["DISCRIMIN", "DESCRI"],
+                  "quant": ["QUANT", "QTD", "QUANTIDADE"], "und": ["UND", "UNID", "UN"]},
+    "unidades": ["UN", "UND", "M", "M2", "M²", "M3", "M³", "KG", "T", "L", "PC", "PÇ", "PCS", "CJ", "JG", "VB", "CX", "GL", "PAR", "ML", "KM", "H"],
+    "_": "o leitor só de código (codigo/grade.py): as palavras do Vision com a caixa de cada uma viram linhas pela altura (mesma_linha × a altura da palavra) e células pelas colunas do cabeçalho; sem cabeçalho, a primeira palavra é o código, a última a unidade (desta lista) e a penúltima a quantidade. Não gera texto"
+  },
+  "rapido": {"prazo_s": 300, "amostra": ["TABELA 01", "TABELA 03", "TABELA 12", "TABELA 20"],
+             "_": "--rapido: o código em todas as tabelas (segundos), depois os agentes e os modelos locais só na amostra (01: o glm-ocr laça; 03 e 12: grandes; 20: pequena) e no controle, até prazo_s no total; sem a sondagem. O veredito compara cada candidato com o glm-ocr só nos recortes que os dois leram"},
   "gpu": {"prioridade": 7, "espera_max_s": 1800,
           "_": "a vez da GPU para os locais: a bancada é de fundo (prioridade 7, a da rodada, atrás da extração de documentos, 5) e desiste depois de espera_max_s (30 min: a rodada do projeto, prioridade 7, tem pedaço de 20 min no maestro e devolve entre pranchas; 15 min não bastava) — os locais ficam de fora daquela rodada e o placar diz. Rodando à mão com o extrator ocupado: --prioridade 4 passa à frente dos documentos (devolve a vez entre recortes)"},
   "criterios": {

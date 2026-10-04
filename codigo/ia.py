@@ -350,7 +350,8 @@ def ler_com_vision(caminho):
     if feito.returncode != 0:
         raise RuntimeError(f'Vision: {feito.stderr.strip()[-300:]}')
     cliente_gpu.avancei()
-    return {'texto': json.loads(feito.stdout)['texto']}
+    lido = json.loads(feito.stdout)
+    return {'texto': lido['texto'], 'palavras': lido.get('palavras', [])}
 
 
 def vision_neste_processo(caminho):
@@ -368,7 +369,37 @@ def vision_neste_processo(caminho):
         if not certo:
             raise RuntimeError(f'Vision: {erro}')
         achados = sorted(pedido.results() or [], key=lambda o: (-round(o.boundingBox().origin.y, 2), o.boundingBox().origin.x))
-        return {'texto': '\n'.join(str(o.topCandidates_(1)[0].string()) for o in achados)}
+        linhas = [(str(o.topCandidates_(1)[0].string()), o.topCandidates_(1)[0], o.boundingBox()) for o in achados]
+        return {'texto': '\n'.join(texto for texto, _, _ in linhas),
+                'palavras': [p for texto, candidato, caixa in linhas for p in palavras_do_vision(texto, candidato, caixa)]}
+
+
+def caixa_de_cima(x, y, largura, altura):
+    """A caixa do Vision (origem embaixo à esquerda, de 0 a 1) com a origem em cima à esquerda, como a grade usa."""
+    return {'x0': round(x, 5), 'y0': round(1 - y - altura, 5), 'x1': round(x + largura, 5), 'y1': round(1 - y, 5)}
+
+
+def palavras_do_vision(texto, candidato, caixa_linha):
+    """Cada palavra da linha que o Vision leu, com a caixa dela (codigo/grade.py monta a tabela por elas): a caixa que
+    o Vision dá para o trecho (boundingBoxForRange); se não dá, ou devolve a linha inteira para cada palavra (acontece
+    em algumas versões do macOS), a fatia da caixa da linha na proporção dos caracteres."""
+    trechos = list(re.finditer(r'\S+', texto))
+    x, y = caixa_linha.origin.x, caixa_linha.origin.y
+    largura, altura = caixa_linha.size.width, caixa_linha.size.height
+    palavras = []
+    for trecho in trechos:
+        caixa = None
+        try:
+            retangulo, _ = candidato.boundingBoxForRange_error_((trecho.start(), trecho.end() - trecho.start()), None)
+            caixa = retangulo.boundingBox() if retangulo is not None else None
+        except Exception:  # pyobjc sem o método ou trecho fora: a proporção basta
+            caixa = None
+        if caixa is not None and (len(trechos) == 1 or caixa.size.width < 0.95 * largura):
+            palavras.append({'texto': trecho.group(), **caixa_de_cima(caixa.origin.x, caixa.origin.y, caixa.size.width, caixa.size.height)})
+        else:
+            inicio, fim = trecho.start() / max(len(texto), 1), trecho.end() / max(len(texto), 1)
+            palavras.append({'texto': trecho.group(), **caixa_de_cima(x + largura * inicio, y, largura * (fim - inicio), altura)})
+    return palavras
 
 
 def concordancia(texto_a, texto_b):
