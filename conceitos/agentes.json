@@ -42,6 +42,8 @@
       "_": "VLM generalista, primeiro no OmniDocBench (91,1); raciocínio sempre ligado (o raciocínio vem em reasoning_content e fica de fora: só o content é leitura). Transcreve: os números saem do texto pelos mesmos padrões do código (prancha.json, sondagem.json)"
     },
     "parse": {
+      "ligado": false,
+      "_ligado": "04/10, descontinuado pelo §7 do plano (falhou em 1: não acrescenta). Na bancada das 17 tabelas de Cambé as 17 voltaram cortadas no limite, todas com 4.090 tokens e 12.270 caracteres: 3 caracteres por token, o mesmo laço em toda tabela, já com os parâmetros da documentação da NVIDIA. O código, o congelamento e o placar ficam; volta com ligado true se a NVIDIA publicar versão nova",
       "modelo": "nvidia/nemotron-parse-2.0",
       "tipo": "parser",
       "provedor": "nvidia",

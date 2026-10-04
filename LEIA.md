@@ -23,7 +23,7 @@ python3 -m venv .venv && .venv/bin/pip install polars pdfplumber pypdfium2 pillo
 .venv/bin/python codigo/ciclo.py status     # só regrava saidas/status.json
 .venv/bin/python codigo/mini.py instalar    # agenda a rodada e o atualizar a cada 5 min (com o python do .venv)
 .venv/bin/python codigo/agentes.py sondar   # os agentes da NVIDIA (exceção §5.6) leem a tabela 01 de Cambé: formato, tempo, placar
-.venv/bin/python codigo/bancada.py tudo     # F2: todos os leitores (glm-ocr, gemma3, Vision, qwen3, Apple FM, Kimi, Parse) contra o gabarito; placar e veredito
+.venv/bin/python codigo/bancada.py tudo     # F2: todos os leitores (glm-ocr, gemma3, Vision, qwen3, Apple FM, Kimi; o Parse descontinuado em 04/10) contra o gabarito; placar e veredito
 .venv/bin/python codigo/bancada.py tudo --refazer   # o mesmo, chamando de novo o congelado: o tempo útil medido nas mesmas condições
 ```
 

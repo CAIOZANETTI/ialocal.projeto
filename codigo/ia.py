@@ -50,10 +50,11 @@ def congelados():
     return {r['assinatura']: r for r in map(json.loads, CONGELAMENTO.read_text().splitlines())}
 
 
-def congelado(chave, chamar):
-    """Resposta guardada para a mesma chave; senão chama e acrescenta ao JSONL."""
+def congelado(chave, chamar, refazer=False):
+    """Resposta guardada para a mesma chave; senão chama e acrescenta ao JSONL (a nova fica no lugar da guardada).
+    `refazer`: chama de novo só esta (a falha guardada de um agente, agentes.ler_com_agente)."""
     assinatura = hashlib.sha256(json.dumps(chave, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
-    guardado = None if REFAZER else congelados().get(assinatura)
+    guardado = None if REFAZER or refazer else congelados().get(assinatura)
     if guardado:
         meta = {**guardado['meta'], 'congelado': True}
         anotar(meta)
@@ -169,7 +170,7 @@ def esperar_vez(provedor, por_minuto):
     return espera
 
 
-def nvidia(modelo, pedido, imagens=(), opcoes=None, lado_max_px=2048, timeout_s=300, provedor='nvidia'):
+def nvidia(modelo, pedido, imagens=(), opcoes=None, lado_max_px=2048, timeout_s=300, provedor='nvidia', refazer=False):
     """Resposta de um modelo do catálogo da NVIDIA (API no formato OpenAI): `pedido` é o texto, as imagens vão como data
     URI. Devolve o JSON {'texto', 'ferramentas'} (o content e os argumentos das tool_calls; o raciocínio fica de fora).
     429, 5xx, timeout e queda de rede tentam de novo (agentes.json → tentativas); outro 4xx sobe na hora. A chave da API
@@ -224,7 +225,7 @@ def nvidia(modelo, pedido, imagens=(), opcoes=None, lado_max_px=2048, timeout_s=
             'motor': 'nvidia', 'modelo': inteira.get('model') or modelo, 'fim': escolha.get('finish_reason'),
             'tokens_entrada': uso.get('prompt_tokens'), 'tokens_saida': uso.get('completion_tokens'), 'tentativas': tentativa + 1, 'motivos': motivos,
             'caracteres_raciocinio': len(raciocinio), 'segundos_util': round(util, 2), 'segundos_espera': round(espera_total, 2), 'segundos_falhas': round(falhas_total, 2)}
-    return congelado(chave, chamar)
+    return congelado(chave, chamar, refazer)
 
 
 def em_partes(resposta, modelo, meta):
