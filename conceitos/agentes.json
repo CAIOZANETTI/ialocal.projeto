@@ -16,7 +16,8 @@
   "_chave": "o arquivo com a chave nvapi-… (chmod 600), ou a variável NVIDIA_API_KEY. Nunca no git, nunca na chave do congelamento, nunca no log",
   "tentativas": 5,
   "espera_s": 6,
-  "_espera_s": "04/10, sonda: o Parse só respondeu na 4ª de 4 tentativas; para a bancada (centenas de recortes), 5 novas tentativas a 6, 12, 24, 48 e 96 s. O motivo de cada uma vai ao meta (motivos)",
+  "espera_max_s": 30,
+  "_espera_s": "04/10, sonda: o Parse só respondeu na 4ª de 4 tentativas; para a bancada, 5 novas tentativas a 6, 12, 24, 30 e 30 s (espera_max_s; a primeira bancada parecia parada com esperas de até 96 s e timeout de 180 s). O motivo de cada uma vai ao meta (motivos)",
   "_tentativas": "429, 5xx, timeout e queda de rede tentam de novo depois de Retry-After (ou espera_s × 2ⁿ) com sorteio de até 1 s; outro 4xx falha na hora",
   "gratuito_conferido_em": "",
   "_gratuito_conferido_em": "data em que o Caio viu o selo Free Endpoint na página dos dois modelos (F0); o preço muda: modelo que deixar de ser gratuito sai com ligado false",
@@ -28,7 +29,8 @@
       "prompt": {"texto": "agente_texto", "tabela": "agente_tabela"},
       "max_tokens": 8192,
       "lado_max_px": 2048,
-      "simultaneas": 2,
+      "simultaneas": 6,
+      "_simultaneas": "04/10, primeira bancada: o Kimi leva 9 a 51 s por tabela (raciocínio sempre ligado); 6 de cada vez a ~20 s dão ~18 pedidos/min, dentro do limite da conta (40/min com o Parse)",
       "por_minuto": 20,
       "timeout_s": 300,
       "_": "VLM generalista, primeiro no OmniDocBench (91,1); raciocínio sempre ligado (o raciocínio vem em reasoning_content e fica de fora: só o content é leitura). Transcreve: os números saem do texto pelos mesmos padrões do código (prancha.json, sondagem.json)"
@@ -43,9 +45,9 @@
       "max_tokens": null,
       "_max_tokens": "04/10, segunda sonda: 9.000 passou do max_model_len do modelo hospedado (400). Sem max_tokens o servidor usa o que cabe depois da imagem",
       "lado_max_px": 2048,
-      "simultaneas": 2,
+      "simultaneas": 4,
       "por_minuto": 20,
-      "timeout_s": 180,
+      "timeout_s": 90,
       "_": "parser de documento < 1 B: texto com caixa (normalizada 0–1), classe do elemento e tabela; recomendado de 1.024×1.280 a 1.664×2.048 px. A resposta pode vir em tool_calls (JSON) ou em texto com marcas <x_><y_><class_>: os dois são lidos (a sonda diz qual)"
     }
   },

@@ -146,21 +146,30 @@ def ler_com_agente(nome, imagem, modo='texto', obra=None):
     return lida
 
 
-def em_paralelo(recortes, nomes=None, modo='texto', obra=None):
+def em_paralelo(recortes, nomes=None, modo='texto', obra=None, progresso=False):
     """Cada recorte por cada agente ao mesmo tempo, `simultaneas` pedidos por agente (e o ritmo por_minuto do ia.nvidia);
-    devolve as leituras à medida que chegam, com o agente e o recorte. Falha de um não para os outros."""
+    devolve as leituras à medida que chegam, com o agente e o recorte. Falha de um não para os outros. `progresso`:
+    uma linha na tela por leitura que volta (a bancada)."""
     AGENTES = configuracao()['agentes']
     nomes = list(nomes or AGENTES)
     ia.congelados()  # carregado antes das threads: todas acrescentam no mesmo dicionário
     filas = {nome: ThreadPoolExecutor(max_workers=AGENTES[nome]['simultaneas'], thread_name_prefix=nome) for nome in nomes}
+    terminou = False
     try:
         pedidos = {filas[nome].submit(ler_com_agente, nome, recorte, modo, obra): (nome, recorte) for recorte in recortes for nome in nomes}
-        for feito in as_completed(pedidos):
+        for numero, feito in enumerate(as_completed(pedidos), 1):
             nome, recorte = pedidos[feito]
-            yield {'agente': nome, 'recorte': str(recorte), **feito.result()}
-    finally:
+            lida = {'agente': nome, 'recorte': str(recorte), **feito.result()}
+            if progresso:
+                print(f"{numero:>4}/{len(pedidos)}  {nome:<6} {Path(recorte).name[:34]:<34} {lida['segundos']:6.1f} s  "
+                      f"{'congelado' if lida['meta'].get('congelado') else '':<9} linhas {len(lida['linhas']):>3}"
+                      + (f"  tentativas {lida['meta']['tentativas']} ({','.join(lida['meta'].get('motivos', []))})"
+                         if lida['meta'].get('tentativas', 1) > 1 else '') + (f"  ERRO {lida['erro'][:100]}" if lida['erro'] else ''), flush=True)
+            yield lida
+        terminou = True
+    finally:  # Ctrl+C ou erro: não espera as chamadas em curso (o que já voltou está congelado)
         for fila in filas.values():
-            fila.shutdown(wait=True)
+            fila.shutdown(wait=terminou, cancel_futures=not terminou)
 
 
 def gabarito_cambe():
@@ -218,8 +227,19 @@ def sondar(imagens=None):
     return resultados
 
 
+def sair_no_ctrl_c(funcao, *argumentos):
+    """Roda a função; no Ctrl+C sai na hora, sem esperar as chamadas em curso (as threads do urllib só voltariam no
+    timeout). O que já voltou está no congelamento: a próxima rodada continua dali."""
+    import os
+    try:
+        return funcao(*argumentos)
+    except KeyboardInterrupt:
+        print('\ninterrompido: o que já voltou está congelado (dados/congelamento.jsonl); a próxima rodada continua dali', flush=True)
+        os._exit(130)
+
+
 if __name__ == '__main__':
     if sys.argv[1:2] == ['sondar']:
-        sondar(sys.argv[2:])
+        sair_no_ctrl_c(sondar, sys.argv[2:])
     else:
         print(__doc__)
