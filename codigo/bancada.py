@@ -1,14 +1,21 @@
-"""A bancada dos leitores (notas/plano_agentes_nvidia.md §6–§8, F2): TODOS os candidatos na mesma régua — os do mini
-(glm-ocr, gemma3 e o Vision, que leem a imagem; qwen3 e Apple FM, que montam a tabela com o texto do Vision) e os
-agentes externos (Kimi K3 e Nemotron Parse, conceitos/agentes.json) — contra o gabarito, e a curadoria com e sem cada um.
-Candidatos e critérios em conceitos/bancada.json.
+"""A bancada dos leitores (notas/plano_agentes_nvidia.md §6–§8, F2): TODOS os candidatos na mesma régua — o leitor só
+de código (codigo/grade.py: a tabela pelas caixas das palavras do Vision, sem modelo), os do mini (glm-ocr, gemma3 e o
+Vision, que leem a imagem; qwen3 e Apple FM, que montam a tabela com o texto do Vision) e os agentes externos (Kimi K3,
+conceitos/agentes.json) — contra o gabarito, e a curadoria com e sem cada um. Candidatos e critérios em
+conceitos/bancada.json.
+
+Código antes de IA (pedido do Caio, 04/10): cada conjunto roda em três fases — 1) o Vision e o código, sem a vez da GPU,
+em segundos, com o placar do código na hora; 2) os agentes externos; 3) os modelos locais, na vez da GPU.
 
     .venv/bin/python codigo/bancada.py tabelas            # B1: as 17 tabelas de Cambé (188 linhas transcritas pelo Caio)
     .venv/bin/python codigo/bancada.py controle           # B2: recortes sem número nenhum: todo número lido é invenção
     .venv/bin/python codigo/bancada.py sondagem [pdf…]    # B5: boletins de sondagem (sem pdf: os do acervo)
     .venv/bin/python codigo/bancada.py placar             # o placar e o veredito; saidas/bancada_agentes.csv e o Drive
     .venv/bin/python codigo/bancada.py tudo               # os três conjuntos e o placar
-        --sem-local   só os agentes externos (o veredito fica provisório)
+    .venv/bin/python codigo/bancada.py rapido             # o mesmo que tudo --rapido: a bancada inteira em ~5 min
+        --rapido      o código nas 17 tabelas; os modelos só na amostra e no controle, até o prazo; sem a sondagem
+                      (bancada.json → rapido)
+        --sem-local   sem os modelos locais (o código roda sempre; o veredito fica provisório)
         --refazer     chama de novo o que está congelado: o tempo medido nas mesmas condições para todos
         --prioridade N  a vez da GPU com outra prioridade (4: à frente da extração de documentos, que é 5)
 
@@ -33,6 +40,7 @@ import agentes
 import cliente_gpu
 import comum
 import curadoria
+import grade
 import ia
 import prancha
 import sondagem
@@ -40,6 +48,9 @@ import sondagem
 CAMBE = comum.RAIZ / 'amostras' / 'tabelas' / '216_cambe'
 PASTA = comum.DADOS / 'bancada'
 CONJUNTOS = ('tabelas', 'controle', 'sondagem')
+DO_CODIGO = ('vision', 'codigo')  # a 1ª fase: sem modelo e sem a vez da GPU
+RAPIDO = False  # --rapido: os modelos só na amostra e até o PRAZO (time.monotonic) — bancada.json → rapido
+PRAZO = None
 ESQUEMA_LINHAS = {'type': 'object', 'required': ['linhas'], 'properties': {'linhas': {'type': 'string'}}}
 
 
@@ -73,12 +84,13 @@ def ler_um_local(nome, imagem, modo, texto_vision):
     LOCAL = locais_da_bancada()[nome]
     if LOCAL['papel'] == 'organizador' and modo != 'tabela':
         return None
-    chamadas, marca, linhas, texto, erro = ia.medir(), time.perf_counter(), [], '', ''
+    chamadas, marca, linhas, texto, erro, palavras = ia.medir(), time.perf_counter(), [], '', '', []
     try:
         if LOCAL['motor'] == 'vision':
             if not ia.instalado('Vision'):
                 raise ImportError('Vision ausente (só no macOS)')
-            texto = ia.ler_com_vision(imagem)['texto']
+            lido = ia.ler_com_vision(imagem)
+            texto, palavras = lido['texto'], lido.get('palavras', [])
         elif LOCAL['papel'] == 'organizador':
             if not texto_vision:
                 raise RuntimeError('sem o texto do Vision para organizar')
@@ -104,8 +116,72 @@ def ler_um_local(nome, imagem, modo, texto_vision):
     except (OSError, RuntimeError, ValueError, ImportError, KeyError) as falha:
         erro = f'{type(falha).__name__}: {falha}'[:300]
     util = sum(m.get('segundos', 0) for m in chamadas) if chamadas else time.perf_counter() - marca
-    return {'linhas': linhas, 'texto': texto, 'erro': erro, 'util': round(util, 2),
+    return {'linhas': linhas, 'texto': texto, 'erro': erro, 'util': round(util, 2), 'palavras': palavras,
             'congelado': bool(chamadas) and all(m.get('congelado') for m in chamadas)}
+
+
+def ler_codigo(vision, modo):
+    """O leitor só de código: a tabela pelas caixas das palavras que o Vision leu (codigo/grade.py), sem modelo. O tempo
+    útil é o do Vision mais o da geometria (milissegundos): o custo inteiro do leitor. No modo texto (controle), o texto
+    é o das linhas que a grade montou: número fora de linha de material não sai."""
+    if vision['erro']:
+        return {'linhas': [], 'texto': '', 'erro': f"sem o Vision ({vision['erro']})"[:300], 'util': None, 'congelado': False}
+    marca = time.perf_counter()
+    linhas = grade.montar(vision.get('palavras') or [])
+    return {'linhas': linhas, 'texto': grade.texto(linhas), 'erro': '', 'congelado': False,
+            'util': round((vision['util'] or 0) + time.perf_counter() - marca, 2)}
+
+
+def mostrar(fase, nome, imagem, lida):
+    print(f"{fase:<6} {nome:<9} {Path(imagem).name[:30]:<30} útil {lida['util'] or 0:6.1f} s  "
+          f"{'congelado' if lida['congelado'] else '':<9} linhas {len(lida['linhas']):>3}"
+          + (f"  ERRO {lida['erro'][:100]}" if lida['erro'] else ''), flush=True)
+
+
+def codigo_primeiro(imagens, modo, com_grade=True):
+    """1ª fase, antes de qualquer modelo: o Vision (OCR do macOS, não gera texto) e o leitor só de código, recorte a
+    recorte. Não pede a vez da GPU: nenhum dos dois usa o Ollama. Fora do macOS, sem o Vision, a fase fica de fora."""
+    if not ia.instalado('Vision'):
+        print('código: sem o Vision (só no macOS): o Vision e o leitor de código ficam de fora desta rodada', flush=True)
+        return {}
+    print(f"código: {len(imagens)} recortes pelo Vision{' e pela grade (sem modelo)' if com_grade else ''}, antes de "
+          f"qualquer IA e sem a vez da GPU", flush=True)
+    lidas = {}
+    for imagem in imagens:
+        leituras = {'vision': ler_um_local('vision', imagem, modo, '')}
+        if com_grade:
+            leituras['codigo'] = ler_codigo(leituras['vision'], modo)
+        for nome, lida in leituras.items():
+            mostrar('código', nome, imagem, lida)
+        lidas[str(imagem)] = leituras
+    return lidas
+
+
+def placar_do_codigo(de_codigo, gabaritos):
+    """O placar do leitor de código logo depois da 1ª fase, antes de chamar qualquer IA."""
+    certas = erradas = inventadas = esperadas = 0
+    for imagem, leituras in de_codigo.items():
+        if 'codigo' not in leituras or leituras['codigo']['erro']:
+            continue
+        gabarito = gabaritos[Path(imagem).stem.upper()]
+        resultados = [l['resultado'] for l in comparar(curadoria.por_codigo(leituras['codigo']['linhas']), gabarito, {}, {}, None)]
+        certas, erradas = certas + resultados.count('certa'), erradas + resultados.count('errada')
+        inventadas, esperadas = inventadas + resultados.count('inventada'), esperadas + len(gabarito)
+    if esperadas:
+        print(f'código: {certas} de {esperadas} linhas certas, {erradas} erradas, {inventadas} inventadas — sem modelo '
+              f'nenhum, antes das IAs', flush=True)
+
+
+def no_prazo():
+    return PRAZO is None or time.monotonic() < PRAZO
+
+
+def da_amostra(imagens):
+    """No --rapido, só as imagens da amostra (bancada.json → rapido.amostra) vão aos modelos."""
+    if not RAPIDO:
+        return imagens
+    AMOSTRA = comum.configuracao('bancada')['rapido']['amostra']
+    return [i for i in imagens if Path(i).stem.upper() in AMOSTRA]
 
 
 PRIORIDADE = None  # --prioridade N na linha de comando; sem ela, bancada.json → gpu.prioridade
@@ -135,16 +211,25 @@ def avisar_a_espera(parar, intervalo_s=30, vez_arquivo=None):
         print(f'locais: esperando a vez há {(time.perf_counter() - marca) / 60:.0f} min; {quem_tem_a_vez(vez_arquivo)}', flush=True)
 
 
-def locais(imagens, modo):
-    """recorte → {candidato: leitura} de cada imagem, na vez da GPU do maestro (um de cada vez), e a espera pela vez
-    (tempo perdido da fila, rateado entre as chamadas). O Vision lê primeiro: os organizadores usam o texto dele. Sem a
-    vez em bancada.json → gpu.espera_max_s, os locais ficam de fora desta rodada (e o placar diz)."""
+def locais(imagens, modo, vistas=None):
+    """recorte → {modelo: leitura} de cada imagem, na vez da GPU do maestro (um de cada vez), e a espera pela vez
+    (tempo perdido da fila, rateado entre as chamadas). O Vision e o código já leram na 1ª fase (vistas): os
+    organizadores usam o texto do Vision de lá. Sem a vez em bancada.json → gpu.espera_max_s (no --rapido, no que
+    sobra do prazo), os locais ficam de fora desta rodada (e o placar diz); passado o prazo, o resto fica de fora."""
+    vistas = vistas or {}
     GPU = {**comum.configuracao('operacao')['gpu'], **comum.configuracao('bancada')['gpu']}
+    if RAPIDO:
+        GPU['prioridade'] = comum.configuracao('bancada')['rapido'].get('prioridade', GPU['prioridade'])
     if PRIORIDADE is not None:
         GPU['prioridade'] = PRIORIDADE
-    nomes = sorted(locais_da_bancada(), key=lambda n: (n != 'vision', locais_da_bancada()[n]['papel'] == 'organizador'))
+    if PRAZO is not None:
+        GPU['espera_max_s'] = max(0, min(GPU['espera_max_s'], int(PRAZO - time.monotonic())))
+    if not imagens or not GPU['espera_max_s']:
+        print('locais: sem tempo no prazo do --rapido (ou sem recorte): os modelos locais ficam de fora', flush=True)
+        return {}, 0.0
+    nomes = sorted((n for n in locais_da_bancada() if n not in DO_CODIGO), key=lambda n: locais_da_bancada()[n]['papel'] == 'organizador')
     print(f"locais: {', '.join(nomes)} em {len(imagens)} recortes; pedindo a vez da GPU ao maestro (prioridade {GPU['prioridade']}, "
-          f"desiste em {GPU['espera_max_s'] // 60} min); --prioridade 4 passa à frente dos documentos, --sem-local pula", flush=True)
+          f"desiste em {GPU['espera_max_s'] / 60:.0f} min); --prioridade 4 passa à frente dos documentos, --sem-local pula", flush=True)
     lidas, marca, sem_ollama = {}, time.perf_counter(), False
     print(f'locais: {quem_tem_a_vez()}', flush=True)
     parar = threading.Event()
@@ -161,20 +246,23 @@ def locais(imagens, modo):
             if not vez.minha():
                 print('locais: a vez da GPU foi pedida de volta; o resto fica para a próxima rodada', flush=True)
                 break
-            leituras = {}
+            if not no_prazo():
+                print('locais: o prazo do --rapido acabou; os recortes que faltam ficam de fora', flush=True)
+                break
+            leituras, texto_vision = {}, vistas.get(str(imagem), {}).get('vision', {}).get('texto', '')
             vez.avancei(Path(imagem).name)
             for nome in nomes:
+                if not no_prazo():
+                    break
                 if sem_ollama and locais_da_bancada()[nome]['motor'] == 'ollama':
                     leituras[nome] = {'linhas': [], 'texto': '', 'erro': 'Ollama fora do ar', 'util': None, 'congelado': False}
                     continue
-                lida = ler_um_local(nome, imagem, modo, leituras.get('vision', {}).get('texto', ''))
+                lida = ler_um_local(nome, imagem, modo, texto_vision)
                 if lida is None:
                     continue
                 leituras[nome] = lida
                 sem_ollama = sem_ollama or 'Connection refused' in lida['erro'] or 'URLError' in lida['erro']
-                print(f"local  {nome:<9} {Path(imagem).name[:30]:<30} útil {lida['util'] or 0:6.1f} s  "
-                      f"{'congelado' if lida['congelado'] else '':<9} linhas {len(lida['linhas']):>3}"
-                      + (f"  ERRO {lida['erro'][:100]}" if lida['erro'] else ''), flush=True)
+                mostrar('local', nome, imagem, lida)
             lidas[str(imagem)] = leituras
     return lidas, espera
 
@@ -215,6 +303,21 @@ def ratear(de_dentro, espera):
             lida['perdido'] = round(espera / total, 2) if total else 0.0
 
 
+def tres_fases(imagens, modo, com_local, com_grade=True, amostra=False, gabaritos=None):
+    """As três fases de um conjunto: 1) o Vision e o código em todos os recortes; 2) os agentes externos e 3) os
+    modelos locais (no --rapido, até o prazo; e, com amostra, só nas tabelas da amostra). Devolve (de_fora, de_dentro) para leituras_do_recorte;
+    a fila da GPU é rateada só entre as chamadas dos modelos (o código não espera vez)."""
+    de_codigo = codigo_primeiro(imagens, modo, com_grade)
+    if gabaritos:
+        placar_do_codigo(de_codigo, gabaritos)
+    com_modelo = da_amostra(imagens) if amostra else imagens
+    de_fora = externos(com_modelo, modo)
+    de_ia, espera = locais(com_modelo, modo, de_codigo) if com_local else ({}, 0.0)
+    ratear(de_ia, espera)
+    juntas = {imagem: {**de_codigo.get(imagem, {}), **de_ia.get(imagem, {})} for imagem in {*de_codigo, *de_ia}}
+    return de_fora, juntas
+
+
 def chamada(recorte, leitor, lida):
     return {'recorte': recorte, 'leitor': leitor, 'provedor': lida['provedor'], 'modelo': lida['modelo'], 'util': lida['util'],
             'perdido': lida['perdido'], 'tentativas': lida['tentativas'], 'motivos': lida['motivos'], 'erro': lida['erro'],
@@ -227,18 +330,18 @@ def comparar(lidas, gabarito, base, status, texto):
     esta). lidas None = leitor sem estrutura de tabela; texto None = curadoria (não tem texto próprio: presença vazia)."""
     numeros = None if texto is None else curadoria.numeros(texto)
     linhas = []
-    for linha in gabarito:
+    for chave, linha in zip(curadoria.chaves(l['codigo'] for l in gabarito), gabarito):
         esperado = (prancha.normalizar(linha['quant']), curadoria.unidade(linha['und']))
         presente = None if numeros is None else linha['codigo'] in numeros and esperado[0] in numeros
         if lidas is None:
-            linhas.append({**base, 'chave': linha['codigo'], 'lido': '', 'esperado': ' '.join(esperado), 'resultado': '',
+            linhas.append({**base, 'chave': chave, 'lido': '', 'esperado': ' '.join(esperado), 'resultado': '',
                            'presente': presente, 'status': ''})
             continue
-        lido = lidas.get(linha['codigo'])
+        lido = lidas.get(chave)
         resultado = 'faltou' if lido is None else 'certa' if lido == esperado else 'errada'
-        linhas.append({**base, 'chave': linha['codigo'], 'lido': ' '.join(lido) if lido else '', 'esperado': ' '.join(esperado),
-                       'resultado': resultado, 'presente': presente, 'status': status.get(linha['codigo'], '')})
-    codigos = {l['codigo'] for l in gabarito}
+        linhas.append({**base, 'chave': chave, 'lido': ' '.join(lido) if lido else '', 'esperado': ' '.join(esperado),
+                       'resultado': resultado, 'presente': presente, 'status': status.get(chave, '')})
+    codigos = set(curadoria.chaves(l['codigo'] for l in gabarito))
     linhas += [{**base, 'chave': c, 'lido': ' '.join(v), 'esperado': '', 'resultado': 'inventada', 'presente': None,
                 'status': status.get(c, '')} for c, v in (lidas or {}).items() if c not in codigos]
     return linhas
@@ -249,9 +352,7 @@ def tabelas(com_local=True):
     local+<candidato> para cada um dos outros, todos, e externos (os agentes sem testemunha)."""
     gabaritos = agentes.gabarito_cambe()
     imagens = sorted(p for p in CAMBE.glob('*.png') if p.stem.upper() in gabaritos)
-    de_fora = externos(imagens, 'tabela')
-    de_dentro, espera = locais(imagens, 'tabela') if com_local else ({}, 0.0)
-    ratear(de_dentro, espera)
+    de_fora, de_dentro = tres_fases(imagens, 'tabela', com_local, amostra=True, gabaritos=gabaritos)
     linhas, chamadas = [], []
     for imagem in imagens:
         gabarito, leituras = gabaritos[imagem.stem.upper()], leituras_do_recorte(imagem, de_fora, de_dentro)
@@ -265,6 +366,8 @@ def tabelas(com_local=True):
         if 'glm_ocr' in leituras:
             combinacoes |= {'local': ['glm_ocr'], **{f'local+{c}': ['glm_ocr', c] for c in geradores if c != 'glm_ocr'},
                             'todos': geradores}
+        if 'codigo' in leituras:  # o código como base: o que cada modelo confirma da tabela que a geometria montou
+            combinacoes |= {f'codigo+{c}': ['codigo', c] for c in geradores if c != 'codigo'}
         testemunha = leituras.get('vision', {}).get('texto', '')
         for nome, quem in combinacoes.items():
             curadas = curadoria.curar_tabela({q: leituras[q]['linhas'] for q in quem}, '' if nome == 'externos' else testemunha)
@@ -301,9 +404,7 @@ def recortes_de_controle():
 def controle(com_local=True):
     """B2: cada recorte sem número por cada candidato que lê imagem, no modo texto; quantos números cada um escreveu."""
     imagens = recortes_de_controle()
-    de_fora = externos(imagens, 'texto')
-    de_dentro, espera = locais(imagens, 'texto') if com_local else ({}, 0.0)
-    ratear(de_dentro, espera)
+    de_fora, de_dentro = tres_fases(imagens, 'texto', com_local)
     linhas, chamadas = [], []
     for imagem in imagens:
         for leitor, lida in leituras_do_recorte(imagem, de_fora, de_dentro).items():
@@ -357,9 +458,7 @@ def sondagem_bancada(pdfs=None, com_local=True):
     pdfs = [Path(p) for p in pdfs] if pdfs else boletins()
     todas = [(pdf, imagem, texto) for pdf in pdfs for imagem, texto in paginas(pdf)]
     imagens = [imagem for _, imagem, _ in todas]
-    de_fora = externos(imagens, 'texto')
-    de_dentro, espera = locais(imagens, 'texto') if com_local else ({}, 0.0)
-    ratear(de_dentro, espera)
+    de_fora, de_dentro = tres_fases(imagens, 'texto', com_local, com_grade=False)
     linhas, chamadas = [], []
     for pdf, imagem, texto in todas:
         leituras = leituras_do_recorte(imagem, de_fora, de_dentro)
@@ -408,7 +507,35 @@ def placar(publicar=True):
         print('bancada vazia: rode tabelas, controle ou sondagem antes')
         return None
     tabela = pl.concat(partes, how='diagonal_relaxed')
-    resumo = tabela.group_by('conjunto', 'tipo', 'leitor').agg(
+    resumo = resumir(tabela)
+    chamadas = resumo_das_chamadas()
+    if chamadas is not None:
+        resumo = resumo.join(chamadas, on=['conjunto', 'leitor'], how='left')
+    resumo = resumo.sort('conjunto', 'tipo', 'leitor')
+    vereditos = veredito(resumo, tabela)
+    saida = resumo.join(vereditos, on='leitor', how='left')
+    destino = comum.SAIDAS / 'bancada_agentes.csv'
+    destino.parent.mkdir(parents=True, exist_ok=True)
+    saida.write_csv(destino, separator=';', include_bom=True)
+    if publicar:
+        try:
+            comum.publicar(saida, f"{comum.configuracao('operacao')['drive']['sistema']}/bancada_agentes.csv")
+        except (OSError, subprocess.CalledProcessError) as falha:  # sem rclone (fora do mini) o CSV local basta
+            print(f'Drive: não publicado ({type(falha).__name__})')
+    colunas = [c for c in ('conjunto', 'tipo', 'leitor', 'recortes', 'certas', 'erradas', 'faltou', 'inventadas', 'cobertura',
+                           'precisao', 'presenca', 'confirmadas_certas', 'confirmadas_erradas', 'util_mediana_s', 'taxa_erro',
+                           'perdido_pct', 'tentativas_media', 'n_429', 'n_5xx') if c in resumo.columns]
+    with pl.Config(tbl_rows=80, tbl_cols=25, tbl_width_chars=250, tbl_hide_dataframe_shape=True, tbl_hide_column_data_types=True):
+        print(resumo.select(colunas))
+    for linha in vereditos.to_dicts():
+        print(f"{linha['leitor']:<9} → {linha['veredito']}: {linha['motivo']}")
+    return saida
+
+
+def resumir(tabela):
+    """Por conjunto, tipo e leitor: certas, erradas, faltou, inventadas, presença, confirmadas certas e erradas,
+    recortes, cobertura e precisão."""
+    return tabela.group_by('conjunto', 'tipo', 'leitor').agg(
         certas=(pl.col('resultado') == 'certa').sum(), erradas=(pl.col('resultado') == 'errada').sum(),
         faltou=(pl.col('resultado') == 'faltou').sum(), inventadas=(pl.col('resultado') == 'inventada').sum(),
         presenca=pl.col('presente').cast(pl.Float64).mean().round(3),
@@ -423,31 +550,9 @@ def placar(publicar=True):
     ).with_columns(
         precisao=(pl.col('certas') / pl.col('emitidas')).round(3), cobertura=(pl.col('certas') / pl.col('esperadas')).round(3),
     )
-    chamadas = resumo_das_chamadas()
-    if chamadas is not None:
-        resumo = resumo.join(chamadas, on=['conjunto', 'leitor'], how='left')
-    resumo = resumo.sort('conjunto', 'tipo', 'leitor')
-    vereditos = veredito(resumo)
-    saida = resumo.join(vereditos, on='leitor', how='left')
-    destino = comum.SAIDAS / 'bancada_agentes.csv'
-    destino.parent.mkdir(parents=True, exist_ok=True)
-    saida.write_csv(destino, separator=';', include_bom=True)
-    if publicar:
-        try:
-            comum.publicar(saida, f"{comum.configuracao('operacao')['drive']['sistema']}/bancada_agentes.csv")
-        except (OSError, subprocess.CalledProcessError) as falha:  # sem rclone (fora do mini) o CSV local basta
-            print(f'Drive: não publicado ({type(falha).__name__})')
-    colunas = [c for c in ('conjunto', 'tipo', 'leitor', 'certas', 'erradas', 'faltou', 'inventadas', 'cobertura', 'precisao',
-                           'presenca', 'confirmadas_certas', 'confirmadas_erradas', 'util_mediana_s', 'taxa_erro',
-                           'perdido_pct', 'tentativas_media', 'n_429', 'n_5xx') if c in resumo.columns]
-    with pl.Config(tbl_rows=80, tbl_cols=25, tbl_width_chars=250, tbl_hide_dataframe_shape=True, tbl_hide_column_data_types=True):
-        print(resumo.select(colunas))
-    for linha in vereditos.to_dicts():
-        print(f"{linha['leitor']:<9} → {linha['veredito']}: {linha['motivo']}")
-    return saida
 
 
-def veredito(resumo):
+def veredito(resumo, tabela):
     """Os critérios do §7 do plano (conceitos/bancada.json → criterios), para cada candidato que não é a base (glm-ocr)
     nem a testemunha (Vision), na B1 (tabelas) e na B2 (controle):
     1. acrescenta: a curadoria local+<candidato> confirma certas ≥ acrescenta_pp mais linhas do gabarito que a local; ou
@@ -456,24 +561,42 @@ def veredito(resumo):
        controle, não mais números que o glm-ocr (sem o glm-ocr: nenhum);
     3. opera: taxa de erro final ≤ taxa_erro_max e tempo útil mediano ≤ util_mediana_max_s. O tempo perdido (plano
        gratuito, fila da GPU) não entra: sai na coluna perdido_pct.
-    Falha em 1 ou 2: descontinua; só em 3: troca (pelo reserva, se externo); nos três: continua."""
+    Falha em 1 ou 2: descontinua; só em 3: troca (pelo reserva, se externo); nos três: continua.
+    A qualidade compara o candidato com o glm-ocr só nos recortes que os dois leram (no --rapido os modelos leem a
+    amostra e o código, todas); o tempo e o erro vêm de todas as chamadas dele."""
     CRITERIOS = comum.configuracao('bancada')['criterios']
-    def linha(conjunto, tipo, leitor):
-        achadas = resumo.filter((pl.col('conjunto') == conjunto) & (pl.col('tipo') == tipo) & (pl.col('leitor') == leitor)).to_dicts()
-        return achadas[0] if achadas else None
+    recortes = lambda conjunto, leitor: set(tabela.filter((pl.col('conjunto') == conjunto) & (pl.col('tipo') == 'leitor')
+                                                          & (pl.col('leitor') == leitor))['recorte'])
+
+    def linha(conjunto, tipo, leitor, em=None):
+        parte = tabela.filter((pl.col('conjunto') == conjunto) & (pl.col('tipo') == tipo) & (pl.col('leitor') == leitor))
+        if em is not None:
+            parte = parte.filter(pl.col('recorte').is_in(sorted(em)))
+        return resumir(parte).to_dicts()[0] if parte.height else None
+
+    def em_comum(conjunto, nome):
+        com_glm = recortes(conjunto, nome) & recortes(conjunto, 'glm_ocr')
+        return com_glm or recortes(conjunto, nome)
+    def operacao(nome):
+        achadas = resumo.filter((pl.col('conjunto') == 'tabelas') & (pl.col('tipo') == 'leitor') & (pl.col('leitor') == nome)).to_dicts()
+        return achadas[0] if achadas else {}
     candidatos = [*comum.configuracao('agentes')['agentes'], *(n for n in locais_da_bancada() if n not in ('glm_ocr', 'vision'))]
-    glm, local = linha('tabelas', 'leitor', 'glm_ocr'), linha('tabelas', 'curadoria', 'local')
-    glm_controle = linha('controle', 'leitor', 'glm_ocr')
     vereditos = []
     for nome in candidatos:
-        sozinho, junto, controle = linha('tabelas', 'leitor', nome), linha('tabelas', 'curadoria', f'local+{nome}'), linha('controle', 'leitor', nome)
+        comuns, comuns_controle = em_comum('tabelas', nome), em_comum('controle', nome)
+        sozinho = linha('tabelas', 'leitor', nome, comuns)
         if sozinho is None:
             continue
+        glm, local, junto = (linha('tabelas', 'leitor', 'glm_ocr', comuns), linha('tabelas', 'curadoria', 'local', comuns),
+                             linha('tabelas', 'curadoria', f'local+{nome}', comuns))
+        controle, glm_controle = linha('controle', 'leitor', nome, comuns_controle), linha('controle', 'leitor', 'glm_ocr', comuns_controle)
+        sozinho = {**sozinho, **{c: v for c, v in operacao(nome).items() if c in ('util_mediana_s', 'taxa_erro', 'perdido_pct')}}
         total = sozinho['esperadas'] or 1
-        if local is not None and junto is not None:
+        if local is not None and junto is not None and glm is not None:
             ganho = (junto['confirmadas_certas'] - local['confirmadas_certas']) / total
             acrescenta = ganho >= CRITERIOS['acrescenta_pp'] or sozinho['certas'] > glm['certas']
-            motivo = f"+{ganho:.0%} confirmadas certas com ele; sozinho {sozinho['certas']} × glm-ocr {glm['certas']}"
+            motivo = (f"+{ganho:.0%} confirmadas certas com ele; sozinho {sozinho['certas']} × glm-ocr {glm['certas']} "
+                      f"(recortes que os dois leram: {len(comuns)})")
             contamina = junto['confirmadas_erradas'] > local['confirmadas_erradas']
             provisorio = ''
         else:
@@ -496,12 +619,19 @@ def veredito(resumo):
 def principal(argumentos):
     comando, resto = (argumentos[0] if argumentos else ''), argumentos[1:]
     motivo = agentes.permitido()
-    if comando in ('tabelas', 'controle', 'sondagem', 'tudo') and motivo:
+    if comando in ('tabelas', 'controle', 'sondagem', 'tudo', 'rapido') and motivo:
         print(f'bancada parada: {motivo}')
         return
+    if comando == 'rapido':
+        comando, resto = 'tudo', [*resto, '--rapido']
     com_local = '--sem-local' not in resto
     ia.REFAZER = '--refazer' in resto
-    global PRIORIDADE
+    global PRIORIDADE, RAPIDO, PRAZO
+    inicio = time.monotonic()
+    if '--rapido' in resto:
+        RAPIDO, PRAZO = True, inicio + comum.configuracao('bancada')['rapido']['prazo_s']
+        print(f"bancada rápida: o código nas tabelas todas; os modelos na amostra ({', '.join(comum.configuracao('bancada')['rapido']['amostra'])}) "
+              f"e no controle até {(PRAZO - inicio) / 60:.0f} min; sem a sondagem", flush=True)
     if '--prioridade' in resto:
         posicao = resto.index('--prioridade')
         PRIORIDADE = int(resto[posicao + 1])
@@ -511,10 +641,12 @@ def principal(argumentos):
         tabelas(com_local)
     if comando in ('controle', 'tudo'):
         controle(com_local)
-    if comando in ('sondagem', 'tudo'):
+    if comando == 'sondagem' or (comando == 'tudo' and not RAPIDO):
         sondagem_bancada(resto or None, com_local)
     if comando in ('placar', 'tabelas', 'controle', 'sondagem', 'tudo'):
         placar()
+        if comando != 'placar':
+            print(f'bancada: {(time.monotonic() - inicio) / 60:.1f} min de parede')
     else:
         print(__doc__)
 

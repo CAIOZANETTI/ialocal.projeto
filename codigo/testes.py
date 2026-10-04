@@ -649,6 +649,81 @@ def testar_curadoria():
         'generativos; dois generativos sem testemunha, confirmada_ia; um só, so_parse; dois valores sem testemunha, divergente')
 
 
+def palavras_de(linhas, altura=0.05):
+    """Linhas de texto → as palavras com caixa, como o Vision dá: cada linha uma faixa de altura; cada palavra (texto,
+    x0, x1) na posição dada."""
+    return [{'texto': texto, 'x0': x0, 'x1': x1, 'y0': 0.02 + n * altura * 1.6, 'y1': 0.02 + n * altura * 1.6 + altura}
+            for n, linha in enumerate(linhas) for texto, x0, x1 in linha]
+
+
+def testar_grade():
+    """O leitor só de código (codigo/grade.py), com as caixas das palavras numa tabela de Cambé: o cabeçalho dá as
+    colunas; a quantidade alinhada à direita e a unidade saem certas mesmo quando a discriminação acaba em número; a
+    linha sem a quantidade lida fica de fora (não pega o 'DE 63' da discriminação); a segunda relação empilhada, com o
+    seu cabeçalho, repete o código; sem cabeçalho, a regra das pontas; 'UN,' é unidade."""
+    import grade
+    cabecalho = [('CÓDIGO', 0.01, 0.10), ('Nº', 0.12, 0.14), ('DISCRIMINAÇÃO', 0.35, 0.52), ('QUANT.', 0.85, 0.91), ('UND.', 0.93, 0.98)]
+    material = lambda codigo, descricao, quant, und: ([(codigo, 0.03, 0.09), ('S/N', 0.12, 0.15)]
+                                                      + [(p, 0.16 + 0.04 * n, 0.19 + 0.04 * n) for n, p in enumerate(descricao.split())]
+                                                      + ([(quant, 0.90 - 0.012 * len(quant), 0.90)] if quant else []) + [(und, 0.94, 0.97)])
+    palavras = palavras_de([
+        cabecalho, [('REDE', 0.30, 0.38), ('DE', 0.39, 0.43), ('DISTRIBUIÇÃO', 0.44, 0.65)],
+        material('298738', 'TUBO PE 100 PN 10 DE 63', '1634,9', 'M'),
+        material('294924', 'LUVA PE 100 DE 63', '', 'UN.'),
+        material('309341', 'TE PE 100 DN 50', '6', 'UN,'),
+        cabecalho, material('298738', 'TUBO PE 100 PN 10 DE 63', '14', 'M')])
+    linhas = grade.montar(palavras)
+    sem_cabecalho = grade.montar(palavras_de([[('20117', 0.02, 0.08), ('S/N', 0.1, 0.13), ('ADAPTADOR', 0.15, 0.3),
+                                               ('POL', 0.31, 0.35), ('2"', 0.36, 0.38), ('3', 0.88, 0.89), ('UN.', 0.94, 0.97)],
+                                              [('LEGENDA', 0.1, 0.3), ('REDE', 0.32, 0.4), ('63', 0.5, 0.52)]]))
+    conferir([[c[0], c[3], c[4]] for c in linhas] == [['298738', '1634,9', 'M'], ['309341', '6', 'UN,'], ['298738', '14', 'M']]
+             and linhas[0][2] == 'TUBO PE 100 PN 10 DE 63' and linhas[0][1] == 'S/N'
+             and sem_cabecalho == [['20117', 'S/N', 'ADAPTADOR POL 2"', '3', 'UN.']],
+             'grade (só código): o cabeçalho dá as colunas; a linha sem quantidade lida fica de fora (não pega o "DE 63"); a '
+             'relação empilhada repete o código; sem cabeçalho, código, unidade e quantidade pelas pontas; legenda não é linha')
+
+
+def testar_palavras_do_vision():
+    """As caixas das palavras do Vision: a do trecho (boundingBoxForRange), com a origem passada para cima; e, quando o
+    Vision devolve a linha inteira para cada palavra, a fatia da linha na proporção dos caracteres."""
+    from types import SimpleNamespace as N
+    retangulo = lambda x, y, w, h: N(origin=N(x=x, y=y), size=N(width=w, height=h))
+    linha = retangulo(0.1, 0.8, 0.8, 0.05)
+    exato = N(boundingBoxForRange_error_=lambda faixa, _: (N(boundingBox=lambda: retangulo(0.1 + faixa[0] * 0.1, 0.8, 0.05, 0.05)), None))
+    inteira = N(boundingBoxForRange_error_=lambda faixa, _: (N(boundingBox=lambda: linha), None))
+    precisas = ia.palavras_do_vision('298738 TUBO', exato, linha)
+    proporcao = ia.palavras_do_vision('AB CD', inteira, linha)
+    conferir([p['texto'] for p in precisas] == ['298738', 'TUBO'] and precisas[1]['x0'] == 0.8 and precisas[0]['y0'] == 0.15
+             and precisas[0]['y1'] == 0.2 and proporcao[1]['x0'] == round(0.1 + 0.8 * 3 / 5, 5) and proporcao[0]['x1'] == round(0.1 + 0.8 * 2 / 5, 5),
+             'Vision com as caixas das palavras: a do trecho, com a origem em cima; a linha inteira repetida vira a proporção')
+
+
+def testar_curadoria_repetidos():
+    """O código repetido na mesma imagem (duas relações empilhadas) ganha a chave da ordem: 282665 e 282665#2, cada um
+    com a sua quantidade; o valor que só o leitor de código leu não se confirma pelo Vision (é o Vision)."""
+    import curadoria
+    linha = lambda codigo, quant: [codigo, 'S/N', 'REGISTRO', quant, 'UN.']
+    lidas = curadoria.por_codigo([linha('282665', '2'), linha('309898', '4'), linha('282665', '23')])
+    curadas = curadoria.curar_tabela({'codigo': [linha('282665', '2'), linha('309898', '4')], 'glm_ocr': [linha('282665', '2')]},
+                                     testemunha='282665 S/N REGISTRO 2 UN.\n309898 S/N COLARINHO 4 UN.')
+    conferir(lidas == {'282665': ('2', 'UN'), '309898': ('4', 'UN'), '282665#2': ('23', 'UN')}
+             and curadas['282665']['status'] == 'confirmada' and curadas['309898']['status'] == 'so_codigo',
+             'curadoria: o código repetido conta pela ordem (282665#2); o código confirma com o glm-ocr, sozinho fica so_codigo')
+
+
+def testar_rapido():
+    """O --rapido: os modelos só na amostra de bancada.json; passado o prazo, os locais nem pedem a vez da GPU."""
+    import bancada
+    imagens = [Path('Tabela 01.png'), Path('Tabela 02.png'), Path('Tabela 12.png')]
+    try:
+        bancada.RAPIDO, bancada.PRAZO = True, time.monotonic() - 1
+        amostra, passado = bancada.da_amostra(imagens), bancada.locais(imagens, 'tabela')
+    finally:
+        bancada.RAPIDO, bancada.PRAZO = False, None
+    conferir([i.name for i in amostra] == ['Tabela 01.png', 'Tabela 12.png'] and passado == ({}, 0.0) and bancada.da_amostra(imagens) == imagens,
+             '--rapido: os modelos leem só a amostra (01 e 12 aqui); passado o prazo, os locais ficam de fora sem pedir a GPU')
+
+
 def testar_bancada(raiz):
     """A bancada da F2 com todos os candidatos falsos: na tabela 01 de Cambé (9 linhas no gabarito) o Kimi lê as 9, o
     Parse 7 certas, 1 errada e 1 inventada, o glm-ocr 5, o qwen3 monta as 9 com o texto do Vision, e o Vision vê todos
@@ -690,16 +765,27 @@ def testar_bancada(raiz):
                                                 'segundos': 25.0, 'erro': '', 'meta': meta}
         return lidas
 
-    def locais(imagens, modo):
+    codigo = [linha(g) for g in gabarito[:8]]  # a geometria monta 8 das 9 (a 9ª ficou sem quantidade: de fora)
+
+    def codigo_primeiro(imagens, modo, com_grade=True):
+        lidas = {}
+        for imagem in imagens:
+            tabela = Path(imagem).name.startswith('Tabela')
+            lidas[str(imagem)] = {'vision': {'linhas': [], 'texto': vision if tabela else '', 'erro': '', 'util': 1.0, 'congelado': False}}
+            if com_grade:
+                lidas[str(imagem)]['codigo'] = {'linhas': codigo if tabela else [], 'texto': texto_de(codigo) if tabela else '',
+                                                'erro': '', 'util': 1.01, 'congelado': False}
+        return lidas
+
+    def locais(imagens, modo, vistas=None):
         lidas = {}
         for imagem in imagens:
             tabela = Path(imagem).name.startswith('Tabela')
             lidas[str(imagem)] = {
-                'vision': {'linhas': [], 'texto': vision if tabela else '', 'erro': '', 'util': 1.0, 'congelado': False},
                 'glm_ocr': {'linhas': glm if tabela else [], 'texto': texto_de(glm) if tabela else '', 'erro': '', 'util': 8.0, 'congelado': False}}
             if tabela:
                 lidas[str(imagem)]['qwen3'] = {'linhas': kimi, 'texto': texto_de(kimi), 'erro': '', 'util': 12.0, 'congelado': False}
-        return lidas, 9.0
+        return lidas, 6.0
     arquivo, agora = raiz / 'vez.json', datetime(2026, 10, 4, 22, 0)
     arquivo.write_text(json.dumps({'vez': {'repo': 'ialocal.extrator', 'prioridade': 5, 'modelo': 'glm-ocr', 'devolver': False,
                                            'desde': '2026-10-04T21:52:00', 'posse_ate': '2026-10-04T22:02:00'}}))
@@ -712,7 +798,7 @@ def testar_bancada(raiz):
              and vencido.endswith('há 20 min; o pedaço dele venceu: devolve ao terminar o item em curso')
              and bancada.quem_tem_a_vez(arquivo, agora).startswith('a GPU está livre'),
              f'esperando a vez, a bancada diz quem está com a GPU e quando devolve: {no_pedaco}')
-    bancada.externos, bancada.locais = externos, locais
+    bancada.externos, bancada.locais, bancada.codigo_primeiro = externos, locais, codigo_primeiro
     bancada.tabelas()
     bancada.controle()
     boletim = raiz / 'SP-03.pdf'
@@ -728,11 +814,17 @@ def testar_bancada(raiz):
              'bancada das tabelas com todos os candidatos: cada leitor contra as 9 linhas; a curadoria local confirma 5, com o '
              'Kimi ou com o qwen3 (que monta a tabela com o texto do Vision) 9; a linha errada do Parse não vira confirmada; '
              'o Vision, sem estrutura de tabela, é medido pela presença (9 de 9)')
+    conferir((pega('tabelas', 'codigo')['certas'], pega('tabelas', 'codigo')['faltou'], pega('tabelas', 'local+codigo')['confirmadas_certas'],
+              pega('tabelas', 'codigo+kimi')['confirmadas_certas'], pega('tabelas', 'codigo')['veredito'], pega('controle', 'codigo')['inventadas'])
+             == (8, 1, 5, 9, 'continua', 0),
+             'o leitor só de código: 8 certas e 1 faltou (nunca palpite); com o glm-ocr confirma só as 5 que o glm-ocr também '
+             'leu (o Vision não confirma o código que saiu dele mesmo); o código como base com o Kimi confirma 9; continua '
+             f"({pega('tabelas', 'codigo')['motivo']})")
     kimi_t, glm_t = pega('tabelas', 'kimi'), pega('tabelas', 'glm_ocr')
     conferir(kimi_t['util_mediana_s'] == 20.0 and kimi_t['n_429'] == 1 and kimi_t['perdido_pct'] == 0.2 and kimi_t['taxa_erro'] == 0
              and kimi_t['provedor'] == 'nvidia' and glm_t['provedor'] == 'gpu' and glm_t['perdido_pct'] == round(3 / 11, 3),
              'as quatro medidas separadas: tempo útil 20 s, erro 0 %, perdido 20 % do tempo (o 429 do plano) e 1 recusa no Kimi; '
-             'no glm-ocr, a fila da GPU (9 s rateados entre 3 chamadas locais) é o perdido')
+             'no glm-ocr, a fila da GPU (6 s rateados entre as 2 chamadas dos modelos locais; o código não espera vez) é o perdido')
     conferir(pega('tabelas', 'kimi')['veredito'] == 'continua' and pega('tabelas', 'qwen3')['veredito'] == 'continua'
              and pega('tabelas', 'parse')['veredito'] == 'descontinua'
              and 'inventa no controle' in pega('tabelas', 'parse')['motivo'] and pega('controle', 'parse')['inventadas'] == 3,
@@ -761,7 +853,7 @@ def testar_vision_com_prazo():
             erro = ''
         except RuntimeError as falha:
             erro = str(falha)
-        conferir(lido == {'texto': 'EST 77'} and erro.startswith('Vision travou') and time.monotonic() - marca < 5,
+        conferir(lido['texto'] == 'EST 77' and lido['palavras'] == [] and erro.startswith('Vision travou') and time.monotonic() - marca < 5,
                  f'Vision num processo à parte: responde com o texto; travado, morre no prazo e o erro sobe ({erro})')
     finally:
         ia.VISION, IA['vision_timeout_s'] = original, prazo
@@ -829,6 +921,10 @@ def principal():
         testar_sinal_de_vida_e_quarentena(raiz)
         testar_agentes(raiz)
         testar_curadoria()
+        testar_grade()
+        testar_palavras_do_vision()
+        testar_curadoria_repetidos()
+        testar_rapido()
         testar_bancada(raiz)
 
 

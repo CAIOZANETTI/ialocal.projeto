@@ -162,6 +162,27 @@ com a contagem de 429 e 5xx. O perdido é do plano gratuito ou da fila, **não e
 recorte a recorte; os locais vão um por vez na vez da GPU. O tempo útil de cada chamada é comparável entre todos; o
 tempo de parede, não (paralelo na NVIDIA, em fila no mini). `--refazer` mede o tempo de novo, nas mesmas condições.
 
+## 6-B. Código antes de IA (pedido do Caio, 04/10, 0v22)
+
+> "Vou usar muito mais código do que IA. A tendência é deixar tudo determinístico: a IA implementa no código os
+> conceitos que ela vai descobrindo. O teste deveria rodar primeiro com código, que roda rápido, e depois os modelos."
+
+As relações de materiais são print do Excel colado como imagem: não há texto do PDF para ler, algum OCR é obrigatório.
+Mas o erro dos modelos na bancada é quase todo de **montagem** da tabela, não de leitura: o Vision lê sem inventar e sai
+sem colunas; o qwen3, o Apple FM e o gemma3 entram para montar e é aí que falham. O Vision dá a caixa de cada palavra,
+e o código jogava fora. O leitor **`codigo`** (`codigo/grade.py`) monta a tabela por geometria: linhas pela altura,
+colunas pelo cabeçalho (CÓDIGO, Nº, DISCRIMINAÇÃO, QUANT., UND.); a quantidade alinhada à direita, a unidade depois do
+meio entre QUANT. e UND.; a linha sem quantidade lida fica de fora. Não gera texto, então não inventa; mas o valor que só
+ele leu não se confirma pelo Vision, de quem ele saiu (`curadoria.DERIVADOS`).
+
+Cada conjunto roda em três fases: o Vision e o código (sem a vez da GPU, segundos, placar na hora), os agentes, os
+modelos locais. As curadorias `codigo+<modelo>` medem o que cada modelo confirma da tabela do código. `--rapido`: o código
+nas 17 tabelas, os modelos na amostra e no controle, até 5 min.
+
+Protótipo fora do mini, com o Tesseract no lugar do Vision (outro OCR, mais fraco na coluna da direita): **138 de 188
+certas, 4 erradas, 1 inventada, 0,7 s por tabela**; as faltas são do Tesseract (tabelas 08 e 18: a coluna das
+quantidades não lida, o cabeçalho fundido). No mini, com o Vision, é a primeira medida de verdade.
+
 ## 7. Critérios — escritos antes de rodar (premissas, mudam por PR)
 
 Um agente **continua** se, nas bancadas B1 a B3:
