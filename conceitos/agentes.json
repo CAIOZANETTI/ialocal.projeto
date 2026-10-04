@@ -29,7 +29,8 @@
       "prompt": {"texto": "agente_texto", "tabela": "agente_tabela"},
       "max_tokens": 8192,
       "lado_max_px": 2048,
-      "simultaneas": 2,
+      "simultaneas": 6,
+      "_simultaneas": "04/10, primeira bancada: o Kimi leva 9 a 51 s por tabela (raciocínio sempre ligado); 6 de cada vez a ~20 s dão ~18 pedidos/min, dentro do limite da conta (40/min com o Parse)",
       "por_minuto": 20,
       "timeout_s": 300,
       "_": "VLM generalista, primeiro no OmniDocBench (91,1); raciocínio sempre ligado (o raciocínio vem em reasoning_content e fica de fora: só o content é leitura). Transcreve: os números saem do texto pelos mesmos padrões do código (prancha.json, sondagem.json)"
@@ -44,7 +45,7 @@
       "max_tokens": null,
       "_max_tokens": "04/10, segunda sonda: 9.000 passou do max_model_len do modelo hospedado (400). Sem max_tokens o servidor usa o que cabe depois da imagem",
       "lado_max_px": 2048,
-      "simultaneas": 2,
+      "simultaneas": 4,
       "por_minuto": 20,
       "timeout_s": 90,
       "_": "parser de documento < 1 B: texto com caixa (normalizada 0–1), classe do elemento e tabela; recomendado de 1.024×1.280 a 1.664×2.048 px. A resposta pode vir em tool_calls (JSON) ou em texto com marcas <x_><y_><class_>: os dois são lidos (a sonda diz qual)"
