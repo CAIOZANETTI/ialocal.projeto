@@ -24,6 +24,8 @@ import ia
 import prancha
 import respostas
 
+LER_COM_VISION = ia.ler_com_vision  # a de verdade: outros testes trocam ia.ler_com_vision por uma falsa
+
 RCLONE_FALSO = '''#!/bin/sh
 # rclone copyto [--checksum] ORIGEM gdrive:DESTINO → $DRIVE_FALSO/DESTINO
 for ultimo; do :; done
@@ -709,6 +711,27 @@ def testar_bancada(raiz):
     conferir((comum.SAIDAS / 'bancada_agentes.csv').exists(), 'o placar sai em saidas/bancada_agentes.csv (no mini, também no Drive)')
 
 
+def testar_vision_com_prazo():
+    """O Vision num processo à parte, com prazo: o que responde devolve o texto; o que trava (04/10: 11 h dentro de
+    performRequests, a vez da GPU presa o tempo todo) é encerrado no prazo e sobe como erro, sem segurar a rodada."""
+    original, IA = ia.VISION, comum.configuracao('ia')
+    prazo = IA.get('vision_timeout_s')
+    try:
+        ia.VISION = [sys.executable, '-c', 'import json; print(json.dumps({"texto": "EST 77"}))']
+        lido = LER_COM_VISION('qualquer.png')
+        ia.VISION, IA['vision_timeout_s'] = [sys.executable, '-c', 'import time; time.sleep(30)'], 1
+        marca = time.monotonic()
+        try:
+            LER_COM_VISION('travado.png')
+            erro = ''
+        except RuntimeError as falha:
+            erro = str(falha)
+        conferir(lido == {'texto': 'EST 77'} and erro.startswith('Vision travou') and time.monotonic() - marca < 5,
+                 f'Vision num processo à parte: responde com o texto; travado, morre no prazo e o erro sobe ({erro})')
+    finally:
+        ia.VISION, IA['vision_timeout_s'] = original, prazo
+
+
 def principal():
     with tempfile.TemporaryDirectory() as temporaria:
         raiz = Path(temporaria)
@@ -732,6 +755,7 @@ def principal():
         testar_sondagem(raiz)
         testar_respostas(raiz)
         testar_formatos_dos_agentes()
+        testar_vision_com_prazo()
         testar_agentes(raiz)
         testar_curadoria()
         testar_bancada(raiz)
