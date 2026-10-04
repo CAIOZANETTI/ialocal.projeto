@@ -65,7 +65,8 @@ conceitos/operacao.json de onde lê a entrega e as respostas, para onde publica,
 conceitos/prompts/      prompts versionados (o hash entra na chave de congelamento)
 
 amostras/tabelas/       recortes de tabelas de prancha (Foz, Cambé) com a transcrição do Caio: o gabarito das tabelas
-notas/                  plano_projeto.md (tese e itens), testes de mesa de 26/09, protótipo da prancha (camadas, georreferência)
+notas/                  plano_projeto.md (tese e itens), testes de mesa de 26/09, protótipo da prancha (camadas, georreferência),
+                        plano_agentes_nvidia.md (dois agentes externos gratuitos em paralelo; exceção do MASTER-PLAN §5.6)
 
 dados/    prancha, prancha_leitura, prancha_tabela, carimbo, sondagem, sondagem_campo, sondagem_spt, sondagem_camada (.parquet), recortes/, congelamento.jsonl,
           execucoes.jsonl, falhas.jsonl, gpu/ (pedidos ao maestro), launchd.log — regenerável, fora do git
