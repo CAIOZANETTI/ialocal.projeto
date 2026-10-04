@@ -15,6 +15,7 @@ import json
 import os
 import random
 import re
+import subprocess
 import sys
 import threading
 import time
@@ -327,8 +328,26 @@ def ler_com_glm_ocr(caminho):
     return {'texto': ocr_glm(caminho, ler_prompt('imagem_ocr', regras=False)[0])}
 
 
+VISION = [sys.executable, str(Path(__file__).resolve()), 'vision']  # o Vision num processo à parte (os testes trocam)
+
+
 def ler_com_vision(caminho):
-    """Texto da imagem pelo OCR do macOS (Vision, modo preciso, pt-BR): o segundo leitor, de natureza diferente."""
+    """Texto da imagem pelo OCR do macOS (Vision, modo preciso, pt-BR): o segundo leitor, de natureza diferente. Roda
+    num processo à parte, com prazo (ia.json → vision_timeout_s): em 04/10 o Vision travou 11 h dentro de
+    performRequests (VNCRImageReaderDetector) e a rodada segurou a vez da GPU o tempo todo, com a GPU parada e a fila
+    inteira esperando. Travado, o processo é encerrado e o erro sobe — quem chama segue com o outro leitor."""
+    PRAZO = comum.configuracao('ia').get('vision_timeout_s', 120)
+    try:
+        feito = subprocess.run([*VISION, str(caminho)], capture_output=True, text=True, timeout=PRAZO)
+    except subprocess.TimeoutExpired as falha:
+        raise RuntimeError(f'Vision travou: passou de {PRAZO} s em {Path(caminho).name} (processo encerrado)') from falha
+    if feito.returncode != 0:
+        raise RuntimeError(f'Vision: {feito.stderr.strip()[-300:]}')
+    return {'texto': json.loads(feito.stdout)['texto']}
+
+
+def vision_neste_processo(caminho):
+    """O Vision de fato (chamado pelo processo à parte de ler_com_vision)."""
     import Vision
     import objc
     from Foundation import NSURL
@@ -404,3 +423,7 @@ def apple(prompt, esquema=None):
                 raise RuntimeError(f'Apple FM sem esquema não devolveu JSON (com esquema: {falha})') from falha
             return achado.group(0), {**meta, 'esquema': 'no prompt'}
     return congelado(chave, chamar)
+
+
+if __name__ == '__main__' and sys.argv[1:2] == ['vision']:
+    print(json.dumps(vision_neste_processo(sys.argv[2]), ensure_ascii=False))

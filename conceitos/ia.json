@@ -12,6 +12,8 @@
     "_": "somadas a temperatura 0 e semente 0; num_predict 2.560 pela amostra de 27/09 do extrator (2v40: 6 de 10 cortadas eram tabelas de relação de materiais das adutoras)",
     "glm-ocr:latest": {"repeat_penalty": 1.15, "num_predict": 2560}
   },
+  "vision_timeout_s": 120,
+  "_vision_timeout_s": "o Vision roda num processo à parte e morre depois disso: em 04/10 travou 11 h num recorte (performRequests) e a rodada segurou a vez da GPU o tempo todo. Um recorte leva ~1 s; 120 s é folga de duas ordens",
   "lado_max_px_ia": 1600,
   "_lado_max_px_ia": "lado maior da imagem que vai ao modelo local; o glm-ocr dava 500 em prancha grande (25/09) — premissa, muda pela medida",
   "ocr_glm": {"faixas": 2, "sobreposicao": 0.1, "linhas_iguais_laco": 6, "cauda_laco": 300, "janela_laco": 1500, "compressao_laco": 0.06},
