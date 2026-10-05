@@ -1,7 +1,7 @@
 {
   "metadata": {
     "o_que_e": "Os agentes externos que leem os mesmos recortes que a IA local (notas/plano_agentes_nvidia.md), na exceção do MASTER-PLAN §5.6. Agente é leitor candidato: o que ele leu passa pela curadoria em Python, e confirmado continua exigindo uma testemunha que não gera texto. Trocar de modelo, ligar ou desligar: por PR.",
-    "atualizado_em": "2026-10-04",
+    "atualizado_em": "2026-10-05",
     "decisao": "Caio, 04/10/2026: os projetos são da Sanepar, de domínio público, e o boletim de sondagem pode ir (é amostra de solo); o boletim é o mais difícil e o que mais precisa de ajuda"
   },
   "ligado": true,
@@ -58,13 +58,52 @@
       "lado_max_px": 2048,
       "timeout_s": 90,
       "_": "parser de documento < 1 B: texto com caixa (normalizada 0–1), classe do elemento e tabela; recomendado de 1.024×1.280 a 1.664×2.048 px. A resposta pode vir em tool_calls (JSON) ou em texto com marcas <x_><y_><class_>: os dois são lidos (a sonda diz qual)"
+    },
+    "glm_flash": {
+      "modelo": "z-ai/glm-5.3-flash",
+      "tipo": "vlm",
+      "provedor": "nvidia",
+      "natureza": "generativo",
+      "prompt": {"texto": "agente_texto", "tabela": "agente_tabela"},
+      "max_tokens": 8192,
+      "opcoes": {"temperature": 0.6},
+      "lado_max_px": 2048,
+      "timeout_s": 300,
+      "simultaneas": 1,
+      "_": "05/10, pedido do Caio ('teste todos os modelos no projeto'): o reserva entra na bancada ao lado do Kimi, na mesma régua e com os mesmos pedidos. 1 chamada aberta: com as 3 do Kimi, as 6 do provedor. Temperatura 0,6 como a do Kimi (premissa: muda pela medida). Se o modelo não aceitar imagem ou não for gratuito, a API recusa e a bancada conta como erro (não opera)"
+    },
+    "muse": {
+      "modelo": "meta/muse-glimmer-30b",
+      "tipo": "vlm",
+      "provedor": "nvidia",
+      "natureza": "generativo",
+      "prompt": {"texto": "agente_texto", "tabela": "agente_tabela"},
+      "max_tokens": 8192,
+      "opcoes": {"temperature": 0.6},
+      "lado_max_px": 2048,
+      "timeout_s": 300,
+      "simultaneas": 1,
+      "_": "05/10, pedido do Caio ('teste todos os modelos no projeto'): o reserva entra na bancada ao lado do Kimi, na mesma régua e com os mesmos pedidos. 1 chamada aberta: com as 3 do Kimi, as 6 do provedor. Temperatura 0,6 como a do Kimi (premissa: muda pela medida). Se o modelo não aceitar imagem ou não for gratuito, a API recusa e a bancada conta como erro (não opera)"
+    },
+    "deepseek_flash": {
+      "modelo": "deepseek-ai/deepseek-v4.1-flash",
+      "tipo": "vlm",
+      "provedor": "nvidia",
+      "natureza": "generativo",
+      "prompt": {"texto": "agente_texto", "tabela": "agente_tabela"},
+      "max_tokens": 8192,
+      "opcoes": {"temperature": 0.6},
+      "lado_max_px": 2048,
+      "timeout_s": 300,
+      "simultaneas": 1,
+      "_": "05/10, pedido do Caio ('teste todos os modelos no projeto'): o reserva entra na bancada ao lado do Kimi, na mesma régua e com os mesmos pedidos. 1 chamada aberta: com as 3 do Kimi, as 6 do provedor. Temperatura 0,6 como a do Kimi (premissa: muda pela medida). Se o modelo não aceitar imagem ou não for gratuito, a API recusa e a bancada conta como erro (não opera)"
     }
   },
   "reservas": {
     "glm_flash": "z-ai/glm-5.3-flash",
     "muse": "meta/muse-glimmer-30b",
     "deepseek_flash": "deepseek-ai/deepseek-v4.1-flash",
-    "_": "entram pela mesma bancada, trocando o modelo de um agente (tipo vlm) — nenhum código novo"
+    "_": "entram pela mesma bancada, trocando o modelo de um agente (tipo vlm) — nenhum código novo. 05/10: os três viraram agentes ligados (em agentes, acima), para a bancada medir todos na mesma régua; o que o veredito descontinuar sai com ligado false"
   },
   "sonda": "amostras/tabelas/216_cambe/Tabela 01.png",
   "_sonda": "a imagem da sonda (F1): a tabela 01 de Cambé, que tem gabarito transcrito pelo Caio"

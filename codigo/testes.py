@@ -505,6 +505,11 @@ def testar_agentes(raiz):
     os.environ['NVIDIA_API_KEY'] = 'nvapi-segredo-do-teste'
     AGENTES.update(endpoint=endereco, espera_s=0, ligado=True, prazo_fim='2999-12-31')
     AGENTES['agentes']['parse']['ligado'] = True  # descontinuado no mini (04/10); o código dele segue testado
+    reservas = [n for n in AGENTES['agentes'] if n not in ('kimi', 'parse')]
+    conferir({'glm_flash', 'muse', 'deepseek_flash'} <= set(reservas) and all(AGENTES['agentes'][n]['tipo'] == 'vlm' for n in reservas),
+             'os reservas (05/10) são agentes vlm: entram na bancada pelo mesmo leitor do Kimi')
+    for nome in reservas:  # a porta é medida com os dois de sempre: os reservas usam o mesmo leitor do Kimi
+        AGENTES['agentes'][nome]['ligado'] = False
     AGENTES['provedores']['nvidia']['por_minuto'] = 6000
     try:
         imagem = raiz / 'agentes' / 'Tabela 01.png'
