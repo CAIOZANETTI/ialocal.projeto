@@ -335,6 +335,7 @@ def ler_com_glm_ocr(caminho):
 
 
 VISION = [sys.executable, str(Path(__file__).resolve()), 'vision']  # o Vision num processo à parte (os testes trocam)
+VISION_CELULAS = [sys.executable, str(Path(__file__).resolve()), 'celulas']
 
 
 def ler_com_vision(caminho):
@@ -354,8 +355,72 @@ def ler_com_vision(caminho):
     return {'texto': lido['texto'], 'palavras': lido.get('palavras', [])}
 
 
-def vision_neste_processo(caminho):
-    """O Vision de fato (chamado pelo processo à parte de ler_com_vision)."""
+def recortar_celulas(imagem, caixas, pasta, ampliar=4, margem=12):
+    """Cada caixa (0 a 1, origem em cima) da imagem num PNG à parte, sobre fundo branco, com margem e ampliado: o
+    algarismo sozinho que o Vision pulou na tabela inteira vira texto grande no meio do recorte."""
+    from PIL import Image
+    pasta.mkdir(parents=True, exist_ok=True)
+    original = Image.open(imagem).convert('RGBA')
+    fundo = Image.new('RGBA', original.size, 'white')
+    fundo.alpha_composite(original)
+    folha, largura, altura = fundo.convert('RGB'), original.width, original.height
+    destinos = []
+    for n, (x0, y0, x1, y1) in enumerate(caixas):
+        caixa = (max(0, int(x0 * largura)), max(0, int(y0 * altura)), min(largura, int(x1 * largura) + 1), min(altura, int(y1 * altura) + 1))
+        recorte = sem_tracos(folha.crop(caixa), (y1 - y0) * altura / 1.5)
+        moldura = Image.new('RGB', (recorte.width + 2 * margem, recorte.height + 2 * margem), 'white')
+        moldura.paste(recorte, (margem, margem))
+        destino = pasta / f'{Path(imagem).stem}_celula{n:02d}.png'
+        moldura.resize((moldura.width * ampliar, moldura.height * ampliar), Image.Resampling.LANCZOS).save(destino)
+        destinos.append(destino)
+    return destinos
+
+
+def sem_tracos(recorte, altura_texto, escuro=128):
+    """Apaga os traços da grade que entram no recorte da célula (o OCR lê '|' e '[' neles): a coluna de pixels com uma
+    corrida escura mais alta que 1,15 × a altura do texto e a linha com uma corrida mais larga que 3 × ela. O traço de
+    um algarismo não chega a isso."""
+    cinza = recorte.convert('L')
+    largura, altura = cinza.size
+    pixels = cinza.load()
+
+    def corrida(valores):
+        maior = atual = 0
+        for valor in valores:
+            atual = atual + 1 if valor < escuro else 0
+            maior = max(maior, atual)
+        return maior
+    colunas = [x for x in range(largura) if corrida(pixels[x, y] for y in range(altura)) > 1.15 * altura_texto]
+    linhas = [y for y in range(altura) if corrida(pixels[x, y] for x in range(largura)) > 3 * altura_texto]
+    limpo = recorte.copy()
+    branco = limpo.load()
+    for x in colunas:
+        for y in range(altura):
+            branco[x, y] = (255, 255, 255)
+    for y in linhas:
+        for x in range(largura):
+            branco[x, y] = (255, 255, 255)
+    return limpo
+
+
+def ler_celulas(imagem, caixas, pasta):
+    """O texto de cada célula (caixas de 0 a 1) pelo Vision, sem a correção de idioma (ela troca e some com algarismo
+    solto), todas num processo só, com o prazo do Vision. Uma lista de textos na ordem das caixas."""
+    if not caixas:
+        return []
+    caminhos = recortar_celulas(imagem, caixas, pasta)
+    PRAZO = comum.configuracao('ia').get('vision_timeout_s', 120)
+    try:
+        feito = subprocess.run([*VISION_CELULAS, *map(str, caminhos)], capture_output=True, text=True, timeout=PRAZO)
+    except subprocess.TimeoutExpired as falha:
+        raise RuntimeError(f'Vision travou nas células de {Path(imagem).name} (processo encerrado)') from falha
+    if feito.returncode != 0:
+        raise RuntimeError(f'Vision: {feito.stderr.strip()[-300:]}')
+    return json.loads(feito.stdout)['textos']
+
+
+def vision_neste_processo(caminho, correcao=True):
+    """O Vision de fato (chamado pelo processo à parte de ler_com_vision; sem correção de idioma, pelo de ler_celulas)."""
     import Vision
     import objc
     from Foundation import NSURL
@@ -363,7 +428,7 @@ def vision_neste_processo(caminho):
         pedido = Vision.VNRecognizeTextRequest.alloc().init()
         pedido.setRecognitionLevel_(Vision.VNRequestTextRecognitionLevelAccurate)
         pedido.setRecognitionLanguages_(['pt-BR', 'en-US'])
-        pedido.setUsesLanguageCorrection_(True)
+        pedido.setUsesLanguageCorrection_(correcao)
         manipulador = Vision.VNImageRequestHandler.alloc().initWithURL_options_(NSURL.fileURLWithPath_(str(caminho)), None)
         certo, erro = manipulador.performRequests_error_([pedido], None)
         if not certo:
@@ -465,3 +530,5 @@ def apple(prompt, esquema=None):
 
 if __name__ == '__main__' and sys.argv[1:2] == ['vision']:
     print(json.dumps(vision_neste_processo(sys.argv[2]), ensure_ascii=False))
+if __name__ == '__main__' and sys.argv[1:2] == ['celulas']:
+    print(json.dumps({'textos': [' '.join(vision_neste_processo(c, correcao=False)['texto'].split()) for c in sys.argv[2:]]}, ensure_ascii=False))

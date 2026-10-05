@@ -183,6 +183,11 @@ Protótipo fora do mini, com o Tesseract no lugar do Vision (outro OCR, mais fra
 certas, 4 erradas, 1 inventada, 0,7 s por tabela**; as faltas são do Tesseract (tabelas 08 e 18: a coluna das
 quantidades não lida, o cabeçalho fundido). No mini, com o Vision, é a primeira medida de verdade.
 
+**Primeira medida no mini (0v22): 125 de 188 certas, 7 erradas, 1 inventada, sem modelo, ~13 s.** As caixas do Vision
+estavam certas; o que faltava era o algarismo sozinho (quantidades 6, 2, 3, 1; a unidade M), que o Vision pula na tabela
+inteira. 0v23: a célula vazia é recortada, limpa dos traços da grade, ampliada e relida pelo Vision sem a correção de
+idioma; letras parecidas com algarismo (o З cirílico) só viram número se a célula inteira vira número.
+
 ## 7. Critérios — escritos antes de rodar (premissas, mudam por PR)
 
 Um agente **continua** se, nas bancadas B1 a B3:
