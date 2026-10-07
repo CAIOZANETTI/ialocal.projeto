@@ -83,7 +83,8 @@ conceitos/prompts/      prompts versionados (o hash entra na chave de congelamen
 amostras/tabelas/       recortes de tabelas de prancha (Foz, Cambé) com a transcrição do Caio: o gabarito das tabelas
 notas/                  plano_projeto.md (tese e itens), testes de mesa de 26/09, protótipo da prancha (camadas, georreferência),
                         plano_agentes_nvidia.md (dois agentes externos gratuitos em paralelo; exceção do MASTER-PLAN §5.6),
-                        plano_inventario_roteamento.md (inventário por página → roteador → extração especializada; plano)
+                        plano_inventario_roteamento.md (inventário por página → roteador → extração especializada; plano),
+                        saidas_e_rastro.md (o que sai, como saiu e quem extraiu: a referência das saídas, com exemplo executado)
 
 dados/    prancha, prancha_leitura, prancha_tabela, carimbo, sondagem, sondagem_campo, sondagem_spt, sondagem_camada (.parquet), recortes/, congelamento.jsonl,
           execucoes.jsonl, falhas.jsonl, agentes.jsonl (cada chamada externa), agentes_sonda.jsonl, bancada_*.parquet, licoes.parquet, licoes_historico.jsonl, ensaios/ (lista, PDFs baixados, execuções), bancada/ (recortes da bancada), gpu/ (pedidos ao maestro), launchd.log — regenerável, fora do git
