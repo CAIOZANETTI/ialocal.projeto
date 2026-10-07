@@ -7,6 +7,8 @@ De onde sai cada classe:
     bancada_<conjunto>.parquet, linha de leitor     errada → leitura_errada · inventada → invencao · faltou → omissao
     bancada_<conjunto>.parquet, linha de curadoria  confirmada e errada ou inventada → confirmou_errado
     bancada_chamadas_<conjunto>.parquet             erro depois das tentativas → operacao
+    dados/ensaios/<nome>/execucoes.jsonl            a última execução de cada ensaio: tarefa que falhou → operacao
+                                                    (conjunto ensaio:<nome>, recorte = o caminho do PDF, leitor = a tarefa)
 O Vision, sem estrutura de tabela, não dá lição de linha (é medido pela presença).
 
 codigo_acertou diz se o leitor só de código (grade.py) leu certo a mesma chave do mesmo recorte: é o caso em que o
@@ -40,18 +42,19 @@ def identificador(conjunto, recorte, leitor, chave, classe):
     return hashlib.sha1('|'.join((conjunto, recorte, leitor, chave, classe)).encode()).hexdigest()[:12]
 
 
-def situacao(conjunto, tipo):
-    """confirmada onde a referência é gabarito (licoes.json → situacao); provável onde é a concordância de dois leitores."""
+def situacao(conjunto, tipo, classe=''):
+    """confirmada onde a referência é gabarito (licoes.json → situacao) e na falha de operação (é fato, não leitura);
+    provável onde a referência é a concordância de dois leitores."""
     CONFIRMADA = regras()['situacao']['confirmada']
-    return 'confirmada' if conjunto in CONFIRMADA or f'{conjunto}:{tipo}' in CONFIRMADA else 'provavel'
+    return 'confirmada' if classe == 'operacao' or conjunto in CONFIRMADA or f'{conjunto}:{tipo}' in CONFIRMADA else 'provavel'
 
 
 def linha(conjunto, tipo, recorte, leitor, chave, classe, lido='', esperado='', codigo_acertou=None):
     CLASSE = regras()['classes'][classe]
     return {'id': identificador(conjunto, recorte, leitor, chave, classe), 'conjunto': conjunto, 'recorte': recorte,
             'leitor': leitor, 'chave': chave, 'classe': classe, 'gravidade': CLASSE['gravidade'], 'lido': lido,
-            'esperado': esperado, 'codigo_acertou': codigo_acertou, 'situacao': situacao(conjunto, tipo),
-            'estagio': 'observacao', 'origem': 'bancada', 'destino': CLASSE['destino']}
+            'esperado': esperado, 'codigo_acertou': codigo_acertou, 'situacao': situacao(conjunto, tipo, classe),
+            'estagio': 'observacao', 'origem': conjunto.split(':')[0] if ':' in conjunto else 'bancada', 'destino': CLASSE['destino']}
 
 
 def das_medidas(tabela, chamadas=None):
@@ -83,6 +86,24 @@ def das_medidas(tabela, chamadas=None):
     return sorted(unicas.values(), key=lambda l: (ordem[l['gravidade']], l['classe'], l['conjunto'], l['leitor'], l['recorte'], l['chave']))
 
 
+def dos_ensaios(execucoes):
+    """As falhas da última execução de cada ensaio (as linhas de execucoes.jsonl), como lições de operação; e os
+    conjuntos (ensaio:<nome>) que rodaram — o ensaio lê sempre a lista inteira, então toda lição anterior dele foi medida
+    de novo."""
+    ultimas = {}
+    for e in execucoes:
+        if e['execucao'] >= ultimas.get(e['ensaio'], {}).get('execucao', ''):
+            ultimas[e['ensaio']] = e
+    licoes = [linha(f"ensaio:{e['ensaio']}", '', f['caminho'], f['tarefa'], '', 'operacao', f['erro'][:300])
+              for e in ultimas.values() for f in e.get('falhas', [])]
+    return licoes, {f"ensaio:{nome}" for nome in ultimas}
+
+
+def ler_ensaios():
+    pasta = comum.DADOS / 'ensaios'
+    return [json.loads(l) for e in sorted(pasta.glob('*/execucoes.jsonl')) for l in e.read_text().splitlines()] if pasta.exists() else []
+
+
 def progresso(anteriores, atuais, medidos):
     """novas e resolvidas contra a geração anterior; resolvida só se o recorte × leitor dela foi medido agora."""
     antes, agora = {l['id']: l for l in anteriores}, {l['id'] for l in atuais}
@@ -100,16 +121,19 @@ def ler_bancada():
 
 
 def gerar(publicar=True):
-    """As lições da bancada atual: dados/licoes.parquet (a geração), saidas/licoes_projeto.csv (e o Drive), uma linha
-    de progresso em dados/licoes_historico.jsonl. Devolve o resumo da geração, ou None sem bancada."""
+    """As lições da bancada atual e da última execução de cada ensaio: dados/licoes.parquet (a geração),
+    saidas/licoes_projeto.csv (e o Drive), uma linha de progresso em dados/licoes_historico.jsonl. Devolve o resumo da
+    geração, ou None sem bancada e sem ensaio."""
     tabela, chamadas = ler_bancada()
-    if tabela is None:
+    do_ensaio, ensaios_rodados = dos_ensaios(ler_ensaios())
+    if tabela is None and not do_ensaio:
         return None
-    atuais = das_medidas(tabela, chamadas)
+    atuais = (das_medidas(tabela, chamadas) if tabela is not None else []) + do_ensaio
     destino = comum.DADOS / 'licoes.parquet'
     anteriores = pl.read_parquet(destino).to_dicts() if destino.exists() else []
-    medidos = {(l['conjunto'], l['recorte'], l['leitor']) for l in tabela.to_dicts()}
+    medidos = {(l['conjunto'], l['recorte'], l['leitor']) for l in (tabela.to_dicts() if tabela is not None else [])}
     medidos |= {(c['conjunto'], c['recorte'], c['leitor']) for c in (chamadas.to_dicts() if chamadas is not None else [])}
+    medidos |= {(l['conjunto'], l['recorte'], l['leitor']) for l in anteriores if l['conjunto'] in ensaios_rodados}
     resumo = {'em': comum.agora(), **comum.codigo(), 'licoes': len(atuais), **progresso(anteriores, atuais, medidos),
               'por_classe': {c: sum(l['classe'] == c for l in atuais) for c in regras()['classes']},
               'codigo_acertou': sum(l['codigo_acertou'] is True for l in atuais)}

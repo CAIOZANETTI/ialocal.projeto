@@ -21,10 +21,12 @@ import polars as pl
 import ciclo
 import cliente_gpu
 import comum
+import ensaio
 import ia
 import prancha
 import respostas
 
+PENDENTE = ensaio.pendente  # o de verdade: principal() o desliga para os outros testes
 LER_COM_VISION = ia.ler_com_vision  # a de verdade: outros testes trocam ia.ler_com_vision por uma falsa
 
 RCLONE_FALSO = '''#!/bin/sh
@@ -958,6 +960,68 @@ def testar_licoes():
              'foi medida, não conta')
 
 
+def testar_ensaio(raiz):
+    """O ensaio de Foz (conceitos/ensaios.json) com a entrega falsa: o Drive falso não lista (o rclone do teste só copia)
+    e a fonte seguinte, a entrega, dá os 2 PDFs da obra de Foz; o pedido roda uma vez por id, dentro da rodada; a lista
+    sorteada fica gravada; a execução registra cada documento e o que mudou; a falha de uma tarefa vira lição de
+    operação, que fica resolvida quando a execução seguinte não falha."""
+    import ensaio
+    import licoes
+    caminhos = [f'pranchas/{n:03d}-SAA-DE-AAT06PTPER-R1.pdf' for n in (10, 11, 12)] + [f'outros/doc{n}.pdf' for n in range(10)]
+    escolhidos = ensaio.escolher(caminhos, {'maximo': 10, 'preferir': '(?i)AAT-?06'})
+    conferir(len(escolhidos) == 10 and set(escolhidos[:3]) == set(caminhos[:3]) and escolhidos == ensaio.escolher(list(reversed(caminhos)), {'maximo': 10, 'preferir': '(?i)AAT-?06'}),
+             'o sorteio do ensaio: as folhas preferidas primeiro (até a metade), o resto pelo sha1 do caminho, no máximo 10, '
+             'o mesmo em qualquer ordem')
+    regras = {'pedido': {'ensaio': 'foz', 'id': 'p1'}, 'ensaios': {'foz': {
+        'fontes': [{'tipo': 'drive', 'caminho': 'gdrive:entrada/orçamentos/211 - SAA Foz do Iguaçu'}, {'tipo': 'entrega', 'obra': '(?i)foz'}],
+        'maximo': 10, 'preferir': '(?i)AAT-?06', 'lista': [], 'prioridade': 4, 'limite_s': 600}}}
+    ensaio.regras, ensaio.pendente = (lambda: regras), PENDENTE
+    montar_entrega(raiz)
+    ia_falsa()
+    ciclo.rodada()
+    execucoes = [json.loads(l) for l in (ensaio.pasta() / 'foz' / 'execucoes.jsonl').read_text().splitlines()]
+    linhas = pl.read_parquet(ensaio.pasta() / 'ensaios.parquet').to_dicts()
+    prancha_lida = next(l for l in linhas if l['arquivo'].startswith('012-SAA'))
+    lista = json.loads((ensaio.pasta() / 'foz' / 'lista.json').read_text())
+    conferir(len(execucoes) == 1 and execucoes[0]['pedido'] == 'p1' and execucoes[0]['fonte']['tipo'] == 'entrega'
+             and any('drive' in a for a in execucoes[0]['avisos']) and execucoes[0]['documentos'] == len(lista['caminhos']) == len(linhas) >= 2
+             and prancha_lida['tarefas'] == 'ler_prancha,ler_prancha_ia' and prancha_lida['fatias_lidas'] == '24'
+             and next(l for l in linhas if l['arquivo'] == 'memorial_a3.pdf')['tarefas'] == 'ler_prancha'
+             and {l['mudou'] for l in linhas} == {'novo'} and lista['fonte']['tipo'] == 'entrega',
+             'o pedido p1 roda o ensaio dentro da rodada: o Drive não listou (aviso) e a entrega deu os PDFs de Foz; a prancha pelo '
+             'código e pela IA (24 fatias), o A3 em branco só pelo código; a lista sorteada fica gravada')
+    drive = Path(os.environ['DRIVE_FALSO']) / 'saida' / '_sistema' / 'projeto'
+    status = json.loads((comum.SAIDAS / 'status.json').read_text())
+    conferir((drive / 'ensaios.csv').exists() and (drive / 'ensaios_execucoes.csv').exists()
+             and status['ensaio']['ultimo']['pedido'] == 'p1' and status['ensaio']['pendente'] == ''
+             and not any(o.startswith('_ensaios') for o in status['por_obra']),
+             'o registro do ensaio vai ao Drive (_sistema/projeto/ensaios.csv e ensaios_execucoes.csv, que o ialocal.dados leva '
+             'ao GitHub); o status diz a última execução; o documento do ensaio não conta como prancha do acervo')
+    ciclo.rodada()
+    conferir(len((ensaio.pasta() / 'foz' / 'execucoes.jsonl').read_text().splitlines()) == 1, 'o mesmo pedido não roda duas vezes')
+    falhar = prancha.ler_prancha_ia
+    prancha.ler_prancha_ia = lambda documento, rodada: (_ for _ in ()).throw(RuntimeError('Ollama 500 (glm-ocr): prediction aborted'))
+    regras['pedido']['id'] = 'p2'
+    try:
+        ciclo.rodada()
+    finally:
+        prancha.ler_prancha_ia = falhar
+    ultima = json.loads((ensaio.pasta() / 'foz' / 'execucoes.jsonl').read_text().splitlines()[-1])
+    operacao = pl.read_parquet(comum.DADOS / 'licoes.parquet').filter(pl.col('conjunto') == 'ensaio:foz')
+    conferir(ultima['pedido'] == 'p2' and ultima['com_erro'] == 1 and ultima['falhas'][0]['tarefa'] == 'ler_prancha_ia'
+             and operacao.height == 1 and operacao['classe'][0] == 'operacao' and operacao['leitor'][0] == 'ler_prancha_ia'
+             and operacao['situacao'][0] == 'confirmada',
+             'trocar o id do pedido roda de novo; a tarefa que falhou no ensaio vira lição de operação (confirmada: é fato)')
+    regras['pedido']['id'] = 'p3'
+    ciclo.rodada()
+    historico = [json.loads(l) for l in (comum.DADOS / 'licoes_historico.jsonl').read_text().splitlines()]
+    ultimas = pl.read_parquet(ensaio.pasta() / 'ensaios.parquet').filter(pl.col('execucao') == pl.col('execucao').max()).to_dicts()
+    conferir(historico[-1]['resolvidas'] >= 1 and not pl.read_parquet(comum.DADOS / 'licoes.parquet').filter(pl.col('conjunto') == 'ensaio:foz').height
+             and next(l for l in ultimas if l['arquivo'].startswith('012-SAA'))['mudou'] == 'erros',
+             'a execução seguinte sem a falha resolve a lição (progresso em licoes_historico.jsonl) e diz o que mudou na '
+             'prancha: só o erro sumiu')
+
+
 def testar_vision_com_prazo():
     """O Vision num processo à parte, com prazo: o que responde devolve o texto; o que trava (04/10: 11 h dentro de
     performRequests, a vez da GPU presa o tempo todo) é encerrado no prazo e sobe como erro, sem segurar a rodada."""
@@ -1028,6 +1092,7 @@ def principal():
         ia.instalado = lambda modulo: modulo in sys.modules  # no mini o Vision e o Apple FM existem: só o falso do teste conta
         respostas.RESPOSTAS = raiz / 'web' / 'demandas'  # no mini a pasta do web existe: só as respostas do teste contam
         cliente_gpu.VEZ = raiz / 'sem_maestro' / 'vez.json'  # no mini o maestro está de pé e nunca daria a vez ao pedido da pasta do teste
+        ensaio.pendente = lambda: None  # o pedido de verdade (conceitos/ensaios.json) não roda nos testes; testar_ensaio pede o dele
         testar_conceitos()
         testar_regras(raiz)
         testar_eixo_por_camada()
@@ -1049,6 +1114,7 @@ def principal():
         testar_rapido()
         testar_licoes()
         testar_bancada(raiz)
+        testar_ensaio(raiz)
 
 
 if __name__ == '__main__':
