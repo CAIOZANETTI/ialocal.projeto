@@ -42,6 +42,7 @@ import comum
 import curadoria
 import grade
 import ia
+import licoes
 import prancha
 import sondagem
 
@@ -534,6 +535,7 @@ def placar(publicar=True):
         print(resumo.select(colunas))
     for linha in vereditos.to_dicts():
         print(f"{linha['leitor']:<9} → {linha['veredito']}: {linha['motivo']}")
+    licoes.gerar(publicar)  # cada falha medida vira lição com classe e destino: o começo do ciclo de lições
     return saida
 
 

@@ -905,6 +905,57 @@ def testar_bancada(raiz):
              f"bancada do boletim com texto real (gabarito = leitura do código): kimi {kimi_b['certas']} certas; parse erra o "
              f"N-SPT do 3º metro e inventa o 4º")
     conferir((comum.SAIDAS / 'bancada_agentes.csv').exists(), 'o placar sai em saidas/bancada_agentes.csv (no mini, também no Drive)')
+    geradas = pl.read_parquet(comum.DADOS / 'licoes.parquet')
+    de = lambda conjunto, leitor, classe: geradas.filter((pl.col('conjunto') == conjunto) & (pl.col('leitor') == leitor)
+                                                        & (pl.col('classe') == classe))
+    glm_omissao = de('tabelas', 'glm_ocr', 'omissao')
+    conferir((de('tabelas', 'parse', 'leitura_errada').height, de('tabelas', 'parse', 'invencao').height,
+              de('controle', 'parse', 'invencao').height, glm_omissao.height, de('tabelas', 'codigo', 'omissao').height,
+              glm_omissao['codigo_acertou'].sum(), de('sondagem', 'parse', 'invencao').height,
+              geradas.filter(pl.col('leitor') == 'kimi').height, geradas.filter(pl.col('classe') == 'confirmou_errado').height)
+             == (1, 1, 3, 4, 1, 3, 1, 0, 0) and (comum.SAIDAS / 'licoes_projeto.csv').exists(),
+             'o placar gera as lições: o Parse leu 1 linha errada e inventou 1 (e 3 no controle, 1 no boletim), o glm-ocr '
+             'deixou 4 linhas sem ler — em 3 delas o código já acertava —, o código deixou 1; o Kimi não tem lição e a '
+             'curadoria não confirmou nada errado; saidas/licoes_projeto.csv')
+    historico = [json.loads(l) for l in (comum.DADOS / 'licoes_historico.jsonl').read_text().splitlines()]
+    conferir(historico[-1]['licoes'] == geradas.height and historico[-1]['por_classe']['invencao'] == 5,
+             f"cada geração de lições deixa uma linha de progresso em dados/licoes_historico.jsonl ({historico[-1]['licoes']} lições)")
+
+
+def testar_licoes():
+    """As regras das lições sem bancada: a classe pelo resultado, a confirmação errada da curadoria, a falha de operação,
+    a situação provável no boletim digitalizado, o id estável e o progresso entre gerações (no --rapido, a lição de
+    recorte que não foi medido de novo não conta como resolvida)."""
+    import licoes
+    base = {'conjunto': 'tabelas', 'tipo': 'leitor', 'recorte': 'Tabela 03.png', 'presente': None, 'status': ''}
+    tabela = pl.DataFrame([
+        {**base, 'leitor': 'codigo', 'chave': '282665', 'lido': '12 M', 'esperado': '12 M', 'resultado': 'certa'},
+        {**base, 'leitor': 'glm_ocr', 'chave': '282665', 'lido': '72 M', 'esperado': '12 M', 'resultado': 'errada'},
+        {**base, 'leitor': 'glm_ocr', 'chave': '999999', 'lido': '1 UN', 'esperado': '', 'resultado': 'inventada'},
+        {**base, 'leitor': 'vision', 'chave': '282665', 'lido': '', 'esperado': '12 M', 'resultado': ''},
+        {**base, 'leitor': 'local', 'tipo': 'curadoria', 'chave': '282665', 'lido': '72 M', 'esperado': '12 M',
+         'resultado': 'errada', 'status': 'confirmada'},
+        {**base, 'conjunto': 'sondagem', 'tipo': 'digitalizada', 'recorte': 'SP-01.pdf#pagina01', 'leitor': 'kimi',
+         'chave': 'nspt_3m', 'lido': '17', 'esperado': '14', 'resultado': 'errada'}])
+    chamadas = pl.DataFrame([{'conjunto': 'tabelas', 'recorte': 'Tabela 03.png', 'leitor': 'gemma3', 'erro': 'Ollama 500 (gemma3:12b)'},
+                             {'conjunto': 'tabelas', 'recorte': 'Tabela 03.png', 'leitor': 'kimi', 'erro': ''}])
+    geradas = licoes.das_medidas(tabela, chamadas)
+    por = {(l['leitor'], l['classe']): l for l in geradas}
+    conferir([l['classe'] for l in geradas][:2] == ['confirmou_errado', 'invencao']
+             and por[('glm_ocr', 'leitura_errada')]['codigo_acertou'] is True and por[('glm_ocr', 'invencao')]['codigo_acertou'] is False
+             and por[('gemma3', 'operacao')]['gravidade'] == 'media' and por[('kimi', 'leitura_errada')]['situacao'] == 'provavel'
+             and por[('glm_ocr', 'leitura_errada')]['situacao'] == 'confirmada' and not any(l['leitor'] == 'vision' for l in geradas)
+             and len(geradas) == 5,
+             'lições pela classe: a confirmação errada da curadoria e a invenção primeiro (gravidade alta); o código já acertava '
+             'o que o glm-ocr leu errado; a falha do gemma3 é de operação; o boletim digitalizado dá lição provável; o Vision '
+             '(sem estrutura) não dá lição de linha')
+    conferir(licoes.das_medidas(tabela, chamadas)[0]['id'] == geradas[0]['id'], 'o id da lição é estável entre gerações')
+    resolvida = {**geradas[1], 'id': 'antiga'}
+    fora = {**geradas[1], 'id': 'fora_da_amostra', 'recorte': 'Tabela 12.png'}
+    medidos = {(l['conjunto'], l['recorte'], l['leitor']) for l in geradas}
+    conferir(licoes.progresso([geradas[0], resolvida, fora], geradas, medidos) == {'novas': 4, 'resolvidas': 1, 'continuam': 1},
+             'progresso: a lição que sumiu de um recorte medido de novo está resolvida; a de um recorte fora da amostra não '
+             'foi medida, não conta')
 
 
 def testar_vision_com_prazo():
@@ -996,6 +1047,7 @@ def principal():
         testar_palavras_do_vision()
         testar_curadoria_repetidos()
         testar_rapido()
+        testar_licoes()
         testar_bancada(raiz)
 
 

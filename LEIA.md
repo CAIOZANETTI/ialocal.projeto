@@ -58,6 +58,7 @@ codigo/ia.py            a porta para os modelos locais (Ollama, Vision, Apple FM
 codigo/bancada.py       a bancada de todos os leitores: código primeiro, depois agentes e modelos; qualidade, tempo útil, taxa de erro e tempo perdido; placar e veredito (saidas/bancada_agentes.csv)
 codigo/grade.py         o leitor só de código: a tabela pelas caixas das palavras do Vision (linhas pela altura, colunas pelo cabeçalho), sem modelo
 codigo/curadoria.py     Python decide o que vale entre N leitores: confirmada (com testemunha), confirmada_ia, divergente, so_<leitor>
+codigo/licoes.py        cada falha da bancada vira lição (classe, gravidade, destino da correção, se o código já acertava) e o progresso entre gerações: o começo do ciclo de lições
 codigo/agentes.py       os agentes externos (Kimi K3, Nemotron Parse 2.0): leitura por agente, em paralelo, registro, sonda contra o gabarito de Cambé
 codigo/comum.py         pastas, conceitos, Parquet com troca por chave, CSV para o Drive
 codigo/cliente_gpu.py   cópia do cliente da trava de GPU do ialocal.maestro (não editar aqui)
@@ -69,6 +70,7 @@ conceitos/prancha.json  o que reconhece a prancha, famílias, carimbo (campos po
 conceitos/sondagem.json o boletim: como reconhecer, por onde ler cada página, os padrões do cabeçalho, do N-SPT e das camadas
 conceitos/ia.json       modelos e parâmetros das chamadas (cópia do extratores.json do extrator, 2v93)
 conceitos/agentes.json  os agentes externos: ligado, prazo da exceção, obras, modelos, o limite por provedor, tentativas, reservas
+conceitos/licoes.json   as classes de lição (confirmou_errado, invencao, leitura_errada, omissao, operacao), a gravidade e o destino de cada uma
 conceitos/bancada.json  os candidatos do mini na bancada (o código, glm-ocr, gemma3, Vision, qwen3, Apple FM), as regras da grade, o --rapido e os critérios do veredito
 conceitos/demandas.json o que o projeto pede ao Caio e à equipe (id, gabarito, texto do e-mail, aberta)
 conceitos/operacao.json de onde lê a entrega e as respostas, para onde publica, limites, a prioridade na GPU
@@ -80,12 +82,12 @@ notas/                  plano_projeto.md (tese e itens), testes de mesa de 26/09
                         plano_inventario_roteamento.md (inventário por página → roteador → extração especializada; plano)
 
 dados/    prancha, prancha_leitura, prancha_tabela, carimbo, sondagem, sondagem_campo, sondagem_spt, sondagem_camada (.parquet), recortes/, congelamento.jsonl,
-          execucoes.jsonl, falhas.jsonl, agentes.jsonl (cada chamada externa), agentes_sonda.jsonl, bancada_*.parquet, bancada/ (recortes da bancada), gpu/ (pedidos ao maestro), launchd.log — regenerável, fora do git
-saidas/   status.json (formato comum, o maestro lê) e os CSVs publicados — fora do git
+          execucoes.jsonl, falhas.jsonl, agentes.jsonl (cada chamada externa), agentes_sonda.jsonl, bancada_*.parquet, licoes.parquet, licoes_historico.jsonl, bancada/ (recortes da bancada), gpu/ (pedidos ao maestro), launchd.log — regenerável, fora do git
+saidas/   status.json (formato comum, o maestro lê) e os CSVs publicados (bancada_agentes.csv, licoes_projeto.csv…) — fora do git
 
 Drive  saida/<acervo>/<obra>/projeto/   pranchas.csv, prancha_leituras.csv, prancha_tabelas.csv, carimbos.csv, sondagens.csv,
                                         sondagem_spt.csv e sondagem_camadas.csv da obra
-       saida/_sistema/projeto/          os mesmos, de todas as obras
+       saida/_sistema/projeto/          os mesmos, de todas as obras; bancada_agentes.csv e licoes_projeto.csv (o ialocal.dados leva ao GitHub)
 ```
 
 ## O que não é óbvio
