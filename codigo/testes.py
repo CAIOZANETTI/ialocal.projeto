@@ -286,8 +286,21 @@ def testar_rodada(raiz):
              and all(d['id'] and d['titulo'] and len(d['texto']) > 100 for d in status['demandas']),
              'status: as demandas abertas ao Caio (conceitos/demandas.json), com título e texto, e quantas em precisa_do_caio')
     obra = status['por_obra']['obras/Foz AAT-06']
-    conferir((obra['feito'], obra['total'], obra['pranchas'], obra['arquivos']) == (2, 2, 1, 3) and obra['bytes'] > 0,
-             'status por obra (a tela 8 do maestro): 2 de 2 feitas, 1 prancha; pranchas, leituras e carimbos publicados (sem imagem colada, sem tabela)')
+    conferir((obra['feito'], obra['total'], obra['pranchas'], obra['arquivos']) == (2, 2, 1, 4) and obra['bytes'] > 0,
+             'status por obra (a tela 8 do maestro): 2 de 2 feitas, 1 prancha; pranchas, leituras, carimbos e o rastro publicados (sem imagem colada, sem tabela)')
+    lidos = pl.read_csv(drive / 'saida' / 'obras' / 'Foz AAT-06' / 'projeto' / 'rastro.csv', separator=';', infer_schema_length=0)
+    da_prancha = {l['etapa']: l for l in lidos.to_dicts() if l['arquivo'].startswith('012-SAA')}
+    conferir(list(da_prancha) == ['leitura_inicial', 'carimbo', 'familia', 'eixo', 'fatias', 'conferencia']
+             and da_prancha['leitura_inicial']['executor'] == 'codigo:pypdfium2' and 'A1' in da_prancha['leitura_inicial']['resultado']
+             and (da_prancha['carimbo']['executor'], da_prancha['carimbo']['tarefa']) == ('codigo:texto_do_pdf', 'ler_prancha')
+             and da_prancha['familia']['executor'] == 'regra:prancha.json' and 'adutora' in da_prancha['familia']['resultado']
+             and da_prancha['fatias']['executor'] == 'glm-ocr × Vision' and int(da_prancha['fatias']['pendentes']) > 0
+             and 'confirmado' in da_prancha['fatias']['resultado'] and 'sem_tubo_confirmado' in da_prancha['conferencia']['resultado']
+             and float(da_prancha['fatias']['segundos_tarefa']) >= 0
+             and [l['etapa'] for l in lidos.to_dicts() if l['arquivo'] == 'memorial_a3.pdf'] == ['leitura_inicial'],
+             'rastro.csv por obra: a prancha etapa por etapa — leitura inicial (pypdfium2), carimbo (texto do PDF), família '
+             '(regra), eixo, fatias (glm-ocr × Vision, com as pendentes do so_glm) e a conferência —, com o tempo da tarefa; '
+             'o A3 que não é prancha só tem a leitura inicial')
     chamadas = []
     ia.ler_com_glm_ocr = lambda caminho: chamadas.append(caminho) or {'texto': ''}
     ciclo.rodada()
@@ -992,7 +1005,9 @@ def testar_ensaio(raiz):
              'código e pela IA (24 fatias), o A3 em branco só pelo código; a lista sorteada fica gravada')
     drive = Path(os.environ['DRIVE_FALSO']) / 'saida' / '_sistema' / 'projeto'
     status = json.loads((comum.SAIDAS / 'status.json').read_text())
+    rastro_do_ensaio = pl.read_csv(drive / 'ensaios_rastro.csv', separator=';', infer_schema_length=0)
     conferir((drive / 'ensaios.csv').exists() and (drive / 'ensaios_execucoes.csv').exists()
+             and rastro_do_ensaio.height > 0 and all(i.startswith('_ensaios/foz/') for i in rastro_do_ensaio['id'])
              and status['ensaio']['ultimo']['pedido'] == 'p1' and status['ensaio']['pendente'] == ''
              and not any(o.startswith('_ensaios') for o in status['por_obra']),
              'o registro do ensaio vai ao Drive (_sistema/projeto/ensaios.csv e ensaios_execucoes.csv, que o ialocal.dados leva '

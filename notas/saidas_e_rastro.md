@@ -88,12 +88,12 @@ E, desde a 0v25–0v26, em `saida/_sistema/projeto/`:
 | **quanto tempo** | `dados/execucoes.jsonl` | uma linha por tarefa × documento: segundos, fatias, confirmados, erro |
 | **o que falhou** | `dados/falhas.jsonl`, `licoes_projeto.csv` | o erro, o rastro do Python, a classe da lição |
 | **se melhorou** | `ensaios.csv` (coluna `mudou`), `licoes_historico.jsonl` | o que mudou entre execuções do mesmo ensaio; lições novas e resolvidas |
+| **tudo junto, por documento** | `rastro.csv` (0v27), `ensaios_rastro.csv` | documento × etapa × executor: entrada, resultado, valores, confirmados, pendentes, tempo da tarefa, versão |
 
 ## 5. Lacunas do rastro (para as próximas versões)
 
-1. **Não há uma vista única por documento.** Para saber "o que saiu desta prancha e quem leu cada coisa" é preciso
-   juntar 4 arquivos. Proposta: `rastro.csv` — uma linha por documento × etapa × executor, com entrada (página,
-   região), saída (quantos valores, de que tipo), status, tempo, versão do código e assinatura do congelamento.
+1. ~~**Não há uma vista única por documento.**~~ **Feito na 0v27:** `rastro.csv` (§7) — uma linha por documento ×
+   etapa × executor. Falta nele a assinatura do congelamento de cada chamada (está em `dados/congelamento.jsonl`).
 2. **Sem caixa por valor.** A leitura guarda a fatia (`caixa_px`), não a caixa do valor dentro dela; o carimbo e a
    tabela não guardam caixa nenhuma. Sem isso não se volta do dado ao trecho exato da prancha (plano §19).
 3. **Só a página 1.** As páginas 2…N de um PDF não têm linha nenhuma.
@@ -110,3 +110,28 @@ E, desde a 0v25–0v26, em `saida/_sistema/projeto/`:
 - DXF, GeoPackage, KML, LandXML.
 
 Tudo isso está no `notas/plano_inventario_roteamento.md`, na ordem das fases F1–F10.
+
+## 7. O rastro (0v27): a vista única de quem leu o quê
+
+`codigo/rastro.py` junta o que as tarefas já gravaram — sem ler PDF nem chamar modelo — e publica `rastro.csv` por obra
+e em `_sistema/projeto/` a cada publicação que muda alguma família; os ensaios levam o deles em `ensaios_rastro.csv`.
+Colunas: `id, acervo, obra, arquivo, versao_documento, ordem, etapa, tarefa, executor, natureza, entrada, resultado,
+valores, confirmados, pendentes, segundos_tarefa, versao_codigo, commit`.
+
+O exemplo da §2, como sai no `rastro.csv` (tempos sem valor de medida: IA simulada):
+
+| arquivo | # | etapa | tarefa | executor | entrada | resultado | valores | confirmados | pendentes | s |
+|---|---|---|---|---|---|---|---|---|---|---|
+| SP-03.pdf | 1 | leitura_inicial | ler_prancha | codigo:pypdfium2 | página 1 de 1 | A4 · boletim de sondagem | | | | 0,00 |
+| SP-03.pdf | 2 | boletim | ler_sondagem | codigo:texto_do_pdf | 1 página | furo SP-03 · codigo 13 | 13 | 13 | 0 | 0,00 |
+| memorial_a3.pdf | 1 | leitura_inicial | ler_prancha | codigo:pypdfium2 | página 1 de 1 | A3 · vetorial_curva · nenhum (0 sinais) | | | | 0,07 |
+| 012-…-AAT06PTPER-R1.pdf | 1 | leitura_inicial | ler_prancha | codigo:pypdfium2 | página 1 de 1 | A1 · vetorial_curva · prancha (3 sinais) | | | | 0,01 |
+| | 2 | carimbo | ler_prancha | codigo:texto_do_pdf | região do carimbo · camada texto | codigo 12 | 12 | 12 | 0 | 0,01 |
+| | 3 | familia | ler_prancha | regra:prancha.json | nome + texto do carimbo e das notas | adutora · linear · planta_e_perfil | | | | 0,01 |
+| | 4 | eixo | ler_prancha | codigo:geometria | caminhos da página 1 | faixa · 300 mm · deflexão 45° | | | | 0,01 |
+| | 5 | fatias | ler_prancha_ia | glm-ocr × Vision | 24 de 24 fatias | confirmado 96, so_glm 24 | 120 | 96 | 24 | 1,93 |
+| | 6 | conferencia | ler_prancha_ia | codigo:conferencia | escala 1:1000 · tubo da relação — | sem_tubo_confirmado · eixo 300 m | | | | 1,93 |
+
+Como usar para escolher ferramenta: filtrar por `etapa` e comparar `executor` × `confirmados ÷ valores` × `pendentes`
+× `segundos_tarefa` entre obras e entre execuções do mesmo ensaio. A etapa em que o executor `codigo:*` já resolve
+não precisa de modelo; a etapa com muitas `pendentes` é onde a próxima lição vale mais.

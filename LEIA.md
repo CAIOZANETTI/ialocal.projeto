@@ -61,6 +61,7 @@ codigo/bancada.py       a bancada de todos os leitores: código primeiro, depois
 codigo/grade.py         o leitor só de código: a tabela pelas caixas das palavras do Vision (linhas pela altura, colunas pelo cabeçalho), sem modelo
 codigo/curadoria.py     Python decide o que vale entre N leitores: confirmada (com testemunha), confirmada_ia, divergente, so_<leitor>
 codigo/ensaio.py        o ensaio: até 10 PDFs reais e fixos (Foz) de ponta a ponta — código, depois a IA na vez pedida ao maestro —, o registro de cada execução e o que mudou desde a anterior; pedido por PR em conceitos/ensaios.json
+codigo/rastro.py        a vista única de quem leu o quê: uma linha por documento × etapa × executor (entrada, resultado, confirmados, pendentes, tempo, versão) → rastro.csv
 codigo/licoes.py        cada falha da bancada vira lição (classe, gravidade, destino da correção, se o código já acertava) e o progresso entre gerações: o começo do ciclo de lições
 codigo/agentes.py       os agentes externos (Kimi K3, Nemotron Parse 2.0): leitura por agente, em paralelo, registro, sonda contra o gabarito de Cambé
 codigo/comum.py         pastas, conceitos, Parquet com troca por chave, CSV para o Drive
@@ -88,9 +89,9 @@ notas/                  plano_projeto.md (tese e itens), testes de mesa de 26/09
 
 dados/    prancha, prancha_leitura, prancha_tabela, carimbo, sondagem, sondagem_campo, sondagem_spt, sondagem_camada (.parquet), recortes/, congelamento.jsonl,
           execucoes.jsonl, falhas.jsonl, agentes.jsonl (cada chamada externa), agentes_sonda.jsonl, bancada_*.parquet, licoes.parquet, licoes_historico.jsonl, ensaios/ (lista, PDFs baixados, execuções), bancada/ (recortes da bancada), gpu/ (pedidos ao maestro), launchd.log — regenerável, fora do git
-saidas/   status.json (formato comum, o maestro lê) e os CSVs publicados (bancada_agentes.csv, licoes_projeto.csv, ensaios.csv, ensaios_execucoes.csv…) — fora do git
+saidas/   status.json (formato comum, o maestro lê) e os CSVs publicados (rastro.csv, bancada_agentes.csv, licoes_projeto.csv, ensaios.csv, ensaios_execucoes.csv, ensaios_rastro.csv…) — fora do git
 
-Drive  saida/<acervo>/<obra>/projeto/   pranchas.csv, prancha_leituras.csv, prancha_tabelas.csv, carimbos.csv, sondagens.csv,
+Drive  saida/<acervo>/<obra>/projeto/   rastro.csv, pranchas.csv, prancha_leituras.csv, prancha_tabelas.csv, carimbos.csv, sondagens.csv,
                                         sondagem_spt.csv e sondagem_camadas.csv da obra
        saida/_sistema/projeto/          os mesmos, de todas as obras; bancada_agentes.csv, licoes_projeto.csv, ensaios.csv e ensaios_execucoes.csv (o ialocal.dados leva ao GitHub)
 ```

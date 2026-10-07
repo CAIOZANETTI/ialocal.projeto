@@ -21,7 +21,8 @@ SEMPRE RODA — o ensaio é teste: lê tudo de novo a cada execução, sem olhar
 igual vem do congelamento (dados/congelamento.jsonl): repetir um ensaio sem mudar nada custa o código, não a GPU.
 
 SAÍDA — dados/ensaios/<nome>/execucoes.jsonl (uma linha por execução, com as falhas) e dados/ensaios/ensaios.parquet (uma
-linha por execução × documento); saidas/ensaios.csv e saidas/ensaios_execucoes.csv, e no Drive
+linha por execução × documento); saidas/ensaios.csv, saidas/ensaios_execucoes.csv e saidas/ensaios_rastro.csv (quem leu
+o quê em cada documento do ensaio, etapa por etapa: rastro.py), e no Drive
 saida/_sistema/projeto/ (o ialocal.dados leva ao GitHub). As falhas viram lições de operação (licoes.py).
 Os documentos do ensaio ficam nas tabelas de sempre com acervo `_ensaios` e obra = o nome do ensaio; a rodada não os
 publica por obra.
@@ -43,6 +44,7 @@ import cliente_gpu
 import comum
 import entrega
 import licoes
+import rastro
 
 COMPARAR = ('e_prancha', 'boletim_sondagem', 'formato', 'classe', 'familia', 'desenho', 'carimbo_camada', 'carimbo_numero_desenho',
             'eixo', 'eixo_mm', 'eixo_m', 'conferencia', 'fatias_lidas', 'valores_confirmado', 'linhas_tabela_confirmadas',
@@ -232,7 +234,9 @@ def gravar(nome, linhas, resumo):
                               for e in sorted(pasta().glob('*/execucoes.jsonl')) for r in map(json.loads, e.read_text().splitlines())],
                              infer_schema_length=None)
     SISTEMA = comum.configuracao('operacao')['drive']['sistema']
-    for quadro, arquivo in ((tabela, 'ensaios.csv'), (execucoes, 'ensaios_execucoes.csv')):
+    lidos = rastro.montar()  # quem leu o quê nos documentos de todos os ensaios (acervo _ensaios)
+    lidos = lidos.filter(pl.col('id').str.starts_with('_ensaios/'))
+    for quadro, arquivo in ((tabela, 'ensaios.csv'), (execucoes, 'ensaios_execucoes.csv'), (lidos, 'ensaios_rastro.csv')):
         local = comum.SAIDAS / arquivo
         local.parent.mkdir(parents=True, exist_ok=True)
         quadro.write_csv(local, separator=';', include_bom=True)
