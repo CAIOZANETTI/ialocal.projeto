@@ -26,6 +26,8 @@ python3 -m venv .venv && .venv/bin/pip install polars pdfplumber pypdfium2 pillo
 .venv/bin/python codigo/bancada.py tudo     # F2: todos os leitores (o código, glm-ocr, gemma3, Vision, qwen3, Apple FM, Kimi e, desde a 0v24, os reservas GLM-5.3 Flash, Muse Glimmer e DeepSeek V4.1 Flash; o Parse descontinuado em 04/10) contra o gabarito; placar e veredito
 .venv/bin/python codigo/bancada.py rapido   # a bancada inteira em ~5 min: o código nas 17 tabelas, os modelos na amostra e no controle; sem a sondagem
 .venv/bin/python codigo/bancada.py tudo --refazer   # o mesmo, chamando de novo o congelado: o tempo útil medido nas mesmas condições
+.venv/bin/python codigo/ensaio.py lista foz_10      # o ensaio de Foz: quais PDFs (no máximo 10) entram, sem rodar
+.venv/bin/python codigo/ensaio.py rodar foz_10      # roda o ensaio de ponta a ponta, com a vez da GPU pedida ao maestro (prioridade 4)
 ```
 
 **O clone pede uma chave de acesso própria** (como os outros `ialocal.*`):
@@ -58,6 +60,8 @@ codigo/ia.py            a porta para os modelos locais (Ollama, Vision, Apple FM
 codigo/bancada.py       a bancada de todos os leitores: código primeiro, depois agentes e modelos; qualidade, tempo útil, taxa de erro e tempo perdido; placar e veredito (saidas/bancada_agentes.csv)
 codigo/grade.py         o leitor só de código: a tabela pelas caixas das palavras do Vision (linhas pela altura, colunas pelo cabeçalho), sem modelo
 codigo/curadoria.py     Python decide o que vale entre N leitores: confirmada (com testemunha), confirmada_ia, divergente, so_<leitor>
+codigo/ensaio.py        o ensaio: até 10 PDFs reais e fixos (Foz) de ponta a ponta — código, depois a IA na vez pedida ao maestro —, o registro de cada execução e o que mudou desde a anterior; pedido por PR em conceitos/ensaios.json
+codigo/licoes.py        cada falha da bancada vira lição (classe, gravidade, destino da correção, se o código já acertava) e o progresso entre gerações: o começo do ciclo de lições
 codigo/agentes.py       os agentes externos (Kimi K3, Nemotron Parse 2.0): leitura por agente, em paralelo, registro, sonda contra o gabarito de Cambé
 codigo/comum.py         pastas, conceitos, Parquet com troca por chave, CSV para o Drive
 codigo/cliente_gpu.py   cópia do cliente da trava de GPU do ialocal.maestro (não editar aqui)
@@ -69,6 +73,8 @@ conceitos/prancha.json  o que reconhece a prancha, famílias, carimbo (campos po
 conceitos/sondagem.json o boletim: como reconhecer, por onde ler cada página, os padrões do cabeçalho, do N-SPT e das camadas
 conceitos/ia.json       modelos e parâmetros das chamadas (cópia do extratores.json do extrator, 2v93)
 conceitos/agentes.json  os agentes externos: ligado, prazo da exceção, obras, modelos, o limite por provedor, tentativas, reservas
+conceitos/ensaios.json  os ensaios (fontes, máximo, preferir, lista fixa, prioridade, limite) e o pedido {ensaio, id} que a rodada executa uma vez por id
+conceitos/licoes.json   as classes de lição (confirmou_errado, invencao, leitura_errada, omissao, operacao), a gravidade e o destino de cada uma
 conceitos/bancada.json  os candidatos do mini na bancada (o código, glm-ocr, gemma3, Vision, qwen3, Apple FM), as regras da grade, o --rapido e os critérios do veredito
 conceitos/demandas.json o que o projeto pede ao Caio e à equipe (id, gabarito, texto do e-mail, aberta)
 conceitos/operacao.json de onde lê a entrega e as respostas, para onde publica, limites, a prioridade na GPU
@@ -76,15 +82,16 @@ conceitos/prompts/      prompts versionados (o hash entra na chave de congelamen
 
 amostras/tabelas/       recortes de tabelas de prancha (Foz, Cambé) com a transcrição do Caio: o gabarito das tabelas
 notas/                  plano_projeto.md (tese e itens), testes de mesa de 26/09, protótipo da prancha (camadas, georreferência),
-                        plano_agentes_nvidia.md (dois agentes externos gratuitos em paralelo; exceção do MASTER-PLAN §5.6)
+                        plano_agentes_nvidia.md (dois agentes externos gratuitos em paralelo; exceção do MASTER-PLAN §5.6),
+                        plano_inventario_roteamento.md (inventário por página → roteador → extração especializada; plano)
 
 dados/    prancha, prancha_leitura, prancha_tabela, carimbo, sondagem, sondagem_campo, sondagem_spt, sondagem_camada (.parquet), recortes/, congelamento.jsonl,
-          execucoes.jsonl, falhas.jsonl, agentes.jsonl (cada chamada externa), agentes_sonda.jsonl, bancada_*.parquet, bancada/ (recortes da bancada), gpu/ (pedidos ao maestro), launchd.log — regenerável, fora do git
-saidas/   status.json (formato comum, o maestro lê) e os CSVs publicados — fora do git
+          execucoes.jsonl, falhas.jsonl, agentes.jsonl (cada chamada externa), agentes_sonda.jsonl, bancada_*.parquet, licoes.parquet, licoes_historico.jsonl, ensaios/ (lista, PDFs baixados, execuções), bancada/ (recortes da bancada), gpu/ (pedidos ao maestro), launchd.log — regenerável, fora do git
+saidas/   status.json (formato comum, o maestro lê) e os CSVs publicados (bancada_agentes.csv, licoes_projeto.csv, ensaios.csv, ensaios_execucoes.csv…) — fora do git
 
 Drive  saida/<acervo>/<obra>/projeto/   pranchas.csv, prancha_leituras.csv, prancha_tabelas.csv, carimbos.csv, sondagens.csv,
                                         sondagem_spt.csv e sondagem_camadas.csv da obra
-       saida/_sistema/projeto/          os mesmos, de todas as obras
+       saida/_sistema/projeto/          os mesmos, de todas as obras; bancada_agentes.csv, licoes_projeto.csv, ensaios.csv e ensaios_execucoes.csv (o ialocal.dados leva ao GitHub)
 ```
 
 ## O que não é óbvio
@@ -128,5 +135,12 @@ Drive  saida/<acervo>/<obra>/projeto/   pranchas.csv, prancha_leituras.csv, pran
   leitores candidatos: o número que só eles leram nunca vira `confirmado`. A chave fica fora do git, em
   `~/.config/ialocal/nvidia_api_key` (`chmod 600`; criar em build.nvidia.com com a conta do Developer Program). Desligar:
   `agentes.json → ligado: false` por PR. Por ora só a sonda e a bancada (`bancada.py`, 0v8) chamam; a rodada não (`notas/plano_agentes_nvidia.md`).
+- **O ensaio se pede por PR** (0v26). `conceitos/ensaios.json → pedido` diz qual ensaio e um id; a rodada de 5 min roda
+  o ensaio uma vez por id, antes do trabalho de sempre, pedindo a vez da GPU ao maestro com prioridade 4 (à frente dos
+  documentos, que é 5). Para rodar de novo depois de mudar o código, um PR troca o id. O ensaio lê sempre os mesmos
+  PDFs (a lista sorteada na primeira vez fica em `dados/ensaios/<nome>/lista.json`; fixar no conceito por PR) e lê tudo
+  de novo a cada vez — a resposta de modelo igual vem do congelamento. O registro sobe ao Drive
+  (`_sistema/projeto/ensaios.csv`, uma linha por execução × documento com o que mudou; `ensaios_execucoes.csv`) e daí ao
+  GitHub pelo ialocal.dados; a tarefa que falha vira lição de operação.
 - **A bancada E3 (qualidade) continua no extrator** por ora: a classe `prancha_pdf` mede os modelos numa amostra, à
   parte da produção. Trazê-la para cá é o passo seguinte, junto com os itens pendentes do `plano_projeto.md` §9.

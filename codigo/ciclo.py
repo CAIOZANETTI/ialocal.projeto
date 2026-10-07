@@ -113,7 +113,7 @@ def proxima_tarefa(documento, linhas, em_dia):
 
 
 def executar(tarefa, documento, rodada):
-    """Uma leitura; a falha fica em dados/falhas.jsonl com o erro e a rodada segue."""
+    """Uma leitura; a falha fica em dados/falhas.jsonl com o erro e a rodada segue. Devolve o erro ('' se leu)."""
     marca = time.perf_counter()
     try:
         getattr(sondagem if 'sondagem' in tarefa else prancha, tarefa)(documento, rodada)
@@ -125,6 +125,7 @@ def executar(tarefa, documento, rodada):
                                          'rastro': traceback.format_exc()[-1500:]}, ensure_ascii=False) + '\n')
     print(f"{time.strftime('%d/%m %H:%M:%S')}  {tarefa:<15} {documento['caminho'][-70:]:<70} "
           f"{time.perf_counter() - marca:6.1f} s {'FALHOU ' + erro[:80] if erro else ''}", flush=True)
+    return erro
 
 
 def publicar(documentos):
@@ -156,6 +157,10 @@ def status(documentos, ultima=None):
     estados = situacao(documentos)
     contagem, tarefas = Counter(fase(e) for e in estados.values()), Counter(estados.values())
     tabela, boletins = comum.ler('prancha'), comum.ler('sondagem_campo')
+    if tabela is not None:  # os documentos dos ensaios (acervo _ensaios) não contam como acervo
+        tabela = tabela.filter(~pl.col('id').str.starts_with('_ensaios/'))
+    if boletins is not None:
+        boletins = boletins.filter(~pl.col('id').str.starts_with('_ensaios/'))
     ia = [] if tabela is None else tabela.filter(pl.col('extrator') == 'prancha_ia').to_dicts()
     pranchas = 0 if tabela is None else tabela.filter((pl.col('extrator') == 'prancha') & pl.col('e_prancha').fill_null(False)).height
     quarentena = [d['caminho'] for d in documentos if estados[d['id']] == 'falhou' and em_quarentena(d)]
@@ -175,7 +180,19 @@ def status(documentos, ultima=None):
                       'furos': 0 if boletins is None else boletins.filter(pl.col('campo') == 'furo')['valor'].n_unique()},
         'por_obra': por_obra(documentos, estados, tabela),
         'quarentena': quarentena,
+        'ensaio': {'ultimo': ensaio_ultimo(), 'pendente': ensaio_pendente()},
         'ultima_rodada': ultima, **pedidos_ao_caio(documentos, estados)}, ensure_ascii=False, indent=1))
+
+
+def ensaio_ultimo():
+    import ensaio
+    return ensaio.ultimo()
+
+
+def ensaio_pendente():
+    import ensaio
+    pedido = ensaio.pendente()
+    return '/'.join(pedido) if pedido else ''
 
 
 def pedidos_ao_caio(documentos, estados):
@@ -214,6 +231,8 @@ def rodada():
         fcntl.flock(trava, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except BlockingIOError:
         return
+    import ensaio
+    ensaio.do_pedido()  # o ensaio pedido em conceitos/ensaios.json (uma vez por id), antes do trabalho de sempre
     inicio, publicado, rodada_em = time.monotonic(), time.monotonic(), comum.agora()
     feitas = Counter()
     documentos = entrega.documentos()

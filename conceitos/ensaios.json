@@ -1,0 +1,27 @@
+{
+  "metadata": {
+    "o_que_e": "Os ensaios do projeto: um conjunto pequeno e fixo de PDFs reais (no máximo 10) que o mini roda de ponta a ponta — código, depois a IA na vez da GPU pedida ao maestro — e registra como fez (o que leu, quanto tempo, o que falhou, o que mudou desde a execução anterior). É a prova do ciclo de lições: mudou o código por PR, roda o mesmo ensaio de novo e compara.",
+    "fonte": "pedido do Caio de 07/10/2026: 'pegar a pasta 211 Foz do Iguaçu do Drive, no máximo 10 pranchas, rodar e fazer acontecer, pedindo prioridade ao maestro'",
+    "atualizado_em": "2026-10-07"
+  },
+  "pedido": {"ensaio": "foz_10", "id": "2026-10-07-a"},
+  "_pedido": "a rodada (a cada 5 min no launchd) roda o ensaio pedido uma vez por id, antes do trabalho de sempre. Para rodar de novo — depois de um PR que muda o código, por exemplo — troca o id por PR: o mini puxa a main em até 5 min e a rodada seguinte executa. Sem pedido (null), nada roda sozinho; à mão: codigo/ensaio.py rodar <nome>",
+  "ensaios": {
+    "foz_10": {
+      "fontes": [
+        {"tipo": "drive", "caminho": "gdrive:entrada/orçamentos/211 - SAA Foz do Iguaçu"},
+        {"tipo": "entrega", "obra": "(?i)211|foz"}
+      ],
+      "_fontes": "a primeira que der PDF vale e fica registrada na execução. drive: os PDFs soltos da pasta da entrada (recursivo; PDF dentro de zip não aparece); entrega: os PDFs que o extrator já tirou dos zips e entregou ao projeto, da obra que casa com o padrão (acervo/obra)",
+      "maximo": 10,
+      "preferir": "(?i)AAT-?06",
+      "_preferir": "entram primeiro os nomes que casam (as folhas da AAT-06, que têm teste de mesa: notas/teste_prancha_2026-09-26.md e teste_jogo_foz); o resto, até o máximo, pelo sorteio do sha1 do caminho — o mesmo sorteio sempre",
+      "lista": [],
+      "_lista": "vazia: a primeira execução sorteia e grava em dados/ensaios/<nome>/lista.json; para fixar no git (recomendado depois da primeira volta), copiar os caminhos para cá por PR. Com lista, o sorteio não roda",
+      "prioridade": 4,
+      "_prioridade": "a vez da GPU pedida ao maestro: 4 passa à frente da extração de documentos (5) e da rodada do projeto (7). É curto (no máximo 10 PDFs) e devolve a vez entre um documento e outro quando o maestro pede",
+      "limite_s": 7200,
+      "_limite_s": "o ensaio para entre documentos depois disso; o que não rodou fica com o motivo na execução"
+    }
+  }
+}

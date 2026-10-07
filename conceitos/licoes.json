@@ -1,0 +1,19 @@
+{
+  "metadata": {
+    "o_que_e": "As lições do projeto (notas/plano_inventario_roteamento.md §20–§21; o ciclo de lições da arquitetura): cada falha que a bancada mede vira uma linha com classe, gravidade e destino da correção. Sobem ao Drive em saida/_sistema/projeto/licoes_projeto.csv e, pelo ialocal.dados, ao GitHub, onde a IA de fora lê e propõe o PR. Mudar uma classe ou um destino: por PR.",
+    "fonte": "pedido do Caio de 07/10/2026: rodar os projetos, guardar as lições, rodar de novo até quase não haver falha, e passar do apoio da IA ao código. Eixos da lição: MASTER-PLAN §10.1 (natureza, estágio, situação, autorização)",
+    "atualizado_em": "2026-10-07"
+  },
+  "classes": {
+    "confirmou_errado": {"gravidade": "alta", "destino": "curadoria.py: a regra de confirmação deixou passar um valor errado; o caso entra como teste antes de qualquer outra mudança"},
+    "invencao": {"gravidade": "alta", "destino": "barrar o leitor neste tipo de recorte (agentes.json ou bancada.json) e acrescentar o recorte ao controle negativo"},
+    "leitura_errada": {"gravidade": "media", "destino": "padrão em conceitos/ (prancha.json, sondagem.json, bancada.json → grade), DPI ou recorte; e a conferência aritmética que pegaria o erro"},
+    "omissao": {"gravidade": "baixa", "destino": "código antes de IA: a grade (grade.py) ou a releitura da célula; se nenhum leitor leu, o recorte"},
+    "operacao": {"gravidade": "media", "destino": "limite, prazo e tentativas em conceitos/ (ia.json, agentes.json, operacao.json)"}
+  },
+  "_classes": "confirmou_errado: a curadoria confirmou o que o gabarito diz que está errado (o pior erro: passou pela prova). invencao: o leitor escreveu linha ou número que não existe (no controle negativo, qualquer número). leitura_errada: leu a linha com outro valor. omissao: não leu o que existe. operacao: a chamada falhou depois de todas as tentativas",
+  "situacao": {
+    "confirmada": ["tabelas", "controle", "sondagem:texto"],
+    "_": "conjunto (ou conjunto:tipo) em que a referência é gabarito: as tabelas transcritas pelo Caio, o controle sem número e o boletim com texto real (o código lê o texto do PDF). O boletim digitalizado mede contra o que o glm-ocr e o Vision leram igual: a lição é provável, não confirmada"
+  }
+}
