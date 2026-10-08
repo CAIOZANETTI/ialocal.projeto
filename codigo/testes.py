@@ -1036,6 +1036,7 @@ def testar_pedido(raiz):
                                                                                          'assunto': f'[{tipo}] AAT-06', 'recebido_em': quando})))
     guardar('p1', 'projeto', '2026-10-08T09:00:00-03:00')
     guardar('m1', 'memorial', '2026-10-08T09:01:00-03:00')
+    (pasta / 'm1' / 'meta.json').write_text(json.dumps({**json.loads((pasta / 'm1' / 'meta.json').read_text()), 'etapas': ['ialocal.extrator', 'ialocal.revisor']}))
     ia_falsa()
     pedido.vigiar()
     feitas = pedido.execucoes('p1')
@@ -1061,9 +1062,12 @@ def testar_pedido(raiz):
     (pasta / 'p1' / 'validacoes' / 'v1.json').write_text(json.dumps(validacao))
     pedido.vigiar()
     prompt = next(pasta_e1.glob('correcao_*.md')).read_text()
-    conferir(len(pedido.execucoes('p1')) == 1 and 'o eixo tem 540 m' in prompt and 'conceitos/prancha.json → eixo' in prompt
+    conferir(len(pedido.execucoes('p1')) == 1 and (pasta_e1 / 'paginas.jsonl').exists() and e1['etapa'] == 'extrair'
+             and json.loads((pasta_e1 / 'paginas.jsonl').read_text().splitlines()[0])['arq'] == 'ARQ-1'
+             and 'o eixo tem 540 m' in prompt and 'conceitos/prancha.json → eixo' in prompt
              and 'commit' in prompt and 'codigo/testes.py' in prompt,
-             'recusa: o prompt de correção (o motivo, o que saiu, onde mexer, como provar); com o mesmo código, não roda de novo')
+             'recusa: o prompt de correção (o motivo, o que saiu, onde mexer, como provar); com o mesmo código, não roda de novo; '
+             'paginas.jsonl para as etapas seguintes')
     codigo = comum.codigo
     comum.codigo = lambda: {**codigo(), 'commit': 'novo123'}
     try:

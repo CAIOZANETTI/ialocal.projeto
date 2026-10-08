@@ -85,7 +85,8 @@ def pedidos():
     lista = []
     for meta in entrada().glob('*/meta.json'):
         dados = ler(meta)
-        if dados and dados.get('tipo', 'projeto') in regra()['tipos']:  # os outros tipos (memorial, livro…) são de outro leitor
+        etapas = dados.get('etapas') if dados else None  # 0v28: a cadeia do tipo, que o web anota; sem ela, o tipo (0v27)
+        if dados and ('ialocal.projeto' in etapas if etapas else dados.get('tipo', 'projeto') in regra()['tipos']):
             validacoes = sorted(filter(None, map(ler, meta.parent.glob('validacoes/*.json'))), key=lambda v: instante(v['recebido_em']))
             lista.append({**dados, 'id': meta.parent.name, 'pasta': meta.parent, 'validacoes': validacoes})
     return sorted(lista, key=lambda p: instante(p['recebido_em']))
@@ -99,14 +100,18 @@ def execucoes(identificador):
 def julga(validacao, execucao, seguinte=None):
     """A validação é sobre esta execução: a que o web anotou (a última cujo resultado ele mandou no fio) ou, sem a
     anotação, a que terminou antes dela e antes da seguinte começar."""
-    if validacao.get('execucao'):
-        return validacao['execucao'] == execucao['execucao']
+    anotada = (validacao.get('execucoes') or {}).get('ialocal.projeto') or validacao.get('execucao')  # 0v28: uma por etapa
+    if anotada:
+        return anotada == execucao['execucao']
     quando = instante(validacao['recebido_em'])
     return quando > instante(execucao['fim']) and (seguinte is None or quando < instante(seguinte['inicio']))
 
 
 def recusou(validacao):
-    return validacao.get('veredito') == 'recusado' or any(i.get('veredito') == 'recusado' for i in (validacao.get('itens') or {}).values())
+    """Recusa que pega a extração da prancha: num item dela, ou no todo sem item nenhum (a recusa do contexto ou da
+    análise é da etapa delas, 0v28)."""
+    julgados = validacao.get('itens') or {}
+    return any(julgados.get(i, {}).get('veredito') == 'recusado' for i in ITENS) or (validacao.get('veredito') == 'recusado' and not julgados)
 
 
 def motivo_para_rodar(pedido, feitas, commit):
@@ -205,7 +210,7 @@ def rodar(pedido, motivo='à mão'):
     comum.gravar_no_lugar(comum.DADOS / 'pedido_ativo.json', json.dumps({'pedido': pedido['id'], 'pid': os.getpid(), 'desde': inicio}))
     print(f"{time.strftime('%d/%m %H:%M:%S')}  pedido {pedido['id']} (e{n}): {motivo}", flush=True)
     status()
-    base = {'pedido': pedido['id'], 'execucao': f'e{n}', 'n': n, 'motivo': motivo, 'assunto': pedido.get('assunto', ''),
+    base = {'pedido': pedido['id'], 'repo': 'ialocal.projeto', 'etapa': 'extrair', 'entrada': {}, 'execucao': f'e{n}', 'n': n, 'motivo': motivo, 'assunto': pedido.get('assunto', ''),
             'inicio': inicio, **comum.codigo()}
     try:
         resultado = {**base, **executar(pedido, pasta, inicio, marca)}
@@ -267,7 +272,21 @@ def executar(pedido, pasta, execucao, marca):
     pasta.mkdir(parents=True, exist_ok=True)
     return {'documentos': [documento_lido(d, tarefas[d['id']]) for d in lista], 'ferramentas': ferramentas(tarefas, list(chamadas), vision),
             'itens': itens(lista), 'segundos': round(time.monotonic() - marca, 1), 'espera_gpu_s': round(espera, 1),
-            'interrompido': interrompido, 'anexos': exportar(lista, pasta), 'erro': ''}
+            'interrompido': interrompido, 'anexos': exportar(lista, pasta) + paginas_jsonl(lista, pasta), 'erro': ''}
+
+
+def paginas_jsonl(lista, pasta):
+    """0v28: o texto de cada página (pypdfium2) com ARQ-n e a página — a entrada das etapas seguintes da cadeia (revisor,
+    contexto, analista). Não vai como anexo do e-mail."""
+    import pypdfium2 as pdfium
+    with open(pasta / 'paginas.jsonl', 'w') as saida:
+        for n, d in enumerate(lista, 1):
+            documento = pdfium.PdfDocument(d['arquivo_local'])
+            for pagina in range(len(documento)):
+                saida.write(json.dumps({'arquivo': d['nome'], 'arq': f'ARQ-{n}', 'pagina': pagina + 1, 'leitor': 'pypdfium2',
+                                        'texto': documento[pagina].get_textpage().get_text_range()}, ensure_ascii=False) + '\n')
+            documento.close()
+    return []
 
 
 def ferramentas(tarefas, chamadas, vision):
