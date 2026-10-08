@@ -15,7 +15,7 @@
       "_fontes": "a primeira que der PDF vale e fica registrada na execução. drive: os PDFs soltos da pasta da entrada (recursivo; PDF dentro de zip não aparece); entrega: os PDFs que o extrator já tirou dos zips e entregou ao projeto, da obra que casa com o padrão (acervo/obra)",
       "maximo": 10,
       "formatos": ["A0", "A1", "A2", "A3", "fora_de_serie"],
-      "_formatos": "0v28, primeira execução real (07/10): 4 dos 10 PDFs sorteados eram A4 que não são projeto (relatório fotográfico, catálogo do medidor de vazão, cotação do tampão). Entra só o PDF com alguma das 3 primeiras páginas nestes formatos; a lista gravada com outro filtro é sorteada de novo",
+      "_formatos": "0v30, primeira execução real (07/10): 4 dos 10 PDFs sorteados eram A4 que não são projeto (relatório fotográfico, catálogo do medidor de vazão, cotação do tampão). Entra só o PDF com alguma das 3 primeiras páginas nestes formatos; a lista gravada com outro filtro é sorteada de novo",
       "candidatos_max": 40,
       "_candidatos_max": "no Drive, o sorteio baixa os candidatos na ordem dele, aos lotes de `maximo`, até achar `maximo` no formato ou baixar este tanto",
       "preferir": "(?i)AAT-?06",

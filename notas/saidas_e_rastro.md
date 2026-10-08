@@ -88,11 +88,11 @@ E, desde a 0v25–0v26, em `saida/_sistema/projeto/`:
 | **quanto tempo** | `dados/execucoes.jsonl` | uma linha por tarefa × documento: segundos, fatias, confirmados, erro |
 | **o que falhou** | `dados/falhas.jsonl`, `licoes_projeto.csv` | o erro, o rastro do Python, a classe da lição |
 | **se melhorou** | `ensaios.csv` (coluna `mudou`), `licoes_historico.jsonl` | o que mudou entre execuções do mesmo ensaio; lições novas e resolvidas |
-| **tudo junto, por documento** | `rastro.csv` (0v27), `ensaios_rastro.csv` | documento × etapa × executor: entrada, resultado, valores, confirmados, pendentes, tempo da tarefa, versão |
+| **tudo junto, por documento** | `rastro.csv` (0v29), `ensaios_rastro.csv` | documento × etapa × executor: entrada, resultado, valores, confirmados, pendentes, tempo da tarefa, versão |
 
 ## 5. Lacunas do rastro (para as próximas versões)
 
-1. ~~**Não há uma vista única por documento.**~~ **Feito na 0v27:** `rastro.csv` (§7) — uma linha por documento ×
+1. ~~**Não há uma vista única por documento.**~~ **Feito na 0v29:** `rastro.csv` (§7) — uma linha por documento ×
    etapa × executor. Falta nele a assinatura do congelamento de cada chamada (está em `dados/congelamento.jsonl`).
 2. **Sem caixa por valor.** A leitura guarda a fatia (`caixa_px`), não a caixa do valor dentro dela; o carimbo e a
    tabela não guardam caixa nenhuma. Sem isso não se volta do dado ao trecho exato da prancha (plano §19).
@@ -111,7 +111,7 @@ E, desde a 0v25–0v26, em `saida/_sistema/projeto/`:
 
 Tudo isso está no `notas/plano_inventario_roteamento.md`, na ordem das fases F1–F10.
 
-## 7. O rastro (0v27): a vista única de quem leu o quê
+## 7. O rastro (0v29): a vista única de quem leu o quê
 
 `codigo/rastro.py` junta o que as tarefas já gravaram — sem ler PDF nem chamar modelo — e publica `rastro.csv` por obra
 e em `_sistema/projeto/` a cada publicação que muda alguma família; os ensaios levam o deles em `ensaios_rastro.csv`.
