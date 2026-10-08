@@ -23,6 +23,7 @@ import polars as pl
 import cliente_gpu
 import comum
 import entrega
+import pedido
 import prancha
 import respostas
 import sondagem
@@ -181,6 +182,7 @@ def status(documentos, ultima=None):
         'por_obra': por_obra(documentos, estados, tabela),
         'quarentena': quarentena,
         'ensaio': {'ultimo': ensaio_ultimo(), 'pendente': ensaio_pendente()},
+        'pedido': pedido.resumo(),
         'ultima_rodada': ultima, **pedidos_ao_caio(documentos, estados)}, ensure_ascii=False, indent=1))
 
 
@@ -243,6 +245,9 @@ def rodada():
             publicar(documentos)
             status(documentos, {'inicio': rodada_em, 'em_curso': True, **feitas})
             publicado = time.monotonic()
+        if pedido.ativo():  # 0v27: o pedido do Caio por e-mail roda agora; a rodada sai e a próxima continua
+            print(f"{time.strftime('%d/%m %H:%M:%S')}  pedido do Caio em curso: a rodada cede", flush=True)
+            return False
         return time.monotonic() - inicio < OPERACAO['rodada_max_s']
 
     for _ in range(2):  # ler_prancha diz o que a folha é; no boletim, o ler_sondagem vem na segunda passada

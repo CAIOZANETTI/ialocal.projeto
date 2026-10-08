@@ -16,6 +16,15 @@
     "etapa": "projeto",
     "_drive": "a obra é a pasta de cima e cada etapa tem a sua dentro dela (extrator 2v93): saida/<acervo>/<obra>/projeto/ ao lado de extrator/, revisor/ e contexto/; a visão de todas as obras em saida/_sistema/projeto/"
   },
+  "pedidos": {
+    "pasta": "~/dados/ialocal.web/saidas/pedidos",
+    "tipos": ["projeto", "prancha", "sondagem"],
+    "prioridade": 0,
+    "limite_s": 3600,
+    "refazer_recusados": true,
+    "motores_web": ["nvidia"],
+    "_pedidos": "0v27, pedido do Caio (08/10): o e-mail com o documento anexado vira pedido. O ialocal.web guarda em pasta/<pedido>/ (anexos/, meta.json com o tipo da marca do assunto, validacoes/); o projeto lê só os tipos de 'tipos' (os outros — memorial, livro, planilha… — são de outro leitor), roda na vez da GPU com a prioridade do Caio (0: o dono da vez devolve na hora; o maestro pausa os pesados enquanto o pedido roda), até limite_s, e grava saidas/pedidos/<pedido>/e<n>/ (resultado.json, resultado.txt, CSVs, correcao_*.md), que o web manda no mesmo fio. refazer_recusados: com recusa e o commit novo, roda de novo sozinho. motores_web: o motor que é IA na web (o resto é local)"
+  },
   "rodada_max_s": 3000,
   "_rodada_max_s": "a rodada sai depois disso, entre pranchas; o launchd a sobe de novo em 5 min com o código que estiver na main",
   "publicar_a_cada_s": 600,
