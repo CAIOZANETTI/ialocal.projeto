@@ -1152,6 +1152,72 @@ def testar_pedido(raiz):
     del os.environ['PROJETO_PEDIDOS']
 
 
+def pdf_com_imagens(imagens, folha=(2384, 1684)):
+    """PDF A1 com imagens coladas: imagens = [(largura_px, altura_px, (x, y, w, h) em pt, matriz do formulário ou None)].
+    Com matriz, a imagem vai dentro de um Form XObject — como o CAD grava a tabela do Excel colada (0v33)."""
+    objetos, recursos, conteudo = [None, None, None], [], []
+    for i, (largura_px, altura_px, (x, y, w, h), matriz) in enumerate(imagens):
+        dados = bytes((j * 7) % 256 for j in range(largura_px * altura_px))
+        objetos.append(f'<< /Type /XObject /Subtype /Image /Width {largura_px} /Height {altura_px} /ColorSpace /DeviceGray '
+                       f'/BitsPerComponent 8 /Length {len(dados)} >>\nstream\n'.encode('latin-1') + dados + b'\nendstream')
+        if matriz:
+            interno = f'q {w} 0 0 {h} {x} {y} cm /Im0 Do Q'
+            objetos.append(f'<< /Type /XObject /Subtype /Form /BBox [0 0 {folha[0]} {folha[1]}] /Matrix [{matriz}] '
+                           f'/Resources << /XObject << /Im0 {len(objetos)} 0 R >> >> /Length {len(interno)} >>\nstream\n{interno}\nendstream'.encode())
+            conteudo.append(f'/X{i} Do')
+        else:
+            conteudo.append(f'q {w} 0 0 {h} {x} {y} cm /X{i} Do Q')
+        recursos.append(f'/X{i} {len(objetos)} 0 R')
+    corpo = '\n'.join(conteudo)
+    objetos.append(f'<< /Length {len(corpo)} >>\nstream\n{corpo}\nendstream'.encode())
+    objetos[:3] = [b'<< /Type /Catalog /Pages 2 0 R >>', b'<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+                   f'<< /Type /Page /Parent 2 0 R /MediaBox [0 0 {folha[0]} {folha[1]}] /Resources << /XObject << {" ".join(recursos)} >> >> '
+                   f'/Contents {len(objetos)} 0 R >>'.encode()]
+    saida, posicoes = b'%PDF-1.7\n', []
+    for numero, objeto in enumerate(objetos, 1):
+        posicoes.append(len(saida))
+        saida += f'{numero} 0 obj\n'.encode() + objeto + b'\nendobj\n'
+    tabela = f'xref\n0 {len(objetos) + 1}\n0000000000 65535 f \n' + ''.join(f'{p:010d} 00000 n \n' for p in posicoes)
+    return saida + f'{tabela}trailer\n<< /Size {len(objetos) + 1} /Root 1 0 R >>\nstartxref\n{len(saida)}\n%%EOF\n'.encode()
+
+
+def testar_tabelas_em_formulario(raiz):
+    """0v33, Giselle (08/10): 'existem 3 tabelas no projeto que te enviei; você leu somente a primeira'. A tabela do Excel
+    colada no CAD vai dentro de um formulário (Form XObject) e a leitura só via a imagem solta na página. Agora as três
+    entram (a de dentro do formulário com a caixa na folha, pela matriz dele), a pequena fica de fora com o motivo, e o
+    inventário diz cada uma."""
+    import pedido
+    import pypdfium2 as pdfium
+    from PIL import Image
+    caminho = raiz / 'tres_tabelas.pdf'
+    caminho.write_bytes(pdf_com_imagens([(1200, 400, (1500, 900, 600, 200), None),
+                                         (1200, 300, (1500, 650, 600, 150), '1 0 0 1 0 0'),
+                                         (1200, 120, (2800, 1000, 600, 60), '0.5 0 0 0.5 100 50'),
+                                         (200, 100, (100, 100, 40, 20), '1 0 0 1 0 0')]))
+    FATIAS, LIMITE = comum.configuracao('prancha')['fatias'], comum.configuracao('prancha')['classe']['fracao_imagem_raster']
+    documento = pdfium.PdfDocument(caminho)
+    inventario = prancha.imagens_da_folha(documento[0], FATIAS, LIMITE)
+    so_pagina = prancha.imagens_da_folha(documento[0], {**FATIAS, 'profundidade_formularios': 1}, LIMITE)
+    documento.close()
+    lidas, original = [], prancha.ler_tabela
+    prancha.ler_tabela = lambda destino, com_vision, base: lidas.append((base['imagem'], base['faixa'], Image.open(destino).size)) or \
+        [{**base, 'linha': 1, 'celulas': '["40", "300491", "CURVA", "54", "PÇ"]', 'status': 'confirmada', 'nao_confirmados': '', 'erro': ''}]
+    try:
+        linhas, imagens = prancha.ler_imagens(caminho, raiz / 'recortes_tres', False, {'id': 'x'}, time.monotonic() + 60)
+    finally:
+        prancha.ler_tabela = original
+    conferir(len(so_pagina) == 1 and [i['onde'] for i in inventario] == ['solta', 'formulario', 'formulario', 'formulario']
+             and [i['lida'] for i in inventario] == [True, True, True, False] and inventario[3]['motivo'] == 'pequena'
+             and inventario[2]['caixa_pt'] == [1500.0, 1104.0, 1800.0, 1134.0]
+             and sorted({i for i, _, _ in lidas}) == [1, 2, 3] and all(i['faixas'] >= 1 and i['linhas'] >= 1 for i in imagens[:3])
+             and len({l['imagem'] for l in linhas}) == 3 and lidas[0][2][0] == FATIAS['lado_px'],
+             'tabelas coladas dentro de formulário (o CAD com o Excel): as 3 entram (antes, só a solta), a caixa da de dentro na '
+             'folha pela matriz do formulário, a pequena fica de fora com o motivo; o inventário diz faixas e linhas de cada uma')
+    texto = pedido.imagens_em_texto(imagens)
+    conferir(texto[0] == '   Imagens na folha: 4 (3 lida(s) como tabela)' and 'imagem 4 (formulario, 200×100 px): não lida — pequena demais' in texto[-1],
+             'o resultado do pedido diz cada imagem da folha: lida (faixas, linhas) ou por que não')
+
+
 def testar_velocidade():
     """0v32, o cronômetro do pedido: a função de dentro não conta duas vezes no próprio tempo da de fora; o Ollama diz
     quanto gastou carregando, lendo o prompt e gerando (ns → s); a camada do motor e o gargalo saem disso; fora do
@@ -1292,6 +1358,7 @@ def principal():
         testar_ensaio(raiz)
         testar_pedido(raiz)
         testar_velocidade()
+        testar_tabelas_em_formulario(raiz)
 
 
 if __name__ == '__main__':

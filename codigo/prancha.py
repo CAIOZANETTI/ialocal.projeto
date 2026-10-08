@@ -580,29 +580,48 @@ def ler_tabela(imagem, com_vision, base):
     return linhas or [{**base, 'linha': 0, 'celulas': '[]', 'status': 'vazia', 'nao_confirmados': '', 'erro': erro or vista['erro_vision']}]
 
 
-def ler_imagens(caminho, pasta, com_vision, base, prazo):
-    """Cada imagem colada na primeira página (não a folha escaneada inteira) lida como tabela, faixa a faixa."""
-    import pypdfium2 as pdfium
+def imagens_da_folha(pagina, FATIAS, LIMITE):
+    """O inventário das imagens da primeira página, soltas ou dentro de formulário (Form XObject: é como o CAD grava a
+    tabela do Excel colada — 0v33, pedido da Giselle de 08/10, 'existem 3 tabelas e você leu só a primeira': só a de
+    fora era vista). Cada uma com a caixa na folha (pt, de cima), os px, a fração da folha e se entra como tabela."""
     import pypdfium2.raw as raw
+    folha_pt = pagina.get_size()
+    inventario = []
+    for imagem in pagina.get_objects(filter=[raw.FPDF_PAGEOBJ_IMAGE], max_depth=FATIAS['profundidade_formularios']):
+        (esquerda, baixo, direita, cima), (largura_px, altura_px) = limites(imagem), imagem.get_px_size()
+        fracao = (direita - esquerda) * (cima - baixo) / (folha_pt[0] * folha_pt[1])
+        motivo = ('pequena' if max(largura_px, altura_px) < FATIAS['imagem_minima_px'] else
+                  'folha_escaneada' if fracao >= LIMITE else '')
+        inventario.append({'imagem': len(inventario) + 1, 'nivel': imagem.level, 'onde': 'formulario' if imagem.level else 'solta',
+                           'caixa_pt': [round(v, 1) for v in (esquerda, folha_pt[1] - cima, direita, folha_pt[1] - baixo)],
+                           'px': [largura_px, altura_px], 'fracao_folha': round(fracao, 4), 'lida': not motivo, 'motivo': motivo})
+    return inventario
+
+
+def ler_imagens(caminho, pasta, com_vision, base, prazo):
+    """Cada imagem colada na primeira página (não a folha escaneada inteira), solta ou dentro de formulário, lida como
+    tabela, faixa a faixa. Devolve (linhas, inventário com as faixas e as linhas de cada imagem)."""
+    import pypdfium2 as pdfium
     FATIAS = comum.configuracao('prancha')['fatias']
     LIMITE = comum.configuracao('prancha')['classe']['fracao_imagem_raster']
     documento = pdfium.PdfDocument(caminho)
     pagina = documento[0]
     folha_pt = pagina.get_size()
-    caixas = []
-    for imagem in pagina.get_objects(filter=[raw.FPDF_PAGEOBJ_IMAGE], max_depth=1):
-        (esquerda, baixo, direita, cima), (largura_px, altura_px) = limites(imagem), imagem.get_px_size()
-        grande = max(largura_px, altura_px) >= FATIAS['imagem_minima_px']
-        if grande and (direita - esquerda) * (cima - baixo) < LIMITE * folha_pt[0] * folha_pt[1]:
-            caixas.append((esquerda, folha_pt[1] - cima, direita, folha_pt[1] - baixo, largura_px))
+    inventario = imagens_da_folha(pagina, FATIAS, LIMITE)
     documento.close()
     linhas = []
-    for numero, caixa in enumerate(caixas, 1):
+    for item in inventario:
+        if not item['lida']:
+            continue
         if time.monotonic() > prazo:
-            break
-        for faixa, destino in enumerate(faixas(caminho, caixa, folha_pt, pasta / f'imagem{numero}'), 1):
-            linhas += ler_tabela(destino, com_vision, {**base, 'imagem': numero, 'faixa': faixa})
-    return linhas
+            item.update(lida=False, motivo='tempo')
+            continue
+        lidas, recortes = [], faixas(caminho, (*item['caixa_pt'], item['px'][0]), folha_pt, pasta / f"imagem{item['imagem']}")
+        for faixa, destino in enumerate(recortes, 1):
+            lidas += ler_tabela(destino, com_vision, {**base, 'imagem': item['imagem'], 'faixa': faixa})
+        item.update(faixas=len(recortes), linhas=sum(l['status'] != 'vazia' for l in lidas))
+        linhas += lidas
+    return linhas, inventario
 
 
 def conferir(linha, leituras, tabelas):
@@ -670,10 +689,11 @@ def ler_prancha_ia(documento, rodada):
         comum.gravar('carimbo', ler_carimbo_ocr(recorte_do_carimbo(caminho, pasta), documento['nome'], com_vision,
                                                 {**base_da_linha(documento, 'carimbo_ia', rodada), 'leitor': 'glm_ocr+vision'}))
     leituras, planejadas = ler_fatias(caminho, pasta, com_vision, base, prazo)
-    tabelas = ler_imagens(caminho, pasta, com_vision, base, prazo)
+    tabelas, imagens = ler_imagens(caminho, pasta, com_vision, base, prazo)
     contagem = {s: sum(l['status'] == s for l in leituras) for s in ('confirmado', 'so_glm', 'so_vision', 'um_leitor')}
     resumo = {**linha, **base, **conferir(linha, leituras, tabelas), 'fatias_lidas': len({l['fatia'] for l in leituras}),
               'fatias_planejadas': planejadas, 'com_vision': com_vision, **{f'valores_{s}': n for s, n in contagem.items()},
+              'imagens_na_folha': json.dumps(imagens, ensure_ascii=False), 'imagens_lidas': sum(i['lida'] for i in imagens),
               'linhas_tabela': len(tabelas), 'linhas_tabela_confirmadas': sum(t['status'] == 'confirmada' for t in tabelas),
               'motivo': 'tempo: parou no limite da prancha (operacao.json → limite_ia_s)' if time.monotonic() > prazo else ''}
     if linha['familia'] == 'indefinida':

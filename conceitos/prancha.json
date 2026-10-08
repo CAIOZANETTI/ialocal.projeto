@@ -166,6 +166,8 @@
     "maximo_fatias": 60,
     "paginas_com_ia": 1,
     "imagem_minima_px": 400,
+"profundidade_formularios": 15,
+"_profundidade_formularios": "0v33, Giselle (08/10): 'existem 3 tabelas no projeto e você leu só a primeira'. A tabela do Excel colada no CAD vai ao PDF dentro de um formulário (Form XObject); com 1 (só a página), só a imagem solta era lida. 15 é o padrão do pdfium; a caixa já vem na folha, com a matriz do formulário",
     "faixa_altura_px": 500,
     "_maximo_fatias": "A0 a 150 DPI dá 48 fatias de 1.100 px; acima do máximo, as que sobram não são lidas e o motivo fica na linha"
   },

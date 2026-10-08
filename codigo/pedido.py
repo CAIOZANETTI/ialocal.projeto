@@ -361,8 +361,9 @@ def documento_lido(d, feitas):
     campos = ('paginas', 'formato', 'classe', 'camada', 'e_prancha', 'boletim_sondagem', 'motivo', 'familia', 'familia_origem', 'grupo',
               'desenho', 'carimbo_camada', 'eixo', 'eixo_mm', 'eixo_vertices', 'deflexoes', 'eixo_camadas', 'escalas_confirmadas',
               'eixo_m', 'eixo_m_camadas', 'tubo_relacao_m', 'conferencia', 'diferenca_relativa', 'fatias_lidas', 'fatias_planejadas',
-              'valores_confirmado', 'valores_so_glm', 'valores_so_vision', 'linhas_tabela', 'linhas_tabela_confirmadas')
+              'valores_confirmado', 'valores_so_glm', 'valores_so_vision', 'linhas_tabela', 'linhas_tabela_confirmadas', 'imagens_lidas')
     return {'id': d['id'], 'arquivo': d['nome'], 'bytes': d['bytes'], **{c: linha.get(c) for c in campos},
+            'imagens_na_folha': json.loads(linha.get('imagens_na_folha') or '[]'),  # 0v33: cada imagem colada, lida ou não, e por quê
             'tarefas': [{k: t[k] for k in ('tarefa', 'segundos', 'erro')} for t in feitas]}
 
 
@@ -558,7 +559,7 @@ def documento_em_texto(numero, d, it):
     linhas_ += [f'   ERRO {e}' for e in erros]
     linhas_.append('   Tempo: ' + ' · '.join(f"{t['tarefa']} {segundos(t['segundos'])}" for t in d['tarefas']))
     if d.get('e_prancha'):
-        linhas_ += carimbo_em_texto(d, it.get('carimbo', [])) + tabelas_em_texto(it.get('tabelas', [])) + tracado_em_texto(d) \
+        linhas_ += carimbo_em_texto(d, it.get('carimbo', [])) + tabelas_em_texto(it.get('tabelas', []), d.get('imagens_na_folha')) + tracado_em_texto(d) \
             + texto_da_folha(d, it)
     if d.get('boletim_sondagem'):
         linhas_ += sondagem_em_texto(it)
@@ -577,15 +578,26 @@ def carimbo_em_texto(d, campos):
     return [cabeca + f" · {', '.join(f'{n} {s}' for s, n in contagem.items())}", *corpo]
 
 
-def tabelas_em_texto(tabelas):
+def imagens_em_texto(imagens):
+    """0v33: as imagens coladas na folha, uma por linha: onde está, o tamanho, se foi lida (faixas, linhas) ou por que não."""
+    if not imagens:
+        return []
+    MOTIVOS = {'pequena': 'pequena demais para ser tabela', 'folha_escaneada': 'é a folha escaneada (lida pelas fatias)', 'tempo': 'o limite da prancha acabou antes'}
+    return [f"   Imagens na folha: {len(imagens)} ({sum(i['lida'] for i in imagens)} lida(s) como tabela)"] + [
+        f"     imagem {i['imagem']} ({i['onde']}, {i['px'][0]}×{i['px'][1]} px): "
+        + (f"{i.get('faixas', 0)} faixa(s), {i.get('linhas', 0)} linha(s)" if i['lida'] else f"não lida — {MOTIVOS.get(i['motivo'], i['motivo'])}")
+        for i in imagens]
+
+
+def tabelas_em_texto(tabelas, imagens=None):
     if not tabelas:
-        return ['   TABELAS — nenhuma tabela colada como imagem na folha (a tabela em texto/vetor ainda não é lida como tabela)']
+        return ['   TABELAS — nenhuma tabela colada como imagem na folha (a tabela em texto/vetor ainda não é lida como tabela)'] + imagens_em_texto(imagens)
     contagem = Counter(t['status'] for t in tabelas)
     imagens = len({t['imagem'] for t in tabelas})
     corpo = [f"     {' | '.join(t['celulas'])}  [{t['status']}{': falta ' + t['nao_confirmados'] if t.get('nao_confirmados') else ''}]"
              for t in tabelas[:MOSTRAR]]
     return [f"   TABELAS — glm-ocr (modo tabela) × Vision: {imagens} imagem(ns), {len(tabelas)} linha(s): "
-            f"{', '.join(f'{n} {s}' for s, n in contagem.items())}", *corpo] + \
+            f"{', '.join(f'{n} {s}' for s, n in contagem.items())}", *imagens_em_texto(imagens), *corpo] + \
         ([f'     … mais {len(tabelas) - MOSTRAR} linha(s) em tabelas.csv'] if len(tabelas) > MOSTRAR else [])
 
 
