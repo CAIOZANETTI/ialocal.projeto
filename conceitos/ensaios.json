@@ -4,7 +4,7 @@
     "fonte": "pedido do Caio de 07/10/2026: 'pegar a pasta 211 Foz do Iguaçu do Drive, no máximo 10 pranchas, rodar e fazer acontecer, pedindo prioridade ao maestro'",
     "atualizado_em": "2026-10-07"
   },
-  "pedido": {"ensaio": "foz_10", "id": "2026-10-07-a"},
+  "pedido": {"ensaio": "foz_10", "id": "2026-10-08-a"},
   "_pedido": "a rodada (a cada 5 min no launchd) roda o ensaio pedido uma vez por id, antes do trabalho de sempre. Para rodar de novo — depois de um PR que muda o código, por exemplo — troca o id por PR: o mini puxa a main em até 5 min e a rodada seguinte executa. Sem pedido (null), nada roda sozinho; à mão: codigo/ensaio.py rodar <nome>",
   "ensaios": {
     "foz_10": {
@@ -14,6 +14,10 @@
       ],
       "_fontes": "a primeira que der PDF vale e fica registrada na execução. drive: os PDFs soltos da pasta da entrada (recursivo; PDF dentro de zip não aparece); entrega: os PDFs que o extrator já tirou dos zips e entregou ao projeto, da obra que casa com o padrão (acervo/obra)",
       "maximo": 10,
+      "formatos": ["A0", "A1", "A2", "A3", "fora_de_serie"],
+      "_formatos": "0v30, primeira execução real (07/10): 4 dos 10 PDFs sorteados eram A4 que não são projeto (relatório fotográfico, catálogo do medidor de vazão, cotação do tampão). Entra só o PDF com alguma das 3 primeiras páginas nestes formatos; a lista gravada com outro filtro é sorteada de novo",
+      "candidatos_max": 40,
+      "_candidatos_max": "no Drive, o sorteio baixa os candidatos na ordem dele, aos lotes de `maximo`, até achar `maximo` no formato ou baixar este tanto",
       "preferir": "(?i)AAT-?06",
       "_preferir": "entram primeiro os nomes que casam (as folhas da AAT-06, que têm teste de mesa: notas/teste_prancha_2026-09-26.md e teste_jogo_foz); o resto, até o máximo, pelo sorteio do sha1 do caminho — o mesmo sorteio sempre",
       "lista": [],

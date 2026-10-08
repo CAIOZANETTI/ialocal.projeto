@@ -25,6 +25,7 @@ import comum
 import entrega
 import pedido
 import prancha
+import rastro
 import respostas
 import sondagem
 
@@ -130,7 +131,7 @@ def executar(tarefa, documento, rodada):
 
 
 def publicar(documentos):
-    """pranchas.csv, prancha_leituras.csv e prancha_tabelas.csv: todas as obras em saida/_sistema/projeto/ e cada obra em
+    """pranchas.csv, prancha_leituras.csv, prancha_tabelas.csv… e rastro.csv (a vista de quem leu o quê): todas as obras em saida/_sistema/projeto/ e cada obra em
     saida/<acervo>/<obra>/projeto/ (ao lado de extrator/, revisor/ e contexto/). Só quando alguma tabela mudou desde a
     última publicação."""
     DRIVE, marca = comum.configuracao('operacao')['drive'], comum.DADOS / '.publicado'
@@ -141,6 +142,8 @@ def publicar(documentos):
     if not mudou or (marca.exists() and marca.stat().st_mtime >= mudou):
         return
     marca.touch()
+    rastro.gerar()  # a vista única de quem leu o quê, refeita só quando alguma família mudou
+    FAMILIAS['rastro'] = 'rastro.csv'
     obra_de = pl.DataFrame([{'id': d['id'], 'acervo_atual': d['acervo'], 'obra_atual': d['obra']} for d in documentos]
                            or {'id': [], 'acervo_atual': [], 'obra_atual': []}, schema={'id': pl.Utf8, 'acervo_atual': pl.Utf8, 'obra_atual': pl.Utf8})
     for familia, nome in FAMILIAS.items():
