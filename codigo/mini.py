@@ -17,6 +17,7 @@ REGISTROS = RAIZ / 'dados'
 PREFIXO = 'com.caiozanetti.ialocal.projeto'
 AGENDAS = {
     'rodada': (['ciclo.py', 'rodada'], {'StartInterval': 300}),  # sai sozinha (rodada_max_s); a seguinte sai na hora se a anterior roda
+    'pedido': (['pedido.py', 'vigiar'], {'StartInterval': 60, 'WatchPaths': [os.path.expanduser('~/dados/ialocal.web/saidas/pedidos')]}),  # 0v27: o pedido do Caio por e-mail, na hora
     'atualizar': (['mini.py', 'atualizar'], {'StartInterval': 300}),  # por último: reagendá-lo encerra quem reagenda
 }
 

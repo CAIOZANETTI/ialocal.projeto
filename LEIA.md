@@ -28,6 +28,8 @@ python3 -m venv .venv && .venv/bin/pip install polars pdfplumber pypdfium2 pillo
 .venv/bin/python codigo/bancada.py tudo --refazer   # o mesmo, chamando de novo o congelado: o tempo útil medido nas mesmas condições
 .venv/bin/python codigo/ensaio.py lista foz_10      # o ensaio de Foz: quais PDFs (no máximo 10) entram, sem rodar
 .venv/bin/python codigo/ensaio.py rodar foz_10      # roda o ensaio de ponta a ponta, com a vez da GPU pedida ao maestro (prioridade 4)
+.venv/bin/python codigo/pedido.py lista             # 0v27: os pedidos por e-mail, as execuções e as validações
+.venv/bin/python codigo/pedido.py rodar <id>        # roda (de novo) um pedido à mão; o agendado (pedido.py vigiar) faz sozinho
 ```
 
 **O clone pede uma chave de acesso própria** (como os outros `ialocal.*`):
@@ -60,6 +62,7 @@ codigo/ia.py            a porta para os modelos locais (Ollama, Vision, Apple FM
 codigo/bancada.py       a bancada de todos os leitores: código primeiro, depois agentes e modelos; qualidade, tempo útil, taxa de erro e tempo perdido; placar e veredito (saidas/bancada_agentes.csv)
 codigo/grade.py         o leitor só de código: a tabela pelas caixas das palavras do Vision (linhas pela altura, colunas pelo cabeçalho), sem modelo
 codigo/curadoria.py     Python decide o que vale entre N leitores: confirmada (com testemunha), confirmada_ia, divergente, so_<leitor>
+codigo/pedido.py        o pedido por e-mail (0v27): o documento que o Caio (ou quem verifica) manda ao mini, lido de ponta a ponta com a prioridade do Caio; o resultado (o que saiu, item a item, ferramentas, IAs locais e web, tempo), o prompt de correção da recusa e o placar das validações
 codigo/ensaio.py        o ensaio: até 10 PDFs reais e fixos (Foz) de ponta a ponta — código, depois a IA na vez pedida ao maestro —, o registro de cada execução e o que mudou desde a anterior; pedido por PR em conceitos/ensaios.json
 codigo/licoes.py        cada falha da bancada vira lição (classe, gravidade, destino da correção, se o código já acertava) e o progresso entre gerações: o começo do ciclo de lições
 codigo/agentes.py       os agentes externos (Kimi K3, Nemotron Parse 2.0): leitura por agente, em paralelo, registro, sonda contra o gabarito de Cambé
@@ -136,6 +139,15 @@ Drive  saida/<acervo>/<obra>/projeto/   pranchas.csv, prancha_leituras.csv, pran
   leitores candidatos: o número que só eles leram nunca vira `confirmado`. A chave fica fora do git, em
   `~/.config/ialocal/nvidia_api_key` (`chmod 600`; criar em build.nvidia.com com a conta do Developer Program). Desligar:
   `agentes.json → ligado: false` por PR. Por ora só a sonda e a bancada (`bancada.py`, 0v8) chamam; a rodada não (`notas/plano_agentes_nvidia.md`).
+- **O pedido por e-mail é prioridade máxima** (0v27). O Caio manda o PDF ao mini com `[projeto]` (ou `[sondagem]`) no
+  assunto; o ialocal.web guarda em `~/dados/ialocal.web/saidas/pedidos/<id>/` e o agendamento `pedido` (a cada minuto e
+  quando a pasta muda; não é pesado, roda de dia) lê tudo de novo: o código, depois a IA com a vez da GPU na prioridade
+  0 — o dono da vez devolve na hora e o maestro pausa os pesados; a rodada de sempre cede. O resultado vai para
+  `saidas/pedidos/<id>/e<n>/` e o web o manda no mesmo fio. Quem valida responde no fio ("carimbo: ok", "traçado: não,
+  o eixo tem 540 m", "refazer"); a recusa vira `correcao_*.md`, o prompt para o Claude, e, quando o commit muda, o
+  pedido roda de novo sozinho e diz o que mudou. O placar de cada item por execução e commit fica em
+  `saidas/pedidos.csv` (Drive `_sistema/projeto/pedidos.csv`): é ele que diz qual algoritmo funcionou. A leitura
+  ainda olha só a página 1 de cada PDF (o resultado avisa) e a tabela em texto/vetor ainda não é lida como tabela.
 - **O ensaio se pede por PR** (0v26). `conceitos/ensaios.json → pedido` diz qual ensaio e um id; a rodada de 5 min roda
   o ensaio uma vez por id, antes do trabalho de sempre, pedindo a vez da GPU ao maestro com prioridade 4 (à frente dos
   documentos, que é 5). Para rodar de novo depois de mudar o código, um PR troca o id. O ensaio lê sempre os mesmos

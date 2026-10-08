@@ -1022,6 +1022,67 @@ def testar_ensaio(raiz):
              'prancha: só o erro sumiu')
 
 
+def testar_pedido(raiz):
+    """0v27, o pedido do Caio por e-mail: o web guarda o PDF em <pedidos>/<id>/ (meta.json com o tipo); o vigiar lê
+    tudo de novo (código e IA na vez da GPU com a prioridade 0), grava resultado.json/resultado.txt com cada item, as
+    ferramentas, as IAs (local ou web) e o tempo, e os CSVs; o tipo de outro leitor fica de fora; a recusa gera o
+    prompt de correção e, com o commit novo, roda de novo sozinho; 'refazer' roda de novo na hora."""
+    import pedido
+    from datetime import timedelta
+    pasta = raiz / 'web' / 'pedidos'
+    os.environ['PROJETO_PEDIDOS'] = str(pasta)
+    guardar = lambda i, tipo, quando: ((pasta / i / 'anexos').mkdir(parents=True), (pasta / i / 'anexos' / 'AAT06.pdf').write_bytes(pdf_prancha()),
+                                       (pasta / i / 'meta.json').write_text(json.dumps({'id': i, 'tipo': tipo, 'de': 'caiozanetti@gmail.com',
+                                                                                         'assunto': f'[{tipo}] AAT-06', 'recebido_em': quando})))
+    guardar('p1', 'projeto', '2026-10-08T09:00:00-03:00')
+    guardar('m1', 'memorial', '2026-10-08T09:01:00-03:00')
+    ia_falsa()
+    pedido.vigiar()
+    feitas = pedido.execucoes('p1')
+    e1 = feitas[0]
+    pasta_e1 = comum.SAIDAS / 'pedidos' / 'p1' / 'e1'
+    conferir(len(feitas) == 1 and not pedido.execucoes('m1') and e1['motivo'] == 'primeira leitura' and not e1['erro']
+             and e1['documentos'][0]['e_prancha'] and [t['tarefa'] for t in e1['documentos'][0]['tarefas']] == ['ler_prancha', 'ler_prancha_ia'],
+             'pedido: o PDF do projeto é lido pelo código e pela IA; o memorial (outro leitor) fica de fora')
+    texto = (pasta_e1 / 'resultado.txt').read_text()
+    conferir(all(t in texto for t in ('CARIMBO — pelo código', 'titulo: ADUTORA DE AGUA TRATADA AAT-06', 'TRAÇADO — pelo código, a faixa colorida',
+                                      'TEXTO DA FOLHA', 'FERRAMENTAS E TEMPO', 'IA local vision:macOS', 'TOTAL:', 'PARA VALIDAR'))
+             and {'pranchas.csv', 'carimbos.csv', 'leituras.csv'} <= set(e1['anexos']) and all((pasta_e1 / a).exists() for a in e1['anexos'])
+             and e1['itens'][e1['documentos'][0]['id']]['carimbo'],
+             'pedido: o resultado diz o que saiu de cada item, com o leitor, as ferramentas, as IAs (local/web), o tempo e como validar; os CSVs vão junto')
+    status = json.loads((comum.SAIDAS / 'status.json').read_text())
+    conferir(status['pedido']['ativo'] is False and status['pedido']['recebidos'] == 1 and not (comum.DADOS / 'pedido_ativo.json').exists(),
+             'pedido: o status diz que não há pedido em curso nem na fila (o maestro só pausa os pesados com pedido ativo)')
+    depois = (pedido.instante(e1['fim']) + timedelta(minutes=1)).isoformat()
+    validacao = {'pedido': 'p1', 'execucao': 'e1', 'de': 'caiozanetti@gmail.com', 'recebido_em': depois, 'veredito': 'recusado', 'refazer': False,
+                 'itens': {'carimbo': {'veredito': 'aceito', 'motivo': ''}, 'tracado': {'veredito': 'recusado', 'motivo': 'o eixo tem 540 m'}},
+                 'texto': 'carimbo: ok\ntraçado: não, o eixo tem 540 m'}
+    (pasta / 'p1' / 'validacoes').mkdir()
+    (pasta / 'p1' / 'validacoes' / 'v1.json').write_text(json.dumps(validacao))
+    pedido.vigiar()
+    prompt = next(pasta_e1.glob('correcao_*.md')).read_text()
+    conferir(len(pedido.execucoes('p1')) == 1 and 'o eixo tem 540 m' in prompt and 'conceitos/prancha.json → eixo' in prompt
+             and 'commit' in prompt and 'codigo/testes.py' in prompt,
+             'recusa: o prompt de correção (o motivo, o que saiu, onde mexer, como provar); com o mesmo código, não roda de novo')
+    codigo = comum.codigo
+    comum.codigo = lambda: {**codigo(), 'commit': 'novo123'}
+    try:
+        pedido.vigiar()
+    finally:
+        comum.codigo = codigo
+    feitas = pedido.execucoes('p1')
+    conferir(len(feitas) == 2 and feitas[1]['motivo'].startswith('código novo') and 'COMPARADO COM A EXECUÇÃO e1' in feitas[1]['texto'],
+             'recusa + commit novo: roda de novo sozinho e diz o que mudou desde a execução anterior')
+    (pasta / 'p1' / 'validacoes' / 'v2.json').write_text(json.dumps({**validacao, 'veredito': '', 'itens': {}, 'refazer': True, 'execucao': 'e2',
+                                                                     'recebido_em': (pedido.instante(feitas[1]['fim']) + timedelta(minutes=1)).isoformat()}))
+    pedido.vigiar()
+    placar = pl.read_csv(comum.SAIDAS / 'pedidos.csv', separator=';')
+    conferir(len(pedido.execucoes('p1')) == 3 and pedido.execucoes('p1')[2]['motivo'] == 'você pediu para refazer'
+             and placar.filter((pl.col('execucao') == 'e1') & (pl.col('item') == 'tracado'))['veredito'][0] == 'recusado',
+             '"refazer" roda de novo na hora; o placar (saidas/pedidos.csv) guarda o veredito de cada item por execução e commit')
+    del os.environ['PROJETO_PEDIDOS']
+
+
 def testar_vision_com_prazo():
     """O Vision num processo à parte, com prazo: o que responde devolve o texto; o que trava (04/10: 11 h dentro de
     performRequests, a vez da GPU presa o tempo todo) é encerrado no prazo e sobe como erro, sem segurar a rodada."""
@@ -1090,6 +1151,7 @@ def principal():
         comum.DADOS.mkdir()
         ia.OLLAMA = 'http://127.0.0.1:9'  # porta fechada: nenhum teste chama modelo de verdade
         ia.instalado = lambda modulo: modulo in sys.modules  # no mini o Vision e o Apple FM existem: só o falso do teste conta
+        os.environ['PROJETO_PEDIDOS'] = str(raiz / 'web' / 'sem_pedidos')  # no mini a pasta do web existe: só os pedidos do teste contam
         respostas.RESPOSTAS = raiz / 'web' / 'demandas'  # no mini a pasta do web existe: só as respostas do teste contam
         cliente_gpu.VEZ = raiz / 'sem_maestro' / 'vez.json'  # no mini o maestro está de pé e nunca daria a vez ao pedido da pasta do teste
         ensaio.pendente = lambda: None  # o pedido de verdade (conceitos/ensaios.json) não roda nos testes; testar_ensaio pede o dele
@@ -1115,6 +1177,7 @@ def principal():
         testar_licoes()
         testar_bancada(raiz)
         testar_ensaio(raiz)
+        testar_pedido(raiz)
 
 
 if __name__ == '__main__':
