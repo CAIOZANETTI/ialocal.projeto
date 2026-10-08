@@ -44,6 +44,7 @@ import comum
 import ensaio
 import ia
 import planilha
+import tempo
 
 ITENS = ('carimbo', 'tabelas', 'tracado', 'texto', 'sondagem')  # o que o Caio valida, um por um (o web usa os mesmos)
 NOMES = {'carimbo': 'CARIMBO', 'tabelas': 'TABELAS', 'tracado': 'TRAÇADO (eixo)', 'texto': 'TEXTO DA FOLHA (fatias)',
@@ -214,18 +215,24 @@ def rodar(pedido, motivo='à mão'):
     status()
     base = {'pedido': pedido['id'], 'repo': 'ialocal.projeto', 'etapa': 'extrair', 'entrada': {}, 'execucao': f'e{n}', 'n': n, 'motivo': motivo, 'assunto': pedido.get('assunto', ''),
             'inicio': inicio, **comum.codigo()}
-    try:
-        resultado = {**base, **executar(pedido, pasta, inicio, marca)}
-    except Exception as falha:
-        resultado = {**base, 'documentos': [], 'ferramentas': [], 'itens': {}, 'segundos': round(time.monotonic() - marca, 1),
-                     'espera_gpu_s': 0, 'anexos': [], 'erro': f'{type(falha).__name__}: {falha}'[:500],
-                     'rastro': traceback.format_exc()[-1500:]}
-    resultado['fim'] = comum.agora()
-    pasta.mkdir(parents=True, exist_ok=True)
-    try:  # a entrega ao cliente (0v31); se falhar, o pedido sai sem ela e com o motivo
-        resultado['entrega'] = entrega(resultado, pasta) if not resultado.get('erro') else []
-    except Exception as falha:
-        resultado['entrega'], resultado['erro_entrega'] = [], f'{type(falha).__name__}: {falha}'[:300]
+    with tempo.cronometrar(regra().get('velocidade', {}).get('funcoes', [])) as cronometro:
+        marcos_de_antes(pedido)
+        tempo.marco('pego_pelo_projeto')
+        try:
+            resultado = {**base, **executar(pedido, pasta, inicio, marca)}
+        except Exception as falha:
+            resultado = {**base, 'documentos': [], 'ferramentas': [], 'itens': {}, 'segundos': round(time.monotonic() - marca, 1),
+                         'espera_gpu_s': 0, 'anexos': [], 'erro': f'{type(falha).__name__}: {falha}'[:500],
+                         'rastro': traceback.format_exc()[-1500:]}
+        resultado['fim'] = comum.agora()
+        pasta.mkdir(parents=True, exist_ok=True)
+        try:  # a entrega ao cliente (0v31); se falhar, o pedido sai sem ela e com o motivo
+            resultado['entrega'] = entrega(resultado, pasta) if not resultado.get('erro') else []
+        except Exception as falha:
+            resultado['entrega'], resultado['erro_entrega'] = [], f'{type(falha).__name__}: {falha}'[:300]
+        tempo.marco('entrega_pronta')
+        tempo.marco('resultado_gravado')
+        resultado['velocidade'] = cronometro.velocidade(resultado.get('espera_gpu_s') or 0.0)
     resultado['texto'] = texto(resultado, feitas[-1] if feitas else None)
     (pasta / 'resultado.txt').write_text(resultado['texto'])
     comum.gravar_no_lugar(pasta / 'resultado.json', json.dumps(resultado, ensure_ascii=False, indent=1))  # por último: o web espera por ele
@@ -234,6 +241,17 @@ def rodar(pedido, motivo='à mão'):
     print(f"{time.strftime('%d/%m %H:%M:%S')}  pedido {pedido['id']} (e{n}): {len(resultado['documentos'])} documento(s) em "
           f"{resultado['segundos']} s{' · ERRO ' + resultado['erro'] if resultado.get('erro') else ''}", flush=True)
     return resultado
+
+
+def marcos_de_antes(pedido):
+    """O caminho até o projeto, pelo meta.json do web: quando quem pediu mandou (o Date: do e-mail, 0v19 do web) e
+    quando o web guardou o pedido."""
+    for campo, nome, quem in (('enviado_em', 'enviado_por_quem_pediu', 'email'), ('recebido_em', 'recebido_no_web', 'web')):
+        if pedido.get(campo):
+            try:
+                tempo.marco(nome, instante(pedido[campo]), quem)
+            except (TypeError, ValueError):
+                pass
 
 
 def executar(pedido, pasta, execucao, marca):
@@ -246,7 +264,9 @@ def executar(pedido, pasta, execucao, marca):
     feitas, tarefas = {d['id']: set() for d in lista}, {d['id']: [] for d in lista}
     chamadas = ia.medir()
     for d in lista:
+        tempo.documento(d['nome'])
         tarefas[d['id']] += ensaio.avancar(d, feitas[d['id']], execucao, so_codigo=True)
+    tempo.marco('codigo_fim')
 
     def precisa_de_ia(d):
         if any(t['erro'] for t in tarefas[d['id']]):
@@ -265,16 +285,22 @@ def executar(pedido, pasta, execucao, marca):
             print(f"{time.strftime('%d/%m %H:%M:%S')}  pedido {pedido['id']}: pedindo a vez da GPU (prioridade {REGRA['prioridade']}, a do Caio) "
                   f"para {len(fila)} documento(s)", flush=True)
             pedido_em = time.monotonic()
+            tempo.marco('gpu_pedida', quem='maestro')
             with cliente_gpu.vez_da_gpu('ialocal.projeto', str(comum.DADOS / 'gpu'), REGRA['prioridade'],
                                         comum.configuracao('operacao')['gpu']['modelo'], 'pedido') as vez:
                 espera += time.monotonic() - pedido_em
+                tempo.marco('gpu_concedida', quem='maestro')
                 for d in list(fila):
                     if not vez.minha():
                         break
                     vez.avancei(d['id'])
+                    tempo.documento(d['nome'])
                     tarefas[d['id']] += ensaio.avancar(d, feitas[d['id']], execucao, so_codigo=False)
                     vez.contar('documentos')
                     fila.remove(d)
+            tempo.marco('gpu_devolvida', quem='maestro')
+    tempo.documento('')
+    tempo.marco('ia_fim')
     pasta.mkdir(parents=True, exist_ok=True)
     return {'documentos': [documento_lido(d, tarefas[d['id']]) for d in lista], 'ferramentas': ferramentas(tarefas, list(chamadas), vision),
             'itens': itens(lista), 'segundos': round(time.monotonic() - marca, 1), 'espera_gpu_s': round(espera, 1),
@@ -495,6 +521,11 @@ def texto(resultado, anterior):
         partes.append('  · nenhuma IA chamada: tudo saiu por código')
     partes += [f"  espera pela vez da GPU: {segundos(resultado['espera_gpu_s'])}",
                f"  TOTAL: {segundos(resultado['segundos'])}" + (f" — {resultado['interrompido']}" if resultado.get('interrompido') else ''), '']
+    velocidade = resultado.get('velocidade') or {}
+    if velocidade.get('por_camada'):  # 0v32: do e-mail ao resultado gravado, por camada (o detalhe vai no dev.json)
+        partes += [f"Velocidade ({velocidade['de']} → {velocidade['ate']}: {segundos(velocidade['total_s'])}):"]
+        partes += [f"  {c['camada']:<20} {segundos(c['segundos']):>12}  {c['pct']:>5}%" for c in velocidade['por_camada']]
+        partes += [f"  gargalo: {velocidade['gargalo']}", '']
     if anterior:
         partes += mudancas(resultado, anterior) + ['']
     if resultado.get('entrega'):

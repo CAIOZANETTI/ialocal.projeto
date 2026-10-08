@@ -23,6 +23,14 @@
     "limite_s": 3600,
     "refazer_recusados": true,
     "motores_web": ["nvidia"],
+    "velocidade": {
+      "funcoes": ["ia.ollama", "ia.ler_com_vision", "ia.apple", "ia.nvidia", "ia.ocr_glm", "ia.dupla_leitura", "ia.ocr_da_pagina",
+                  "ia.ler_celulas", "ia.imagem_para_ia", "ia.versao_ollama",
+                  "prancha.perfilar", "prancha.ler_carimbo", "prancha.recorte_do_carimbo", "prancha.ler_carimbo_ocr", "prancha.familia",
+                  "prancha.eixo", "prancha.ler_fatias", "prancha.ler_tabela", "prancha.ler_imagens", "prancha.conferir", "prancha.desempatar",
+                  "sondagem.ler_sondagem", "sondagem.ler_sondagem_ia", "comum.gravar", "pedido.exportar", "pedido.paginas_jsonl", "pedido.entrega"],
+      "_funcoes": "0v32, Caio (08/10): 'a última tarefa gastou 9 minutos; preciso saber todos os tempos — maestro > projeto > ollama > python, tudo'. As funções que o pedido cronometra (codigo/tempo.py): cada uma embrulhada só durante o pedido, com chamadas, segundos (com as que ela chama), proprio_s (sem elas), máximo e erros; ia.ollama, ia.ler_com_vision, ia.apple e ia.nvidia medem as camadas dos motores. A que sumiu do código vai em velocidade.nao_medidas: atualizar a lista por PR"
+    },
     "_pedidos": "0v27, pedido do Caio (08/10): o e-mail com o documento anexado vira pedido. O ialocal.web guarda em pasta/<pedido>/ (anexos/, meta.json com o tipo da marca do assunto, validacoes/); o projeto lê só os tipos de 'tipos' (os outros — memorial, livro, planilha… — são de outro leitor), roda na vez da GPU com a prioridade do Caio (0: o dono da vez devolve na hora; o maestro pausa os pesados enquanto o pedido roda), até limite_s, e grava saidas/pedidos/<pedido>/e<n>/ (resultado.json, resultado.txt, CSVs, correcao_*.md), que o web manda no mesmo fio. refazer_recusados: com recusa e o commit novo, roda de novo sozinho. motores_web: o motor que é IA na web (o resto é local)"
   },
   "rodada_max_s": 3000,

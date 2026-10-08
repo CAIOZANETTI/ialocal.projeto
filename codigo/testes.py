@@ -1039,6 +1039,7 @@ def testar_ensaio(raiz):
     regras['ensaios']['foz']['formatos'] = ['A0', 'A1', 'A2', 'A3', 'fora_de_serie']
     regras['pedido']['id'] = 'p4'
     ensaio.ollama_no_ar = lambda: False
+    time.sleep(1.05)  # a execução do ensaio tem o id no segundo (comum.agora): no mesmo segundo da anterior, o filtro pegava as duas
     try:
         ciclo.rodada()
     finally:
@@ -1088,6 +1089,19 @@ def testar_pedido(raiz):
              and {'pranchas.csv', 'carimbos.csv', 'leituras.csv'} <= set(e1['anexos']) and all((pasta_e1 / a).exists() for a in e1['anexos'])
              and e1['itens'][e1['documentos'][0]['id']]['carimbo'],
              'pedido: o resultado diz o que saiu de cada item, com o leitor, as ferramentas, as IAs (local/web), o tempo e como validar; os CSVs ficam no mini')
+    velocidade = e1['velocidade']
+    marcos = [m['marco'] for m in velocidade['linha_do_tempo']]
+    camadas = {c['camada']: c['segundos'] for c in velocidade['por_camada']}
+    funcoes = {f['funcao']: f for f in velocidade['por_funcao']}
+    conferir(marcos[0] == 'recebido_no_web' and marcos[-1] == 'resultado_gravado'
+             and {'pego_pelo_projeto', 'codigo_fim', 'gpu_pedida', 'gpu_concedida', 'gpu_devolvida', 'ia_fim', 'entrega_pronta'} <= set(marcos)
+             and [m['desde_inicio_s'] for m in velocidade['linha_do_tempo']] == sorted(m['desde_inicio_s'] for m in velocidade['linha_do_tempo'])
+             and camadas['fila_ate_o_projeto'] > 0 and abs(sum(camadas.values()) - velocidade['total_s']) < 0.1
+             and funcoes['prancha.perfilar']['chamadas'] >= 1 and funcoes['ia.ler_com_vision']['camada'] == 'vision'
+             and funcoes['pedido.entrega']['chamadas'] == 1 and not velocidade['nao_medidas']
+             and 'Velocidade (recebido_no_web → resultado_gravado' in texto and 'gargalo:' in texto,
+             'velocidade (0v32): a linha do tempo do web ao resultado gravado (fila, GPU pedida e concedida, código, IA, entrega), '
+             'o total partido por camada (a soma fecha) e cada função cronometrada; o resumo vai no resultado.txt')
     import planilha
     lida = planilha.ler(pasta_e1 / e1['entrega'][0]) if e1.get('entrega') else {}
     resumo = {c[0]: (v, estilo) for c, (v, estilo) in zip(lida.get('Resumo', [[]])[0], lida.get('Resumo', [[], []])[1])} if lida else {}
@@ -1136,6 +1150,49 @@ def testar_pedido(raiz):
              and placar.filter((pl.col('execucao') == 'e1') & (pl.col('item') == 'tracado'))['veredito'][0] == 'recusado',
              '"refazer" roda de novo na hora; o placar (saidas/pedidos.csv) guarda o veredito de cada item por execução e commit')
     del os.environ['PROJETO_PEDIDOS']
+
+
+def testar_velocidade():
+    """0v32, o cronômetro do pedido: a função de dentro não conta duas vezes no próprio tempo da de fora; o Ollama diz
+    quanto gastou carregando, lendo o prompt e gerando (ns → s); a camada do motor e o gargalo saem disso; fora do
+    cronômetro, nada é embrulhado."""
+    import tempo
+    original_glm, original_ollama = ia.ocr_glm, ia.ollama
+
+    def ollama_falso(modelo, prompt, esquema=None, imagens=(), parcial=False):
+        time.sleep(0.05)
+        meta = {'motor': 'ollama', 'modelo': modelo, 'segundos': 0.05, 'congelado': False, 'fim': 'stop',
+                **ia.tempos_do_ollama({'total_duration': 5e7, 'load_duration': 1e7, 'prompt_eval_duration': 1e7,
+                                       'eval_duration': 3e7, 'prompt_eval_count': 900, 'eval_count': 60})}
+        ia.anotar(meta)
+        return 'texto', meta
+
+    def glm_falso(caminho, instrucao):
+        time.sleep(0.02)
+        return ia.ollama('glm-ocr', instrucao)
+    ia.ollama, ia.ocr_glm = ollama_falso, glm_falso
+    try:
+        with tempo.cronometrar(['ia.ocr_glm', 'ia.ollama', 'modulo_que_nao_existe.funcao']) as cronometro:
+            tempo.marco('pego_pelo_projeto')
+            tempo.documento('AAT06.pdf')
+            ia.ocr_glm('x.png', 'leia')
+            ia.ocr_glm('x.png', 'leia')
+            tempo.marco('resultado_gravado')
+            embrulhada = ia.ollama is not ollama_falso
+        velocidade = cronometro.velocidade()
+        desembrulhada = ia.ollama is ollama_falso and ia.ocr_glm is glm_falso
+    finally:
+        ia.ollama, ia.ocr_glm = original_ollama, original_glm
+    funcoes = {f['funcao']: f for f in velocidade['por_funcao']}
+    glm, modelo = funcoes['ia.ocr_glm'], velocidade['ollama']['modelos'][0]
+    camadas = {c['camada']: c['segundos'] for c in velocidade['por_camada']}
+    conferir(embrulhada and desembrulhada and glm['chamadas'] == 2 and glm['segundos'] >= 0.14 and 0.03 <= glm['proprio_s'] < 0.1
+             and funcoes['ia.ollama']['camada'] == 'ollama' and camadas['ollama'] >= 0.1 and velocidade['nao_medidas'] == ['modulo_que_nao_existe.funcao']
+             and modelo['chamadas'] == 2 and modelo['carregar_s'] == 0.02 and modelo['gerar_s'] == 0.06 and modelo['tokens_saida'] == 120
+             and modelo['tokens_por_s'] == 2000.0 and velocidade['ollama']['lentas'][0]['documento'] == 'AAT06.pdf'
+             and velocidade['gargalo'].startswith('ollama:') and 'glm-ocr' in velocidade['gargalo'],
+             'velocidade: o tempo próprio sem o das funções de dentro, os tempos do Ollama (carregar, prompt, gerar, tokens/s), '
+             'a camada do motor, o gargalo e a função que sumiu do código; fora do cronômetro, as funções voltam ao original')
 
 
 def testar_vision_com_prazo():
@@ -1234,6 +1291,7 @@ def principal():
         testar_bancada(raiz)
         testar_ensaio(raiz)
         testar_pedido(raiz)
+        testar_velocidade()
 
 
 if __name__ == '__main__':
