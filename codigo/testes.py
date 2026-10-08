@@ -1087,7 +1087,21 @@ def testar_pedido(raiz):
                                       'TEXTO DA FOLHA', 'FERRAMENTAS E TEMPO', 'IA local vision:macOS', 'TOTAL:', 'PARA VALIDAR'))
              and {'pranchas.csv', 'carimbos.csv', 'leituras.csv'} <= set(e1['anexos']) and all((pasta_e1 / a).exists() for a in e1['anexos'])
              and e1['itens'][e1['documentos'][0]['id']]['carimbo'],
-             'pedido: o resultado diz o que saiu de cada item, com o leitor, as ferramentas, as IAs (local/web), o tempo e como validar; os CSVs vão junto')
+             'pedido: o resultado diz o que saiu de cada item, com o leitor, as ferramentas, as IAs (local/web), o tempo e como validar; os CSVs ficam no mini')
+    import planilha
+    lida = planilha.ler(pasta_e1 / e1['entrega'][0]) if e1.get('entrega') else {}
+    resumo = {c[0]: (v, estilo) for c, (v, estilo) in zip(lida.get('Resumo', [[]])[0], lida.get('Resumo', [[], []])[1])} if lida else {}
+    carimbo = {l[1][0]: l for l in lida.get('Carimbo', [])[1:]}
+    conferir(e1['entrega'] == ['AAT06_e1.xlsx'] and list(lida) == ['Resumo', 'Carimbo', 'Leia-me']
+             and resumo['Nº do desenho'] == ('012-SAA-0017-7471-PBHI-DE-AAT06PTPER-R1', 'normal') and resumo['Revisão'] == ('R1', 'normal')
+             and resumo['Família'] == ('adutora', 'normal') and resumo['Eixo (m)'] == (300.0, 'conferir') and resumo['Situação'][0] == 'conferir'
+             and carimbo['titulo'][2] == ('ADUTORA DE AGUA TRATADA AAT-06', 'normal') and carimbo['titulo'][5][0] == 'AAT06.pdf, p. 1, carimbo'
+             and 'Entrega: AAT06_e1.xlsx' in texto,
+             'pedido: a entrega ao cliente é um XLSX (o nome do PDF e a execução): Resumo com a identificação pelo carimbo, o '
+             'Carimbo campo a campo com a origem, e o Leia-me; o eixo sem a relação confirmada fica em amarelo (conferir)')
+    conferir(pedido.numero_br('1.234,56') == 1234.56 and pedido.numero_br('540,00') == 540.0 and pedido.numero_br('309244') == '309244'
+             and pedido.numero_br('12/03/2021') == '12/03/2021',
+             'entrega: número com vírgula vira número na planilha; código e data ficam texto')
     status = json.loads((comum.SAIDAS / 'status.json').read_text())
     conferir(status['pedido']['ativo'] is False and status['pedido']['recebidos'] == 1 and not (comum.DADOS / 'pedido_ativo.json').exists(),
              'pedido: o status diz que não há pedido em curso nem na fila (o maestro só pausa os pesados com pedido ativo)')
