@@ -26,6 +26,7 @@ import fcntl
 import hashlib
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -42,6 +43,7 @@ import cliente_gpu
 import comum
 import ensaio
 import ia
+import planilha
 
 ITENS = ('carimbo', 'tabelas', 'tracado', 'texto', 'sondagem')  # o que o Caio valida, um por um (o web usa os mesmos)
 NOMES = {'carimbo': 'CARIMBO', 'tabelas': 'TABELAS', 'tracado': 'TRAÇADO (eixo)', 'texto': 'TEXTO DA FOLHA (fatias)',
@@ -219,8 +221,12 @@ def rodar(pedido, motivo='à mão'):
                      'espera_gpu_s': 0, 'anexos': [], 'erro': f'{type(falha).__name__}: {falha}'[:500],
                      'rastro': traceback.format_exc()[-1500:]}
     resultado['fim'] = comum.agora()
-    resultado['texto'] = texto(resultado, feitas[-1] if feitas else None)
     pasta.mkdir(parents=True, exist_ok=True)
+    try:  # a entrega ao cliente (0v31); se falhar, o pedido sai sem ela e com o motivo
+        resultado['entrega'] = entrega(resultado, pasta) if not resultado.get('erro') else []
+    except Exception as falha:
+        resultado['entrega'], resultado['erro_entrega'] = [], f'{type(falha).__name__}: {falha}'[:300]
+    resultado['texto'] = texto(resultado, feitas[-1] if feitas else None)
     (pasta / 'resultado.txt').write_text(resultado['texto'])
     comum.gravar_no_lugar(pasta / 'resultado.json', json.dumps(resultado, ensure_ascii=False, indent=1))  # por último: o web espera por ele
     (comum.DADOS / 'pedido_ativo.json').unlink(missing_ok=True)
@@ -366,6 +372,98 @@ def exportar(lista, pasta):
     return feitos
 
 
+CONFIRMA = ('codigo', 'confirmado', 'confirmada')
+CAMPOS_DO_RESUMO = (('numero_desenho', 'Nº do desenho'), ('titulo', 'Título'), ('revisao_vigente', 'Revisão'), ('folha', 'Folha'),
+                    ('escala', 'Escala'), ('data', 'Data'), ('projetista', 'Projetista'), ('responsavel_tecnico', 'Responsável técnico'),
+                    ('crea', 'CREA/CAU'))
+
+
+def numero_br(texto):
+    """'1.234,56' e '540,00' viram número (a planilha soma); código (309244), data e o resto ficam texto."""
+    valor = str(texto or '').strip()
+    if re.fullmatch(r'-?\d{1,3}(\.\d{3})*,\d+|-?\d+,\d+', valor):
+        return float(valor.replace('.', '').replace(',', '.'))
+    return texto
+
+
+def marcar(valor, confirmado):
+    """A célula: o valor; em amarelo (conferir) quando não está confirmado ou não foi lido."""
+    return valor if confirmado else (valor, 'conferir')
+
+
+def nome_da_entrega(resultado):
+    """<o nome do PDF>_<execução>.xlsx com um documento; pedido_<id>_<execução>.xlsx com vários: o nome diz qual volta é."""
+    docs = resultado['documentos']
+    base = Path(docs[0]['arquivo']).stem if len(docs) == 1 else f"pedido_{resultado['pedido']}"
+    return f"{re.sub(r'[^\w.-]+', '_', base).strip('_')[:60]}_{resultado['execucao']}.xlsx"
+
+
+def entrega(resultado, pasta):
+    """A entrega ao cliente (0v31, Caio 08/10: "o arquivo final precisa ser disponibilizado ao cliente"): um XLSX com o
+    Resumo (o que cada documento é e a identificação pelo carimbo), o Carimbo campo a campo, as Tabelas, a Sondagem e o
+    N-SPT, e o Leia-me. Tudo o que não está confirmado (um leitor só, divergente, não lido) fica em amarelo, com a origem
+    (arquivo e página). Devolve [nome] para o resultado.json → entrega (o que o web anexa), ou [] sem documento."""
+    docs, itens_ = resultado['documentos'], resultado.get('itens') or {}
+    if not docs:
+        return []
+    resumo, carimbo, tabelas, sondagem, spt = [], [], [], [], []
+    for d in docs:
+        it = itens_.get(d['id'], {})
+        campos = {c['campo']: c for c in it.get('carimbo', [])}
+        tipo = 'boletim de sondagem' if d.get('boletim_sondagem') else 'prancha' if d.get('e_prancha') else 'não é prancha'
+        linha, todos = [d['arquivo'], tipo], True
+        for chave, _ in CAMPOS_DO_RESUMO:
+            c = campos.get(chave)
+            ok = bool(c) and c.get('status') in CONFIRMA
+            todos &= ok or not d.get('e_prancha')
+            linha.append(marcar(c['valor'] if c else None, ok or not d.get('e_prancha')))
+        familia_ok = d.get('familia_origem') == 'regra'
+        eixo_ok = d.get('conferencia') == 'fecha'
+        linha += [marcar(d.get('familia'), familia_ok or not d.get('e_prancha')), d.get('desenho'),
+                  marcar(d.get('eixo_m'), eixo_ok) if d.get('eixo_m') is not None else None, d.get('conferencia')]
+        todos &= (familia_ok and (eixo_ok or d.get('eixo_m') is None)) or not d.get('e_prancha')
+        resumo.append(linha + ['confirmado' if todos else 'conferir'])
+        for c in it.get('carimbo', []):
+            if c['campo'] in ('revisao_nome', 'arquivo_confere'):
+                continue
+            ok = c.get('status') in CONFIRMA
+            carimbo.append([d['arquivo'], c['campo'], marcar(c['valor'], ok), 'confirmado' if ok else 'conferir', c.get('leitor'),
+                            f"{d['arquivo']}, p. 1, carimbo"])
+        for t in it.get('tabelas', []):
+            ok = t.get('status') in CONFIRMA
+            tabelas.append([d['arquivo'], t.get('imagem'), t.get('linha'), *[marcar(numero_br(c), ok) for c in t['celulas']],
+                            'confirmado' if ok else 'conferir', t.get('nao_confirmados') or ''])
+        for c in it.get('sondagem', []):
+            ok = c.get('status') in CONFIRMA
+            sondagem.append([d['arquivo'], c.get('pagina'), c.get('furo'), c['campo'], marcar(c['valor'], ok), 'confirmado' if ok else 'conferir'])
+        for s in it.get('spt', []):
+            ok = s.get('status') in CONFIRMA
+            spt.append([d['arquivo'], s.get('furo'), s.get('profundidade_m'), s.get('golpes'), marcar(s.get('nspt'), ok),
+                        'confirmado' if ok else 'conferir'])
+    abas = [('Resumo', ['Arquivo', 'O que é', *(n for _, n in CAMPOS_DO_RESUMO), 'Família', 'Desenho', 'Eixo (m)',
+                        'Eixo × relação', 'Situação'], resumo)]
+    if carimbo:
+        abas.append(('Carimbo', ['Arquivo', 'Campo', 'Valor', 'Situação', 'Leitor', 'Origem'], carimbo))
+    if tabelas:
+        largura = max(len(t) for t in tabelas) - 5
+        abas.append(('Tabelas', ['Arquivo', 'Imagem', 'Linha', *(f'Coluna {i}' for i in range(1, largura + 1)), 'Situação', 'Falta confirmar'],
+                     [t[:3 + len(t) - 5] + [None] * (largura - (len(t) - 5)) + t[-2:] for t in tabelas]))
+    if sondagem:
+        abas.append(('Sondagem', ['Arquivo', 'Página', 'Furo', 'Campo', 'Valor', 'Situação'], sondagem))
+    if spt:
+        abas.append(('N-SPT', ['Arquivo', 'Furo', 'Profundidade (m)', 'Golpes', 'N-SPT', 'Situação'], spt))
+    abas.append(('Leia-me', ['Item', 'O que é'], [
+        ['Pedido', resultado['pedido']], ['Execução', resultado['execucao']],
+        ['Código', f"ialocal.projeto {resultado.get('versao_codigo')} ({resultado.get('commit') or 'sem commit'})"],
+        ['Gerado em', resultado.get('fim') or comum.agora()],
+        ['confirmado', 'lido no texto real do PDF ou por dois leitores de natureza diferente que leram o mesmo valor'],
+        [('Amarelo', 'conferir'), 'conferir: um leitor só, leitores que divergiram, ou o campo não foi lido; confira na prancha antes de usar'],
+        ['Origem', 'o arquivo e a página de onde o valor saiu']]))
+    nome = nome_da_entrega(resultado)
+    planilha.escrever(pasta / nome, abas)
+    return [nome]
+
+
 def segundos(s):
     s = float(s or 0)
     return f'{s:.1f} s'.replace('.', ',') if s < 90 else f'{int(s // 60)} min {int(s % 60):02d} s'
@@ -399,8 +497,11 @@ def texto(resultado, anterior):
                f"  TOTAL: {segundos(resultado['segundos'])}" + (f" — {resultado['interrompido']}" if resultado.get('interrompido') else ''), '']
     if anterior:
         partes += mudancas(resultado, anterior) + ['']
+    if resultado.get('entrega'):
+        partes += [f"Entrega: {', '.join(resultado['entrega'])} — o resumo de cada documento (a identificação pelo carimbo), o "
+                   'carimbo campo a campo e as tabelas; em amarelo, o que ainda precisa ser conferido.', '']
     if resultado.get('anexos'):
-        partes += [f"Anexos: {', '.join(resultado['anexos'])} (tudo o que foi extraído, linha a linha, com o leitor e o status).", '']
+        partes += [f"No mini: {', '.join(resultado['anexos'])} (tudo o que foi extraído, linha a linha, com o leitor e o status).", '']
     partes += ['PARA VALIDAR — responda este e-mail, uma linha por item (o que não disser fica sem avaliação):',
                '  ok                                  tudo certo',
                '  carimbo: ok',

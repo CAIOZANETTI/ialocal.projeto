@@ -62,8 +62,9 @@ codigo/ia.py            a porta para os modelos locais (Ollama, Vision, Apple FM
 codigo/bancada.py       a bancada de todos os leitores: código primeiro, depois agentes e modelos; qualidade, tempo útil, taxa de erro e tempo perdido; placar e veredito (saidas/bancada_agentes.csv)
 codigo/grade.py         o leitor só de código: a tabela pelas caixas das palavras do Vision (linhas pela altura, colunas pelo cabeçalho), sem modelo
 codigo/curadoria.py     Python decide o que vale entre N leitores: confirmada (com testemunha), confirmada_ia, divergente, so_<leitor>
-codigo/pedido.py        o pedido por e-mail (0v27): o documento que o Caio (ou quem verifica) manda ao mini, lido de ponta a ponta com a prioridade do Caio; o resultado (o que saiu, item a item, ferramentas, IAs locais e web, tempo), o prompt de correção da recusa e o placar das validações
+codigo/pedido.py        o pedido por e-mail (0v27): o documento que o Caio (ou quem verifica) manda ao mini, lido de ponta a ponta com a prioridade do Caio; o resultado (o que saiu, item a item, ferramentas, IAs locais e web, tempo), a entrega ao cliente (0v31: <PDF>_<execução>.xlsx, que o web anexa), o prompt de correção da recusa e o placar das validações
 codigo/ensaio.py        o ensaio: até 10 PDFs reais e fixos (Foz) de ponta a ponta — código, depois a IA na vez pedida ao maestro —, o registro de cada execução e o que mudou desde a anterior; pedido por PR em conceitos/ensaios.json
+codigo/planilha.py      o XLSX da entrega ao cliente só com a biblioteca padrão: número como número, cabeçalho congelado com filtro, o que conferir em amarelo
 codigo/rastro.py        a vista única de quem leu o quê: uma linha por documento × etapa × executor (entrada, resultado, confirmados, pendentes, tempo, versão) → rastro.csv
 codigo/licoes.py        cada falha da bancada vira lição (classe, gravidade, destino da correção, se o código já acertava) e o progresso entre gerações: o começo do ciclo de lições
 codigo/agentes.py       os agentes externos (Kimi K3, Nemotron Parse 2.0): leitura por agente, em paralelo, registro, sonda contra o gabarito de Cambé
