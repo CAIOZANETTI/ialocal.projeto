@@ -89,7 +89,7 @@ notas/                  plano_projeto.md (tese e itens), testes de mesa de 26/09
 
 dados/    prancha, prancha_leitura, prancha_tabela, carimbo, sondagem, sondagem_campo, sondagem_spt, sondagem_camada (.parquet), recortes/, congelamento.jsonl,
           execucoes.jsonl, falhas.jsonl, agentes.jsonl (cada chamada externa), agentes_sonda.jsonl, bancada_*.parquet, licoes.parquet, licoes_historico.jsonl, ensaios/ (lista, PDFs baixados, execuções), bancada/ (recortes da bancada), gpu/ (pedidos ao maestro), launchd.log — regenerável, fora do git
-saidas/   status.json (formato comum, o maestro lê) e os CSVs publicados (rastro.csv, bancada_agentes.csv, licoes_projeto.csv, ensaios.csv, ensaios_execucoes.csv, ensaios_rastro.csv…) — fora do git
+saidas/   status.json (formato comum, o maestro lê) e os CSVs publicados (rastro.csv, bancada_agentes.csv, licoes_projeto.csv, ensaios.csv, ensaios_execucoes.csv, ensaios_rastro.csv, ensaios_carimbo.csv…) — fora do git
 
 Drive  saida/<acervo>/<obra>/projeto/   rastro.csv, pranchas.csv, prancha_leituras.csv, prancha_tabelas.csv, carimbos.csv, sondagens.csv,
                                         sondagem_spt.csv e sondagem_camadas.csv da obra

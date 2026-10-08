@@ -43,6 +43,7 @@ import ciclo
 import cliente_gpu
 import comum
 import entrega
+import ia
 import licoes
 import rastro
 
@@ -112,29 +113,73 @@ def da_entrega(fonte):
             if re.search(fonte['obra'], f"{d['acervo']}/{d['obra']}")}
 
 
+ORDEM_DOS_FORMATOS = ('A0', 'A1', 'A2', 'A3', 'fora_de_serie', 'A4', 'pequeno')
+
+
+def formato_do_pdf(local, paginas=3):
+    """O maior formato entre as primeiras páginas do PDF (prancha.formato), '' se ele não abre: a capa A4 de um jogo de
+    pranchas A1 não tira o PDF do ensaio."""
+    import pypdfium2 as pdfium
+    import prancha
+    try:
+        pdf = pdfium.PdfDocument(str(local))
+        tamanhos = [pdf[i].get_size() for i in range(min(len(pdf), paginas))]
+        pdf.close()
+    except Exception:  # PDF que não abre não entra no ensaio (o motivo vai nos avisos pela contagem)
+        return ''
+    formatos = [prancha.formato(largura * prancha.MM_POR_PT, altura * prancha.MM_POR_PT) for largura, altura in tamanhos]
+    return min(formatos, key=ORDEM_DOS_FORMATOS.index) if formatos else ''
+
+
+def aceito(local, regra):
+    """O PDF entra no ensaio? Sem `formatos` na regra, todo PDF; com ela, só o de formato da lista."""
+    return not regra.get('formatos') or formato_do_pdf(local) in regra['formatos']
+
+
 def montar(nome, sortear=False):
-    """Os PDFs do ensaio: (fonte usada, {caminho: arquivo local}, avisos). A lista do conceito vale; senão a gravada;
-    senão o sorteio, gravado para as próximas execuções."""
+    """Os PDFs do ensaio: (fonte usada, {caminho: arquivo local}, avisos). A lista do conceito vale; senão a gravada
+    (se foi gravada com os mesmos formatos); senão o sorteio, gravado para as próximas execuções. Com `formatos`, o
+    sorteio baixa os candidatos na ordem dele, aos lotes, e fica só com os do formato (até candidatos_max baixados)."""
     regra, local = regras()['ensaios'][nome], pasta() / nome
     gravada = local / 'lista.json'
-    fixa = regra.get('lista') or (json.loads(gravada.read_text())['caminhos'] if gravada.exists() and not sortear else [])
-    avisos = []
+    anterior = json.loads(gravada.read_text()) if gravada.exists() and not sortear else {}
+    fixa = regra.get('lista') or (anterior.get('caminhos', []) if anterior.get('formatos') == regra.get('formatos') else [])
+    avisos, maximo = [], regra['maximo']
     for fonte in regra['fontes']:
+        pulados = 0
         if fonte['tipo'] == 'drive':
             caminhos, erro = listar_drive(fonte)
             if erro:
                 avisos.append(f"drive {fonte['caminho']}: {erro}")
-            escolhidos = [c for c in fixa if c in caminhos] if fixa else escolher(caminhos, regra)
-            locais = baixar_drive(fonte, escolhidos, local / 'pdfs') if escolhidos else {}
+            if fixa:
+                locais = baixar_drive(fonte, [c for c in fixa if c in caminhos], local / 'pdfs')
+            else:
+                ordem, locais = escolher(caminhos, {**regra, 'maximo': len(caminhos)}), {}
+                limite = min(len(ordem), regra.get('candidatos_max', 4 * maximo))
+                for inicio in range(0, limite, maximo):
+                    if len(locais) >= maximo:
+                        break
+                    for caminho, arquivo in baixar_drive(fonte, ordem[inicio:min(inicio + maximo, limite)], local / 'pdfs').items():
+                        if len(locais) < maximo and aceito(arquivo, regra):
+                            locais[caminho] = arquivo
+                        elif not aceito(arquivo, regra):
+                            pulados += 1
+                            arquivo.unlink(missing_ok=True)  # fora do formato: não fica ocupando o disco
         else:
             disponiveis = da_entrega(fonte)
-            escolhidos = [c for c in fixa if c in disponiveis] if fixa else escolher(sorted(disponiveis), regra)
-            locais = {c: disponiveis[c] for c in escolhidos}
+            if fixa:
+                locais = {c: disponiveis[c] for c in fixa if c in disponiveis}
+            else:
+                aceitos = {c: l for c, l in disponiveis.items() if aceito(l, regra)}
+                pulados = len(disponiveis) - len(aceitos)
+                locais = {c: aceitos[c] for c in escolher(sorted(aceitos), regra)}
+        if pulados:
+            avisos.append(f"{pulados} PDF(s) fora dos formatos do ensaio ({', '.join(regra['formatos'])}) ficaram de fora")
         if locais:
             if not fixa or sortear:
                 local.mkdir(parents=True, exist_ok=True)
-                comum.gravar_no_lugar(gravada, json.dumps({'fonte': fonte, 'caminhos': list(locais), 'em': comum.agora()},
-                                                          ensure_ascii=False, indent=1))
+                comum.gravar_no_lugar(gravada, json.dumps({'fonte': fonte, 'formatos': regra.get('formatos'), 'caminhos': list(locais),
+                                                           'em': comum.agora()}, ensure_ascii=False, indent=1))
             faltando = [c for c in fixa if c not in locais]
             if faltando:
                 avisos.append(f'{len(faltando)} PDF(s) da lista não estão mais na fonte: {", ".join(faltando[:3])}')
@@ -220,13 +265,22 @@ def comparar(linhas, anteriores):
     return linhas
 
 
-def gravar(nome, linhas, resumo):
-    """dados/ensaios/ensaios.parquet (todas as execuções), execucoes.jsonl do ensaio, os CSVs em saidas/ e o Drive."""
-    pasta().mkdir(parents=True, exist_ok=True)
-    destino = pasta() / 'ensaios.parquet'
+def acumular(arquivo, linhas):
+    """As linhas novas somadas às de todas as execuções anteriores (dados/ensaios/<arquivo>.parquet)."""
+    destino = pasta() / f'{arquivo}.parquet'
     nova = pl.DataFrame(linhas, infer_schema_length=None)
     tabela = pl.concat([pl.read_parquet(destino), nova], how='diagonal_relaxed') if destino.exists() else nova
     tabela.write_parquet(destino)
+    return tabela
+
+
+def gravar(nome, linhas, resumo, carimbos=()):
+    """dados/ensaios/ensaios.parquet e carimbos.parquet (todas as execuções), execucoes.jsonl do ensaio, os CSVs em
+    saidas/ e o Drive. O diagnóstico do carimbo vai num arquivo à parte (ensaios_carimbo.csv): ele leva o texto do
+    carimbo, com nome de responsável técnico — se a conferência do ialocal.dados recusar, recusa só ele."""
+    pasta().mkdir(parents=True, exist_ok=True)
+    tabela = acumular('ensaios', linhas)
+    do_carimbo = acumular('carimbos', list(carimbos)) if carimbos else None
     comum.anexar(pasta() / nome / 'execucoes.jsonl', json.dumps(resumo, ensure_ascii=False) + '\n')
     execucoes = pl.DataFrame([{**{k: v for k, v in r.items() if k != 'falhas'}, 'falhas': len(r.get('falhas', [])),
                                'conferencia': json.dumps(r.get('conferencia', {}), ensure_ascii=False),
@@ -236,7 +290,10 @@ def gravar(nome, linhas, resumo):
     SISTEMA = comum.configuracao('operacao')['drive']['sistema']
     lidos = rastro.montar()  # quem leu o quê nos documentos de todos os ensaios (acervo _ensaios)
     lidos = lidos.filter(pl.col('id').str.starts_with('_ensaios/'))
-    for quadro, arquivo in ((tabela, 'ensaios.csv'), (execucoes, 'ensaios_execucoes.csv'), (lidos, 'ensaios_rastro.csv')):
+    quadros = [(tabela, 'ensaios.csv'), (execucoes, 'ensaios_execucoes.csv'), (lidos, 'ensaios_rastro.csv')]
+    if do_carimbo is not None:
+        quadros.append((do_carimbo, 'ensaios_carimbo.csv'))
+    for quadro, arquivo in quadros:
         local = comum.SAIDAS / arquivo
         local.parent.mkdir(parents=True, exist_ok=True)
         quadro.write_csv(local, separator=';', include_bom=True)
@@ -244,6 +301,62 @@ def gravar(nome, linhas, resumo):
             comum.publicar(quadro, f'{SISTEMA}/{arquivo}')
         except (OSError, subprocess.CalledProcessError) as falha:  # sem rclone (fora do mini) o CSV local basta
             print(f'Drive: {arquivo} não publicado ({type(falha).__name__})')
+
+
+def ollama_no_ar():
+    """O Ollama do mini responde? (a versão, pela API; os testes trocam)"""
+    return bool(ia.versao_ollama())
+
+
+def texto_da_folha(local):
+    """Da página 1: o texto real inteiro, quantos caracteres e a caixa (0 a 1, origem em cima) onde todo esse texto
+    está — se o carimbo está fora da região fixa, a caixa mostra para onde ele foi."""
+    import pypdfium2 as pdfium
+    try:
+        pdf = pdfium.PdfDocument(str(local))
+        pagina = pdf[0]
+        largura, altura = pagina.get_size()
+        textos = pagina.get_textpage()
+        total, caixas = textos.count_chars(), []
+        for indice in range(min(total, 20000)):
+            esquerda, baixo, direita, cima = textos.get_charbox(indice)
+            if direita > esquerda and cima > baixo:
+                caixas.append((esquerda, baixo, direita, cima))
+        texto = textos.get_text_range()
+        pdf.close()
+    except Exception as falha:  # o diagnóstico nunca derruba o ensaio
+        return {'caracteres': None, 'caixa_do_texto': f'erro: {type(falha).__name__}', 'texto_folha': ''}
+    caixa = ([round(min(c[0] for c in caixas) / largura, 3), round(1 - max(c[3] for c in caixas) / altura, 3),
+              round(max(c[2] for c in caixas) / largura, 3), round(1 - min(c[1] for c in caixas) / altura, 3)] if caixas else [])
+    return {'caracteres': total, 'caixa_do_texto': json.dumps(caixa), 'texto_folha': texto[:3000]}
+
+
+def diagnostico_dos_carimbos(nome, execucao, documentos):
+    """Uma linha por prancha do ensaio: onde está o texto real da folha, o que caiu na região fixa do carimbo, quais
+    campos o código leu e quais ficaram vazios. É o que permite corrigir a região e os rótulos-âncora (prancha.json →
+    carimbo) sem tirar o PDF do mini."""
+    ids = [d['id'] for d in documentos]
+    pranchas = comum.ler('prancha', ids)
+    perfis = {l['id']: l for l in (pranchas.to_dicts() if pranchas is not None else []) if l['extrator'] == 'prancha'}
+    lidos = comum.ler('carimbo', ids)
+    campos = {}
+    for l in (lidos.to_dicts() if lidos is not None else []):
+        campos.setdefault(l['id'], {})[l['campo']] = l['valor']
+    CARIMBO = comum.configuracao('prancha')['carimbo']
+    esperados = sorted({*CARIMBO['ancoras'], *(c for c in CARIMBO['campos'] if c != 'revisao_nome'), 'revisoes', 'revisao_vigente'})
+    linhas = []
+    for d in documentos:
+        perfil = perfis.get(d['id']) or {}
+        if not perfil.get('e_prancha'):
+            continue
+        lido = campos.get(d['id'], {})
+        linhas.append({'ensaio': nome, 'execucao': execucao, **comum.codigo(), 'arquivo': d['nome'], 'caminho': d['caminho'],
+                       'formato': perfil.get('formato'), 'carimbo_camada': perfil.get('carimbo_camada'),
+                       'regiao_carimbo': json.dumps(CARIMBO['regiao']), **texto_da_folha(d['arquivo_local']),
+                       'carimbo_texto': (perfil.get('carimbo_texto') or '')[:1500],
+                       'campos_lidos': json.dumps(lido, ensure_ascii=False),
+                       'campos_vazios': ','.join(c for c in esperados if c not in lido)})
+    return linhas
 
 
 def rodar(nome, prioridade=None, sortear=False, pedido=''):
@@ -269,6 +382,11 @@ def rodar(nome, prioridade=None, sortear=False, pedido=''):
             return False
         return proxima is not None and proxima.endswith('_ia')
     fila = [d for d in documentos if precisa_de_ia(d)]
+    sem_ollama = ''
+    if fila and not ollama_no_ar():  # sem o Ollama, a IA não é testada: um aviso só, no lugar de uma falha igual por prancha
+        sem_ollama = f'o Ollama não respondeu em {ia.OLLAMA}: {len(fila)} documento(s) ficaram sem a IA (a camada de IA não foi testada)'
+        avisos.append(sem_ollama)
+        interrompido, fila = sem_ollama, []
     espera = 0.0
     while fila and not interrompido:  # 2) a IA, na vez da GPU; devolvida a vez no meio, pede de novo
         if time.monotonic() > prazo:
@@ -290,6 +408,9 @@ def rodar(nome, prioridade=None, sortear=False, pedido=''):
     linhas = comparar(resultado(nome, execucao, fonte, documentos, tarefas), anteriores(nome))
     falhas = [{'arquivo': d['nome'], 'caminho': d['caminho'], 'tarefa': t['tarefa'], 'erro': t['erro']}
               for d in documentos for t in tarefas[d['id']] if t['erro']]
+    if sem_ollama:
+        falhas.append({'arquivo': '', 'caminho': '(ensaio)', 'tarefa': 'ollama', 'erro': sem_ollama})
+    carimbos = diagnostico_dos_carimbos(nome, execucao, documentos)
     resumo = {'ensaio': nome, 'execucao': execucao, 'pedido': pedido, **comum.codigo(), 'fonte': fonte or {}, 'prioridade': prioridade,
               'documentos': len(documentos), 'pranchas': sum(l['e_prancha'] == 'True' for l in linhas),
               'boletins': sum(l['boletim_sondagem'] == 'True' for l in linhas),
@@ -298,7 +419,7 @@ def rodar(nome, prioridade=None, sortear=False, pedido=''):
               'segundos': round(time.monotonic() - inicio, 1), 'espera_gpu_s': round(espera, 1), 'interrompido': interrompido,
               'avisos': avisos, 'falhas': falhas, 'fim': comum.agora()}
     if documentos:
-        gravar(nome, linhas, resumo)
+        gravar(nome, linhas, resumo, carimbos)
         licoes.gerar()
     else:  # sem PDF nenhum: a execução fica registrada (o pedido não volta a cada 5 min) e o motivo, nos avisos
         comum.anexar(pasta() / nome / 'execucoes.jsonl', json.dumps(resumo, ensure_ascii=False) + '\n')

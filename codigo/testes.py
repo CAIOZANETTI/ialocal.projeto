@@ -1036,6 +1036,28 @@ def testar_ensaio(raiz):
              'a execução seguinte sem a falha resolve a lição (progresso em licoes_historico.jsonl) e diz o que mudou na '
              'prancha: só o erro sumiu')
 
+    regras['ensaios']['foz']['formatos'] = ['A0', 'A1', 'A2', 'A3', 'fora_de_serie']
+    regras['pedido']['id'] = 'p4'
+    ensaio.ollama_no_ar = lambda: False
+    try:
+        ciclo.rodada()
+    finally:
+        ensaio.ollama_no_ar = lambda: True
+    quarta = json.loads((ensaio.pasta() / 'foz' / 'execucoes.jsonl').read_text().splitlines()[-1])
+    lista = json.loads((ensaio.pasta() / 'foz' / 'lista.json').read_text())
+    formatos = {ensaio.formato_do_pdf(raiz / 'extracao' / 'projetos' / n) for n in ('prancha.pdf', 'a3.pdf', 'a4.pdf')}
+    carimbos = pl.read_csv(comum.SAIDAS / 'ensaios_carimbo.csv', separator=';', infer_schema_length=0).filter(pl.col('execucao') == quarta['execucao'])
+    da_prancha = carimbos.to_dicts()[0] if carimbos.height else {}
+    conferir(formatos == {'A1', 'A3', 'A4'} and lista['formatos'] == regras['ensaios']['foz']['formatos']
+             and quarta['documentos'] == len(lista['caminhos']) and any('fora dos formatos' in a for a in quarta['avisos'])
+             and any('Ollama não respondeu' in a for a in quarta['avisos']) and quarta['falhas'][-1]['tarefa'] == 'ollama'
+             and quarta['com_erro'] == 1 and carimbos.height == 1
+             and json.loads(da_prancha['campos_lidos'])['numero_desenho'] == '012-SAA-0017-7471-PBHI-DE-AAT06PTPER-R1'
+             and len(json.loads(da_prancha['caixa_do_texto'])) == 4 and int(da_prancha['caracteres']) > 0 and da_prancha['carimbo_texto'],
+             'ensaio com formatos: o A4 fica de fora (aviso) e a lista gravada com outro filtro é sorteada de novo; sem o '
+             'Ollama, um aviso só e uma falha "ollama" no lugar de uma por prancha; o diagnóstico do carimbo (ensaios_carimbo.csv) '
+             'diz onde está o texto real da folha, o que caiu na região do carimbo e quais campos o código leu')
+
 
 def testar_vision_com_prazo():
     """O Vision num processo à parte, com prazo: o que responde devolve o texto; o que trava (04/10: 11 h dentro de
@@ -1107,6 +1129,7 @@ def principal():
         ia.instalado = lambda modulo: modulo in sys.modules  # no mini o Vision e o Apple FM existem: só o falso do teste conta
         respostas.RESPOSTAS = raiz / 'web' / 'demandas'  # no mini a pasta do web existe: só as respostas do teste contam
         cliente_gpu.VEZ = raiz / 'sem_maestro' / 'vez.json'  # no mini o maestro está de pé e nunca daria a vez ao pedido da pasta do teste
+        ensaio.ollama_no_ar = lambda: True  # a IA falsa dos testes não usa o Ollama; testar_ensaio desliga para ver o aviso
         ensaio.pendente = lambda: None  # o pedido de verdade (conceitos/ensaios.json) não roda nos testes; testar_ensaio pede o dele
         testar_conceitos()
         testar_regras(raiz)
