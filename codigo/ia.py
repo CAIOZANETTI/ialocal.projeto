@@ -27,6 +27,7 @@ from pathlib import Path
 
 import cliente_gpu
 import comum
+import tempo
 
 CONGELAMENTO = comum.DADOS / 'congelamento.jsonl'
 REFAZER = False  # a bancada com --refazer: chama de novo e regrava, para medir o tempo nas mesmas condições
@@ -74,6 +75,7 @@ def anotar(meta):
     """Guarda o meta da resposta para quem mede e dá o sinal de vida da vez da GPU (maestro 0v66): cada resposta de
     modelo é um avanço de verdade; sem vez, não faz nada."""
     cliente_gpu.avancei()
+    tempo.chamada(meta)
     if not hasattr(CHAMADAS, 'lista'):
         CHAMADAS.lista = []
     CHAMADAS.lista.append(meta)
@@ -140,7 +142,7 @@ def ollama(modelo, prompt, esquema=None, imagens=(), parcial=False):
                 if parcial:
                     return em_partes(resposta, modelo, meta)
                 inteira = json.load(resposta)
-                return inteira['response'], {**meta, 'fim': inteira.get('done_reason')}
+                return inteira['response'], {**meta, 'fim': inteira.get('done_reason'), **tempos_do_ollama(inteira)}
         except urllib.error.HTTPError as falha:
             raise RuntimeError(f'Ollama {falha.code} ({modelo}): {falha.read().decode(errors="replace")[:300]}') from falha
     return congelado(chave, chamar)
@@ -241,8 +243,18 @@ def em_partes(resposta, modelo, meta):
         if ('\n' in parte.get('response', '') or numero % 32 == 0) and (laco := laco_no_fluxo(texto)):
             return texto, {**meta, 'fim': laco, 'tokens': numero}
         if parte.get('done'):
-            meta = {**meta, 'fim': parte.get('done_reason'), 'tokens': parte.get('eval_count', numero)}
+            meta = {**meta, 'fim': parte.get('done_reason'), 'tokens': parte.get('eval_count', numero), **tempos_do_ollama(parte)}
     return texto, meta
+
+
+def tempos_do_ollama(fim):
+    """0v32: o que o próprio Ollama diz que gastou (a última parte da resposta, em ns): carregar o modelo, ler o prompt
+    (com a imagem) e gerar, com os tokens de cada lado. A resposta abortada pela trava de laço não tem."""
+    segundos = lambda campo: round(fim[campo] / 1e9, 3) if isinstance(fim.get(campo), (int, float)) else None
+    tempos = {'ollama_total_s': segundos('total_duration'), 'carregar_s': segundos('load_duration'),
+              'prompt_s': segundos('prompt_eval_duration'), 'gerar_s': segundos('eval_duration'),
+              'tokens_entrada': fim.get('prompt_eval_count'), 'tokens_saida': fim.get('eval_count')}
+    return {k: v for k, v in tempos.items() if v is not None}
 
 
 def laco_no_fluxo(texto):
