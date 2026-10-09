@@ -6,7 +6,7 @@ valida os materiais da Sanepar. A mesma sequência de estoque deve trazer o mesm
 peca). Nem tudo precisa estar no cadastro (serviços, formas, concreto, material novo): não é regra, é uma boa
 indicação de que a extração foi feita de forma correta."
 
-Estado: **plano** (nada implementado). As medidas abaixo são do arquivo entregue e de um protótipo rodado na nuvem
+Estado: **plano em espera** (stand-by por pedido do Caio em 09/10; nada implementado). As medidas abaixo são do arquivo entregue e de um protótipo rodado na nuvem
 com as linhas reais da tabela da Giselle (pedido 20261008-154155-874c26, o print de 08/10).
 
 ## 1. O arquivo
