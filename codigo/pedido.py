@@ -89,6 +89,8 @@ def pedidos():
     for meta in entrada().glob('*/meta.json'):
         dados = ler(meta)
         etapas = dados.get('etapas') if dados else None  # 0v28: a cadeia do tipo, que o web anota; sem ela, o tipo (0v27)
+        if dados and dados.get('fundido_em'):  # 0v34: nasceu no fio de outro pedido (web 0v23); o que chegou nele foi para lá
+            continue
         if dados and ('ialocal.projeto' in etapas if etapas else dados.get('tipo', 'projeto') in regra()['tipos']):
             validacoes = sorted(filter(None, map(ler, meta.parent.glob('validacoes/*.json'))), key=lambda v: instante(v['recebido_em']))
             lista.append({**dados, 'id': meta.parent.name, 'pasta': meta.parent, 'validacoes': validacoes})
@@ -227,7 +229,8 @@ def rodar(pedido, motivo='à mão'):
         resultado['fim'] = comum.agora()
         pasta.mkdir(parents=True, exist_ok=True)
         try:  # a entrega ao cliente (0v31); se falhar, o pedido sai sem ela e com o motivo
-            resultado['entrega'] = entrega(resultado, pasta) if not resultado.get('erro') else []
+            resultado['entrega'] = entrega(resultado, pasta) + [a for a in resultado.get('anexos', []) if a == 'tabelas.csv'] \
+                if not resultado.get('erro') else []  # 0v34: a Giselle pediu 'as tabelas em csv'
         except Exception as falha:
             resultado['entrega'], resultado['erro_entrega'] = [], f'{type(falha).__name__}: {falha}'[:300]
         tempo.marco('entrega_pronta')

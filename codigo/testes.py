@@ -1074,15 +1074,17 @@ def testar_pedido(raiz):
                                                                                          'assunto': f'[{tipo}] AAT-06', 'recebido_em': quando})))
     guardar('p1', 'projeto', '2026-10-08T09:00:00-03:00')
     guardar('m1', 'memorial', '2026-10-08T09:01:00-03:00')
+    guardar('f1', 'projeto', '2026-10-08T09:02:00-03:00')  # 0v34: o fantasma fundido pelo web (nasceu no fio do p1)
+    (pasta / 'f1' / 'meta.json').write_text(json.dumps({**json.loads((pasta / 'f1' / 'meta.json').read_text()), 'fundido_em': 'p1'}))
     (pasta / 'm1' / 'meta.json').write_text(json.dumps({**json.loads((pasta / 'm1' / 'meta.json').read_text()), 'etapas': ['ialocal.extrator', 'ialocal.revisor']}))
     ia_falsa()
     pedido.vigiar()
     feitas = pedido.execucoes('p1')
     e1 = feitas[0]
     pasta_e1 = comum.SAIDAS / 'pedidos' / 'p1' / 'e1'
-    conferir(len(feitas) == 1 and not pedido.execucoes('m1') and e1['motivo'] == 'primeira leitura' and not e1['erro']
+    conferir(len(feitas) == 1 and not pedido.execucoes('m1') and not pedido.execucoes('f1') and e1['motivo'] == 'primeira leitura' and not e1['erro']
              and e1['documentos'][0]['e_prancha'] and [t['tarefa'] for t in e1['documentos'][0]['tarefas']] == ['ler_prancha', 'ler_prancha_ia'],
-             'pedido: o PDF do projeto é lido pelo código e pela IA; o memorial (outro leitor) fica de fora')
+             'pedido: o PDF do projeto é lido pelo código e pela IA; o memorial (outro leitor) e o fantasma fundido em outro ficam de fora')
     texto = (pasta_e1 / 'resultado.txt').read_text()
     conferir(all(t in texto for t in ('CARIMBO — pelo código', 'titulo: ADUTORA DE AGUA TRATADA AAT-06', 'TRAÇADO — pelo código, a faixa colorida',
                                       'TEXTO DA FOLHA', 'FERRAMENTAS E TEMPO', 'IA local vision:macOS', 'TOTAL:', 'PARA VALIDAR'))
