@@ -46,7 +46,7 @@ exemplo real antes de virar regra.
 
 | # | ponto | onde | evidência |
 |---|---|---|---|
-| D1 | a imagem colada (2.600 px nativos) é **reduzida a 1.100 px** antes do OCR: a letra cai de ~25 px para ~10 px | `prancha.py:541` (`thumbnail`), `prancha.json → fatias.lado_px` | o mesmo leitor do protótipo, com a imagem reduzida a 1.100 px: ver §5 |
+| D1 | a imagem colada (2.600 px nativos) é **reduzida a 1.100 px** antes do OCR: a letra cai de ~25 px para ~10 px | `prancha.py:541` (`thumbnail`), `prancha.json → fatias.lado_px` | o mesmo leitor v4 com a imagem reduzida: 493 → 418 linhas certas (§5) |
 | D2 | faixas fixas de **500 px** com 15 % de sobreposição cortam a linha da tabela ao meio; a duplicata só sai se as células forem idênticas | `prancha.py:544-547`, `linhas_html` | a 019 (50 linhas) vira ~9 faixas; cada borda corta uma linha de 2 andares |
 | D3 | a linha **sem número** sai `confirmada`: "todo número da linha está no Vision" é verdade vazia quando não há número | `prancha.py:575` | Joinville (08/10): dezenas de linhas `[""]` com status `confirmada` |
 | D4 | **não há classificador** "é tabela?": foto aérea, render 3D e mapa vão ao glm-ocr como tabela | `prancha.py:601-624` | Joinville RCE 03/06/09/10: nomes de rua do Google Earth gravados como linhas de tabela; aqui a 047 tem 5 renders |
@@ -98,9 +98,10 @@ PP-OCR são funções puras da imagem; sem amostragem). O que muda a saída é c
 - **Tempo**: 41 tabelas em **366 s** num contêiner de CPU (mediana **6,6 s** por tabela; a maior, 019 com 50 linhas,
   45 s, quase todo no PP-OCR em CPU). Só Tesseract: ~3–4 s por tabela. A localização + classificação das 43
   pranchas leva < 1 min. Comparação: o foz_10 do mini levou **368 s por prancha** (3.677 s / 10).
-- **Resolução (D1)**: a mesma v4 com a imagem reduzida a 1.100 px — como a produção faz — está em
-  `placar_versoes.json → v4_reduzida_1100px`; a v1 reduzida já tinha caído de 64 % para 50 % no essencial e a
-  unidade de 83 % para 68 %.
+- **Resolução (D1)**: a mesma v4 com a imagem reduzida a 1.100 px, como a produção faz, cai de **493 para 418**
+  linhas inteiras certas, de 533 para 484 no essencial, e a unidade de 94 % para 86 %. Também fica **mais lenta**
+  (611 s contra 366 s), porque precisa ampliar de volta o que perdeu (`placar_versoes.json → v4_reduzida_1100px`).
+  Reduzir a imagem não economiza nada: perde informação e tempo.
 - **O que ainda erra** (v4): 013 (imagem pequena com fundo roxo: item e código), 042A (sub-itens com dois códigos
   na mesma linha e código sem coluna), asterisco do item (`*21` → `21`, em fundo roxo), descrição com "&" → "8"
   (`14&61`), "Ø" → "Ó" e palavras coladas. A descrição está a 96 % de semelhança: serve para conferir no catálogo,
