@@ -1218,6 +1218,29 @@ def testar_tabelas_em_formulario(raiz):
     texto = pedido.imagens_em_texto(imagens)
     conferir(texto[0] == '   Imagens na folha: 4 (3 lida(s) como tabela)' and 'imagem 4 (formulario, 200×100 px): não lida — pequena demais' in texto[-1],
              'o resultado do pedido diz cada imagem da folha: lida (faixas, linhas) ou por que não')
+    tabelas = [{'imagem': 1, 'faixa': 1, 'linha': 1, 'celulas': ['40', '300491', 'CURVA CPVC 90', '54', 'PÇ'], 'status': 'confirmada', 'nao_confirmados': ''}]
+    com_tabela = pedido.tabelas_em_texto(tabelas, imagens)
+    conferir(com_tabela[0].startswith('   TABELAS — glm-ocr (modo tabela) × Vision: 1 imagem(ns), 1 linha(s)')
+             and '   Imagens na folha: 4 (3 lida(s) como tabela)' in com_tabela and any('300491' in l for l in com_tabela),
+             'o texto com tabela lida e o inventário (0v35: a contagem local `imagens` apagava o inventário e o pedido quebrava '
+             'no texto — o do Gabriel de 09/10 ficou sem resposta)')
+    quebra, original = [], pedido.texto
+    pedido.texto = lambda resultado, anterior: quebra.append(1) or (_ for _ in ()).throw(TypeError('teste'))
+    try:
+        os.environ['PROJETO_PEDIDOS'] = str(raiz / 'pedidos_quebra')
+        guardado = raiz / 'pedidos_quebra' / 'q1'
+        (guardado / 'anexos').mkdir(parents=True)
+        (guardado / 'anexos' / 'AAT06.pdf').write_bytes(pdf_prancha())
+        (guardado / 'meta.json').write_text(json.dumps({'id': 'q1', 'tipo': 'projeto', 'de': 'gabriel@gelconstrucoes.com.br',
+                                                        'assunto': '[projeto] teste', 'recebido_em': '2026-10-09T11:41:03-03:00'}))
+        pedido.vigiar()
+        feito = pedido.execucoes('q1')
+    finally:
+        pedido.texto = original
+        del os.environ['PROJETO_PEDIDOS']
+    conferir(quebra and len(feito) == 1 and 'o resumo em texto falhou (TypeError: teste)' in feito[0]['texto'] and feito[0]['erro_texto']
+             and feito[0]['entrega'],
+             'o texto que quebra não prende o pedido: o resultado.json sai com a entrega e o motivo, e o vigiar não repete o pedido')
 
 
 def testar_velocidade():
