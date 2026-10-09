@@ -1,0 +1,1768 @@
+{
+ "_o_que": "Dicionário de normalização e conferência de listas de materiais e serviços (código, descrição, unidade) contra o catálogo das bases (Padrão GEL, SINAPI, SICRO, Sanepar, Sienge, equipamentos). Cópia do ialocal.orcamento: lá o engenheiro edita conceitos/catalogo.yaml, unidades_medida.yaml, tags_tecnicas.yaml e busca_composicoes.yaml; aqui não se edita — atualizar com codigo/catalogo.py dicionario <conceitos.json do orçamento ou o zip do catálogo>.",
+ "origem": {
+  "repositorio": "CAIOZANETTI/ialocal.orcamento",
+  "catalogo": null,
+  "arquivos": {
+   "busca_composicoes.yaml": "7cf738715242fda9b72d0fff8a8d7e0b6e10ce9faeec57e62ba074c7425cba6e",
+   "catalogo.yaml": "2863a51f206723ba5153d2add0c5c4a0bdf127f8be739b998b6588e5adfb42bb",
+   "tags_tecnicas.yaml": "7374a1b479859eb204b5e7f66164a409fb81412b4bac14f52b0a7ce0a66fb1e5",
+   "unidades_medida.yaml": "17dd0f483705fa8909ac6023cef9324ca9cc6a4cc64a447bfc4e16a4908c4e32"
+  }
+ },
+ "catalogo": {
+  "padroes_texto": [
+   {
+    "re": "\\bC/",
+    "por": " COM ",
+    "o_que": "C/ → COM"
+   },
+   {
+    "re": "\\bS/",
+    "por": " SEM ",
+    "o_que": "S/ → SEM"
+   },
+   {
+    "re": "\\bP/",
+    "por": " PARA ",
+    "o_que": "P/ → PARA"
+   },
+   {
+    "re": "\\bJE\\s*2\\s*GS\\b",
+    "por": "JE2GS",
+    "o_que": "junta elástica 2GS: JE 2GS → JE2GS (prancha × base Sanepar)"
+   },
+   {
+    "re": "(\\d),(\\d)",
+    "por": "\\1.\\2",
+    "o_que": "vírgula decimal vira ponto: 0,50 → 0.50"
+   },
+   {
+    "re": "(\\d)\\s*(?:\"|''|POL\\b|POLEGADAS?\\b)",
+    "por": "\\1POL",
+    "o_que": "polegada: 1/2\" → 1/2POL, 3 POL → 3POL"
+   },
+   {
+    "re": "\\b(DN|PN|SDR|K|CA|C|FCK|NBR)\\s*[-=:]?\\s*(\\d)",
+    "por": "\\1\\2",
+    "o_que": "prefixo colado ao número: DN 100, DN-100 → DN100; NBR 7665 → NBR7665"
+   },
+   {
+    "re": "(\\d)\\s*(MM|CM|M|KM|M2|M3|KG|T|L|MPA|KGF|KW|CV|HP|V|KV|A|HZ|RPM|MCA|BAR|W)\\b",
+    "por": "\\1\\2",
+    "o_que": "número com unidade: 100 MM → 100MM, 25 MPA → 25MPA"
+   },
+   {
+    "re": "\\b(FCK\\d+)MPA\\b",
+    "por": "\\1",
+    "o_que": "FCK25MPA → FCK25 (fck é sempre MPa)"
+   },
+   {
+    "re": "\\bF\\.\\s*F\\.",
+    "por": " FERRO FUNDIDO ",
+    "o_que": "F.F. → FERRO FUNDIDO"
+   }
+  ],
+  "abreviaturas": {
+   "TB": "TUBO",
+   "TUB": "TUBO",
+   "TUBUL": "TUBULACAO",
+   "CONEX": "CONEXAO",
+   "REG": "REGISTRO",
+   "VALV": "VALVULA",
+   "VALVS": "VALVULAS",
+   "VENT": "VENTOSA",
+   "CURV": "CURVA",
+   "RED": "REDUCAO",
+   "LUV": "LUVA",
+   "FLG": "FLANGE",
+   "FLANG": "FLANGE",
+   "FLANGEADO": "FLANGEADA",
+   "EXTREM": "EXTREMIDADE",
+   "EXTREMID": "EXTREMIDADE",
+   "ADAPT": "ADAPTADOR",
+   "DERIV": "DERIVACAO",
+   "JUNC": "JUNCAO",
+   "HIDROM": "HIDROMETRO",
+   "MANOM": "MANOMETRO",
+   "ACOPL": "ACOPLAMENTO",
+   "PARAF": "PARAFUSO",
+   "ARRUEL": "ARRUELA",
+   "ABRAC": "ABRACADEIRA",
+   "ESTAB": "ESTABILIZADO",
+   "CONC": "CONCRETO",
+   "CONCR": "CONCRETO",
+   "ALV": "ALVENARIA",
+   "ARGAM": "ARGAMASSA",
+   "IMPERM": "IMPERMEABILIZACAO",
+   "IMPERMEAB": "IMPERMEABILIZACAO",
+   "PAV": "PAVIMENTO",
+   "PAVIM": "PAVIMENTACAO",
+   "DEMOL": "DEMOLICAO",
+   "REAT": "REATERRO",
+   "ESCAV": "ESCAVACAO",
+   "ESCOR": "ESCORAMENTO",
+   "COMPACT": "COMPACTACAO",
+   "ASSENT": "ASSENTAMENTO",
+   "FORN": "FORNECIMENTO",
+   "FORNEC": "FORNECIMENTO",
+   "INST": "INSTALACAO",
+   "INSTAL": "INSTALACAO",
+   "EXEC": "EXECUCAO",
+   "MANUT": "MANUTENCAO",
+   "TRANSP": "TRANSPORTE",
+   "CARREG": "CARREGAMENTO",
+   "EQUIP": "EQUIPAMENTO",
+   "EQUIPTO": "EQUIPAMENTO",
+   "MAT": "MATERIAL",
+   "SERV": "SERVICO",
+   "ESTR": "ESTRUTURAL",
+   "ESTRUT": "ESTRUTURAL",
+   "MECANIZ": "MECANIZADA",
+   "MEC": "MECANIZADA",
+   "ESP": "ESPESSURA",
+   "DIAM": "DIAMETRO",
+   "COMPR": "COMPRIMENTO",
+   "LARG": "LARGURA",
+   "ALT": "ALTURA",
+   "PROF": "PROFUNDIDADE",
+   "INT": "INTERNO",
+   "GALV": "GALVANIZADO",
+   "GALVAN": "GALVANIZADO",
+   "ELETR": "ELETRICO",
+   "HIDR": "HIDRAULICO",
+   "HIDRAUL": "HIDRAULICO",
+   "TRIF": "TRIFASICO",
+   "MONOF": "MONOFASICO",
+   "AUTOM": "AUTOMATICO",
+   "CX": "CAIXA",
+   "PCA": "PECA",
+   "PC": "PECA",
+   "PCS": "PECAS",
+   "UNID": "UNIDADE",
+   "APROX": "APROXIMADAMENTE",
+   "INCL": "INCLUSIVE",
+   "INCLUS": "INCLUSIVE",
+   "EXCL": "EXCLUSIVE",
+   "REF": "REFERENCIA",
+   "POLIET": "POLIETILENO",
+   "POLIPROP": "POLIPROPILENO",
+   "BORR": "BORRACHA",
+   "INOXID": "INOXIDAVEL"
+  },
+  "sinonimos": {
+   "FERRO FUNDIDO DUCTIL": [
+    "FERRO FUNDIDO",
+    "FOFO",
+    "FD",
+    "FERRO DUCTIL",
+    "FUNDICAO DUCTIL",
+    "FERRO FUNDIDO NODULAR"
+   ],
+   "PEAD": [
+    "POLIETILENO DE ALTA DENSIDADE",
+    "POLIETILENO ALTA DENSIDADE",
+    "PE ALTA DENSIDADE"
+   ],
+   "PVC": [
+    "POLICLORETO DE VINILA",
+    "CLORETO DE POLIVINILA"
+   ],
+   "PVC ORIENTADO": [
+    "PVC-O",
+    "PVCO",
+    "PVC O",
+    "PVC BIORIENTADO"
+   ],
+   "PVC DEFOFO": [
+    "DEFOFO",
+    "PVC DE FOFO"
+   ],
+   "PRFV": [
+    "FIBRA DE VIDRO",
+    "PLASTICO REFORCADO COM FIBRA DE VIDRO",
+    "PLASTICO REFORCADO FIBRA VIDRO"
+   ],
+   "ACO GALVANIZADO": [
+    "FERRO GALVANIZADO",
+    "FG",
+    "ACO ZINCADO"
+   ],
+   "ACO INOX": [
+    "ACO INOXIDAVEL",
+    "INOX",
+    "INOXIDAVEL"
+   ],
+   "REGISTRO DE GAVETA": [
+    "VALVULA GAVETA",
+    "VALVULA DE GAVETA",
+    "REGISTRO GAVETA"
+   ],
+   "VALVULA BORBOLETA": [
+    "VALVULA DE BORBOLETA",
+    "REGISTRO BORBOLETA"
+   ],
+   "VALVULA DE RETENCAO": [
+    "VALVULA RETENCAO"
+   ],
+   "JUNTA ELASTICA": [
+    "JE",
+    "JEI",
+    "JUNTA ELASTICA INTEGRADA"
+   ],
+   "JUNTA MECANICA": [
+    "JM"
+   ],
+   "JUNTA DE DESMONTAGEM": [
+    "JUNTA DESMONTAGEM",
+    "JUNTA DE DESMONTAGEM TRAVADA AXIALMENTE",
+    "JDTA"
+   ],
+   "PONTA E BOLSA": [
+    "PONTA BOLSA",
+    "PONTA-BOLSA",
+    "PB"
+   ],
+   "PONTA E FLANGE": [
+    "PONTA FLANGE",
+    "PONTA-FLANGE",
+    "PF"
+   ],
+   "FLANGE E FLANGE": [
+    "FLANGE FLANGE",
+    "FLANGE-FLANGE",
+    "FF"
+   ],
+   "POCO DE VISITA": [
+    "PV",
+    "POCO VISITA"
+   ],
+   "CAIXA DE PASSAGEM": [
+    "CP",
+    "CAIXA PASSAGEM"
+   ],
+   "TERMINAL DE LIMPEZA": [
+    "TL",
+    "TERMINAL LIMPEZA"
+   ],
+   "TUBO DE QUEDA": [
+    "TQ"
+   ],
+   "ESTACAO ELEVATORIA": [
+    "EE",
+    "ELEVATORIA",
+    "ESTACAO DE BOMBEAMENTO"
+   ],
+   "ESTACAO ELEVATORIA DE ESGOTO": [
+    "EEE"
+   ],
+   "ESTACAO DE TRATAMENTO DE ESGOTO": [
+    "ETE"
+   ],
+   "ESTACAO DE TRATAMENTO DE AGUA": [
+    "ETA"
+   ],
+   "RESERVATORIO APOIADO": [
+    "RAP",
+    "RESERVATORIO APOIADO DE CONCRETO"
+   ],
+   "RESERVATORIO ELEVADO": [
+    "REL"
+   ],
+   "CONJUNTO MOTOBOMBA": [
+    "MOTOBOMBA",
+    "MOTO BOMBA",
+    "MOTO-BOMBA",
+    "BOMBA CENTRIFUGA COM MOTOR",
+    "CMB"
+   ],
+   "QUADRO DE COMANDO": [
+    "QC",
+    "QUADRO COMANDO",
+    "PAINEL DE COMANDO",
+    "QCM"
+   ],
+   "CONCRETO USINADO": [
+    "CONCRETO DOSADO EM CENTRAL",
+    "CONCRETO PRONTO"
+   ],
+   "CONCRETO MAGRO": [
+    "CONCRETO NAO ESTRUTURAL",
+    "LASTRO DE CONCRETO MAGRO"
+   ],
+   "ACO CA50": [
+    "CA50",
+    "VERGALHAO CA50",
+    "ACO CA-50"
+   ],
+   "ACO CA60": [
+    "CA60",
+    "VERGALHAO CA60",
+    "ACO CA-60"
+   ],
+   "ARMACAO": [
+    "ARMADURA",
+    "ARMACAO DE ACO",
+    "CORTE DOBRA E MONTAGEM DE ACO"
+   ],
+   "FORMA": [
+    "FORMAS"
+   ],
+   "ESCAVACAO MECANIZADA": [
+    "ESCAVACAO MECANICA"
+   ],
+   "BOTA-FORA": [
+    "BOTA FORA",
+    "BOTAFORA"
+   ],
+   "BRITA GRADUADA SIMPLES": [
+    "BGS",
+    "BRITA GRADUADA"
+   ],
+   "CONCRETO BETUMINOSO USINADO A QUENTE": [
+    "CBUQ",
+    "CAUQ",
+    "CONCRETO ASFALTICO"
+   ],
+   "MANTA GEOTEXTIL": [
+    "GEOTEXTIL",
+    "BIDIM",
+    "MANTA BIDIM"
+   ],
+   "MAO DE OBRA": [
+    "MO",
+    "MAO-DE-OBRA"
+   ]
+  },
+  "palavras_vazias": [
+   "DE",
+   "DA",
+   "DO",
+   "DAS",
+   "DOS",
+   "E",
+   "EM",
+   "NA",
+   false,
+   "NAS",
+   "NOS",
+   "A",
+   "O",
+   "AS",
+   "OS",
+   "COM",
+   "SEM",
+   "PARA",
+   "POR",
+   "OU",
+   "AO",
+   "AOS",
+   "UM",
+   "UMA",
+   "TIPO",
+   "INCLUSIVE",
+   "INCLUSO",
+   "CONFORME",
+   "REF",
+   "REFERENCIA",
+   "PADRAO",
+   "SIMILAR",
+   "EQUIVALENTE",
+   "X",
+   "AF"
+  ],
+  "conferencia": {
+   "peso_texto": 0.7,
+   "peso_unidade": 0.15,
+   "peso_etiquetas": 0.15,
+   "aceita": 0.75,
+   "revisar": 0.5,
+   "candidatos": 5,
+   "etiquetas_fortes": [
+    "dn",
+    "pn",
+    "fck",
+    "material",
+    "junta",
+    "classe",
+    "de_mm",
+    "aco"
+   ]
+  }
+ },
+ "unidades_medida": {
+  "canonicas": {
+   "m": [
+    "m",
+    "metro",
+    "comprimento",
+    "m",
+    1
+   ],
+   "km": [
+    "km",
+    "quilômetro",
+    "comprimento",
+    "m",
+    1000
+   ],
+   "cm": [
+    "cm",
+    "centímetro",
+    "comprimento",
+    "m",
+    0.01
+   ],
+   "m2": [
+    "m²",
+    "metro quadrado",
+    "área",
+    "m2",
+    1
+   ],
+   "cm2": [
+    "cm²",
+    "centímetro quadrado",
+    "área",
+    "m2",
+    0.0001
+   ],
+   "ha": [
+    "ha",
+    "hectare",
+    "área",
+    "m2",
+    10000
+   ],
+   "m3": [
+    "m³",
+    "metro cúbico",
+    "volume",
+    "m3",
+    1
+   ],
+   "dm3": [
+    "dm³",
+    "decímetro cúbico",
+    "volume",
+    "m3",
+    0.001
+   ],
+   "l": [
+    "l",
+    "litro",
+    "volume",
+    "m3",
+    0.001
+   ],
+   "ml": [
+    "ml",
+    "mililitro",
+    "volume",
+    "m3",
+    1e-06
+   ],
+   "kg": [
+    "kg",
+    "quilograma",
+    "massa",
+    "kg",
+    1
+   ],
+   "g": [
+    "g",
+    "grama",
+    "massa",
+    "kg",
+    0.001
+   ],
+   "t": [
+    "t",
+    "tonelada",
+    "massa",
+    "kg",
+    1000
+   ],
+   "un": [
+    "un",
+    "unidade (peça)",
+    "contagem",
+    "un",
+    1
+   ],
+   "par": [
+    "par",
+    "par",
+    "contagem",
+    "un",
+    2
+   ],
+   "cento": [
+    "cento",
+    "cento",
+    "contagem",
+    "un",
+    100
+   ],
+   "milheiro": [
+    "milheiro",
+    "milheiro",
+    "contagem",
+    "un",
+    1000
+   ],
+   "cj": [
+    "cj",
+    "conjunto (kit)",
+    "conjunto",
+    "cj",
+    1
+   ],
+   "jg": [
+    "jg",
+    "jogo",
+    "conjunto",
+    "jg",
+    1
+   ],
+   "vb": [
+    "vb",
+    "verba",
+    "verba",
+    "vb",
+    1
+   ],
+   "h": [
+    "h",
+    "hora",
+    "tempo",
+    "h",
+    1
+   ],
+   "dia": [
+    "dia",
+    "dia",
+    "tempo",
+    "h",
+    24
+   ],
+   "mes": [
+    "mês",
+    "mês",
+    "tempo",
+    "mes",
+    1
+   ],
+   "kwh": [
+    "kWh",
+    "quilowatt-hora",
+    "energia",
+    "kwh",
+    1
+   ],
+   "tkm": [
+    "t·km",
+    "tonelada × quilômetro",
+    "momento de transporte",
+    "tkm",
+    1
+   ],
+   "m3km": [
+    "m³·km",
+    "metro cúbico × quilômetro",
+    "momento de transporte",
+    "m3km",
+    1
+   ],
+   "unkm": [
+    "un·km",
+    "unidade × quilômetro",
+    "momento de transporte",
+    "unkm",
+    1
+   ],
+   "mkm": [
+    "m·km",
+    "metro × quilômetro",
+    "momento de transporte",
+    "mkm",
+    1
+   ],
+   "m2km": [
+    "m²·km",
+    "metro quadrado × quilômetro",
+    "momento de transporte",
+    "m2km",
+    1
+   ],
+   "kgkm": [
+    "kg·km",
+    "quilograma × quilômetro",
+    "momento de transporte",
+    "tkm",
+    0.001
+   ],
+   "lkm": [
+    "l·km",
+    "litro × quilômetro",
+    "momento de transporte",
+    "m3km",
+    0.001
+   ],
+   "unmes": [
+    "un·mês",
+    "unidade × mês",
+    "locação",
+    "unmes",
+    1
+   ],
+   "mmes": [
+    "m·mês",
+    "metro × mês",
+    "locação",
+    "mmes",
+    1
+   ],
+   "m2mes": [
+    "m²·mês",
+    "metro quadrado × mês",
+    "locação",
+    "m2mes",
+    1
+   ],
+   "undia": [
+    "un·dia",
+    "unidade × dia",
+    "locação",
+    "undia",
+    1
+   ],
+   "mdia": [
+    "m·dia",
+    "metro × dia",
+    "locação",
+    "mdia",
+    1
+   ],
+   "m2dia": [
+    "m²·dia",
+    "metro quadrado × dia",
+    "locação",
+    "m2dia",
+    1
+   ],
+   "barra": [
+    "barra",
+    "barra",
+    "embalagem",
+    "barra",
+    1
+   ],
+   "saco": [
+    "sc",
+    "saco",
+    "embalagem",
+    "saco",
+    1
+   ],
+   "caixa": [
+    "cx",
+    "caixa",
+    "embalagem",
+    "caixa",
+    1
+   ],
+   "rolo": [
+    "rl",
+    "rolo",
+    "embalagem",
+    "rolo",
+    1
+   ],
+   "galao": [
+    "gl",
+    "galão",
+    "embalagem",
+    "galao",
+    1
+   ],
+   "lata": [
+    "lt",
+    "lata",
+    "embalagem",
+    "lata",
+    1
+   ],
+   "balde": [
+    "bd",
+    "balde",
+    "embalagem",
+    "balde",
+    1
+   ],
+   "tambor": [
+    "tb",
+    "tambor",
+    "embalagem",
+    "tambor",
+    1
+   ],
+   "pacote": [
+    "pct",
+    "pacote",
+    "embalagem",
+    "pacote",
+    1
+   ],
+   "frasco": [
+    "fr",
+    "frasco",
+    "embalagem",
+    "frasco",
+    1
+   ],
+   "ampola": [
+    "amp",
+    "ampola",
+    "embalagem",
+    "ampola",
+    1
+   ],
+   "bobina": [
+    "bob",
+    "bobina",
+    "embalagem",
+    "bobina",
+    1
+   ],
+   "folha": [
+    "fl",
+    "folha",
+    "embalagem",
+    "folha",
+    1
+   ],
+   "cartela": [
+    "cart",
+    "cartela",
+    "embalagem",
+    "cartela",
+    1
+   ],
+   "resma": [
+    "rm",
+    "resma",
+    "embalagem",
+    "resma",
+    1
+   ],
+   "bloco": [
+    "bl",
+    "bloco",
+    "embalagem",
+    "bloco",
+    1
+   ]
+  },
+  "sinonimos": {
+   "m": "m",
+   "mt": "m",
+   "mts": "m",
+   "metro": "m",
+   "metros": "m",
+   "ml_linear": "m",
+   "km": "km",
+   "cm": "cm",
+   "m2": "m2",
+   "m²": "m2",
+   "metroquadrado": "m2",
+   "cm2": "cm2",
+   "cm²": "cm2",
+   "ha": "ha",
+   "m3": "m3",
+   "m³": "m3",
+   "metrocubico": "m3",
+   "dm3": "dm3",
+   "dm³": "dm3",
+   "l": "l",
+   "lt": "l",
+   "litro": "l",
+   "litros": "l",
+   "ml": "ml",
+   "kg": "kg",
+   "quilo": "kg",
+   "g": "g",
+   "gr": "g",
+   "t": "t",
+   "ton": "t",
+   "tonelada": "t",
+   "un": "un",
+   "und": "un",
+   "uni": "un",
+   "unid": "un",
+   "unidade": "un",
+   "u": "un",
+   "pc": "un",
+   "pç": "un",
+   "pca": "un",
+   "peca": "un",
+   "pecas": "un",
+   "cd": "un",
+   "cda": "un",
+   "cada": "un",
+   "qt": "un",
+   "par": "par",
+   "pa": "par",
+   "cento": "cento",
+   "cto": "cento",
+   "cnt": "cento",
+   "mi": "milheiro",
+   "mil": "milheiro",
+   "milheiro": "milheiro",
+   "cj": "cj",
+   "conjunto": "cj",
+   "cjto": "cj",
+   "kit": "cj",
+   "nt": "cj",
+   "jg": "jg",
+   "jogo": "jg",
+   "vb": "vb",
+   "verba": "vb",
+   "h": "h",
+   "hora": "h",
+   "chp": "h",
+   "chi": "h",
+   "dia": "dia",
+   "mes": "mes",
+   "kwh": "kwh",
+   "tkm": "tkm",
+   "txkm": "tkm",
+   "t.km": "tkm",
+   "m3km": "m3km",
+   "m3xkm": "m3km",
+   "m³km": "m3km",
+   "unkm": "unkm",
+   "unxkm": "unkm",
+   "mxkm": "mkm",
+   "m2xkm": "m2km",
+   "kgxkm": "kgkm",
+   "lxkm": "lkm",
+   "unxmes": "unmes",
+   "mxmes": "mmes",
+   "m/mes": "mmes",
+   "m2xmes": "m2mes",
+   "un.dia": "undia",
+   "m.dia": "mdia",
+   "m².dia": "m2dia",
+   "barra": "barra",
+   "br": "barra",
+   "bar": "barra",
+   "saco": "saco",
+   "sc": "saco",
+   "sac": "saco",
+   "sco": "saco",
+   "sc25kg": "saco",
+   "caixa": "caixa",
+   "cx": "caixa",
+   "rolo": "rolo",
+   "rl": "rolo",
+   "galao": "galao",
+   "gal": "galao",
+   "gl": "galao",
+   "lata": "lata",
+   "lta": "lata",
+   "la": "lata",
+   "balde": "balde",
+   "bd": "balde",
+   "bde": "balde",
+   "bld": "balde",
+   "tambor": "tambor",
+   "tb": "tambor",
+   "ta": "tambor",
+   "bb": "tambor",
+   "pacote": "pacote",
+   "pct": "pacote",
+   "pt": "pacote",
+   "eb": "pacote",
+   "frasco": "frasco",
+   "fr": "frasco",
+   "ap": "ampola",
+   "ampola": "ampola",
+   "bobina": "bobina",
+   "folha": "folha",
+   "fol": "folha",
+   "flh": "folha",
+   "cartela": "cartela",
+   "cart": "cartela",
+   "car": "cartela",
+   "resma": "resma",
+   "rm": "resma",
+   "bl": "bloco"
+  }
+ },
+ "tags_tecnicas": [
+  {
+   "k": "material",
+   "rotulo": "Material",
+   "curto": "material",
+   "unid": "",
+   "ordem": "texto",
+   "padroes": [
+    {
+     "re": "\\bFD\\b|FERRO FUNDIDO",
+     "valor": "ferro fundido"
+    },
+    {
+     "re": "PVC\\s*-?\\s*O\\b|PVC ORIENTADO|\\bPVCO\\b",
+     "valor": "PVC-O"
+    },
+    {
+     "re": "\\bDEFOFO\\b",
+     "valor": "PVC DEFOFO"
+    },
+    {
+     "re": "\\bPVC\\b",
+     "valor": "PVC"
+    },
+    {
+     "re": "\\bPEAD\\b|POLIETILENO|\\bPE\\s*(?:80|100)\\b",
+     "valor": "PEAD"
+    },
+    {
+     "re": "\\bPRFV\\b|FIBRA DE VIDRO",
+     "valor": "PRFV"
+    },
+    {
+     "re": "POLIPROPILENO|\\bPPR?-?R\\b",
+     "valor": "PP"
+    },
+    {
+     "re": "\\bACO INOX|INOX",
+     "valor": "aço inox"
+    },
+    {
+     "re": "\\b(?:ACO|FERRO) GALVANIZ|GALVANIZAD",
+     "valor": "aço galvanizado"
+    },
+    {
+     "re": "\\bACO\\b",
+     "valor": "aço"
+    },
+    {
+     "re": "\\bCOBRE\\b",
+     "valor": "cobre"
+    },
+    {
+     "re": "\\bLATAO\\b|\\bBRONZE\\b",
+     "valor": "latão/bronze"
+    },
+    {
+     "re": "\\bCERAMIC",
+     "valor": "cerâmica"
+    },
+    {
+     "re": "\\bCONCRETO\\b",
+     "valor": "concreto"
+    }
+   ]
+  },
+  {
+   "k": "aplicacao",
+   "rotulo": "Aplicação",
+   "curto": "uso",
+   "unid": "",
+   "padroes": [
+    {
+     "re": "\\bESGOTO|COLETOR",
+     "valor": "esgoto"
+    },
+    {
+     "re": "\\bAGUA\\b|ADUCAO|ADUTORA|POTAVEL",
+     "valor": "água"
+    },
+    {
+     "re": "DRENAGEM|PLUVIAL",
+     "valor": "drenagem"
+    },
+    {
+     "re": "\\bGAS\\b",
+     "valor": "gás"
+    }
+   ]
+  },
+  {
+   "k": "junta",
+   "rotulo": "Junta / extremidade",
+   "curto": "junta",
+   "unid": "",
+   "padroes": [
+    {
+     "re": "\\bJE\\s*2\\s*GS\\b",
+     "valor": "JE2GS"
+    },
+    {
+     "re": "\\bJGS\\b",
+     "valor": "JGS"
+    },
+    {
+     "re": "\\bJTI\\b",
+     "valor": "JTI"
+    },
+    {
+     "re": "\\bJM\\b|JUNTA MECANICA",
+     "valor": "junta mecânica"
+    },
+    {
+     "re": "\\bJE[IR]?\\b|JUNTA ELASTICA",
+     "valor": "junta elástica"
+    },
+    {
+     "re": "\\bJS\\b|SOLDAVEL",
+     "valor": "soldável"
+    },
+    {
+     "re": "ELETROFUS",
+     "valor": "eletrofusão"
+    },
+    {
+     "re": "TERMOFUS|SOLDA DE TOPO",
+     "valor": "termofusão"
+    },
+    {
+     "re": "\\bFF\\b|FLANGE\\s*[-X/]?\\s*FLANGE",
+     "valor": "flange-flange"
+    },
+    {
+     "re": "FLANGE",
+     "valor": "flangeada"
+    },
+    {
+     "re": "\\bPB\\b|PONTA E BOLSA|PONTA-BOLSA",
+     "valor": "ponta-bolsa"
+    },
+    {
+     "re": "\\bPF\\b|\\bFP\\b|PONTA E FLANGE|PONTA-FLANGE",
+     "valor": "ponta-flange"
+    },
+    {
+     "re": "\\bPP\\b|PONTA E PONTA|PONTA-PONTA",
+     "valor": "ponta-ponta"
+    },
+    {
+     "re": "ROSCA",
+     "valor": "rosca"
+    }
+   ]
+  },
+  {
+   "k": "classe",
+   "rotulo": "Classe",
+   "curto": "classe",
+   "unid": "",
+   "padroes": [
+    {
+     "re": "\\bK\\s*-?\\s*(7|9|12)\\b",
+     "formato": "K{}"
+    },
+    {
+     "re": "\\bSDR\\s*(\\d{1,2}(?:[.,]\\d)?)\\b",
+     "formato": "SDR {}"
+    },
+    {
+     "re": "\\bCLASSE\\s*(\\d{2})\\b",
+     "formato": "classe {}"
+    }
+   ]
+  },
+  {
+   "k": "vazao_m3h",
+   "rotulo": "Vazão",
+   "curto": "Q",
+   "unid": "m³/h",
+   "busca": {
+    "unid": [
+     "M3/H",
+     "M3H",
+     {
+      "u": "L/S",
+      "fator": 3.6
+     }
+    ],
+    "prefixo": [
+     "Q",
+     "VAZAO"
+    ]
+   },
+   "padroes": [
+    {
+     "re": "(\\d+(?:[.,]\\d+)?)\\s*M3\\s*/\\s*H"
+    },
+    {
+     "re": "(\\d+(?:[.,]\\d+)?)\\s*L\\s*/\\s*S\\b",
+     "fator": 3.6
+    }
+   ]
+  },
+  {
+   "k": "altura_mca",
+   "rotulo": "Altura manométrica",
+   "curto": "H",
+   "unid": "mca",
+   "busca": {
+    "unid": [
+     "MCA"
+    ],
+    "prefixo": [
+     "H",
+     "HM",
+     "HMAN"
+    ]
+   },
+   "padroes": [
+    {
+     "re": "(\\d+(?:[.,]\\d+)?)\\s*MCA\\b"
+    },
+    {
+     "re": "\\bHM(?:AN)?\\s*=\\s*(\\d+(?:[.,]\\d+)?)"
+    },
+    {
+     "re": "\\bH\\s*=\\s*(\\d+(?:[.,]\\d+)?)",
+     "se": "BOMBA|RECALQUE|ELEVATORIA|BOOSTER|AERADOR|SOPRADOR"
+    }
+   ]
+  },
+  {
+   "k": "altura_m",
+   "rotulo": "Altura",
+   "curto": "h",
+   "unid": "m",
+   "busca": {
+    "prefixo": [
+     "ALTURA"
+    ]
+   },
+   "padroes": [
+    {
+     "re": "\\b(?:H|ALTURA)\\s*(?:=|DE)?\\s*(\\d+(?:[.,]\\d+)?)\\s*M\\b",
+     "senao": "BOMBA|RECALQUE|ELEVATORIA|BOOSTER|AERADOR|SOPRADOR|MCA"
+    },
+    {
+     "re": "\\b(?:H|ALTURA)\\s*(?:=|DE)?\\s*(\\d+(?:[.,]\\d+)?)\\s*CM\\b",
+     "fator": 0.01,
+     "senao": "BOMBA|RECALQUE|ELEVATORIA|BOOSTER|AERADOR|SOPRADOR|MCA"
+    }
+   ]
+  },
+  {
+   "k": "potencia_cv",
+   "rotulo": "Potência",
+   "curto": "P",
+   "unid": "cv",
+   "busca": {
+    "unid": [
+     "CV",
+     {
+      "u": "KW",
+      "fator": 1.3596
+     }
+    ],
+    "prefixo": [
+     "P",
+     "POTENCIA"
+    ]
+   },
+   "padroes": [
+    {
+     "re": "(\\d+(?:[.,]\\d+)?)\\s*C\\.?V\\b"
+    },
+    {
+     "re": "(\\d+(?:[.,]\\d+)?)\\s*KW\\b",
+     "fator": 1.3596
+    }
+   ]
+  },
+  {
+   "k": "tensao_v",
+   "rotulo": "Tensão",
+   "curto": "V",
+   "unid": "V",
+   "busca": {
+    "unid": [
+     "V",
+     "VCA",
+     "VOLTS"
+    ],
+    "prefixo": [
+     "TENSAO"
+    ]
+   },
+   "padroes": [
+    {
+     "re": "\\b(127|220|380|440|460|660)\\s*V"
+    }
+   ]
+  },
+  {
+   "k": "fases",
+   "rotulo": "Fases",
+   "curto": "fases",
+   "unid": "",
+   "busca": {
+    "palavras": [
+     {
+      "w": "TRIFASIC",
+      "valor": 3
+     },
+     {
+      "w": "MONOFASIC",
+      "valor": 1
+     }
+    ]
+   },
+   "padroes": [
+    {
+     "re": "TRIFASIC",
+     "valor": 3
+    },
+    {
+     "re": "MONOFASIC",
+     "valor": 1
+    }
+   ]
+  },
+  {
+   "k": "rotacao_rpm",
+   "rotulo": "Rotação",
+   "curto": "n",
+   "unid": "rpm",
+   "busca": {
+    "unid": [
+     "RPM"
+    ],
+    "prefixo": [
+     "ROTACAO"
+    ]
+   },
+   "padroes": [
+    {
+     "re": "(\\d{3,4})\\s*RPM"
+    }
+   ]
+  },
+  {
+   "k": "dn",
+   "rotulo": "DN",
+   "curto": "DN",
+   "unid": "",
+   "busca": {
+    "prefixo": [
+     "DN"
+    ]
+   },
+   "padroes": [
+    {
+     "re": "\\bDN\\s*(\\d{2,4})\\b"
+    }
+   ]
+  },
+  {
+   "k": "pn",
+   "rotulo": "PN",
+   "curto": "PN",
+   "unid": "",
+   "busca": {
+    "prefixo": [
+     "PN"
+    ]
+   },
+   "padroes": [
+    {
+     "re": "\\bPN\\s*(\\d{1,3}(?:[.,]\\d)?)\\b"
+    }
+   ]
+  },
+  {
+   "k": "de_mm",
+   "rotulo": "Diâmetro externo",
+   "curto": "DE",
+   "unid": "mm",
+   "busca": {
+    "prefixo": [
+     "DE=",
+     "DEXT"
+    ]
+   },
+   "padroes": [
+    {
+     "re": "(?<!ANEL )\\bDE\\s*(\\d{2,4})\\b(?!\\s*(?:CM|MM|MPA|KG|M\\b|%))"
+    }
+   ]
+  },
+  {
+   "k": "fck",
+   "rotulo": "fck",
+   "curto": "fck",
+   "unid": "MPa",
+   "busca": {
+    "unid": [
+     "MPA"
+    ],
+    "prefixo": [
+     "FCK"
+    ]
+   },
+   "padroes": [
+    {
+     "re": "FCK\\s*(?:=|DE|:)?\\s*(\\d{2})\\s*(?:MPA)?"
+    },
+    {
+     "re": "(?:CLASSE(?: DE RESISTENCIA)?\\s*|\\b)C(\\d{2})\\b",
+     "se": "CONCRET|ESTACA|GRAUTE|PILAR|VIGA|LAJE|SAPATA|RADIER|FUNDACAO|PRE-?MOLDAD"
+    }
+   ]
+  },
+  {
+   "k": "slump",
+   "rotulo": "Slump",
+   "curto": "slump",
+   "unid": "mm",
+   "busca": {
+    "prefixo": [
+     "SLUMP",
+     "ABATIMENTO"
+    ]
+   },
+   "padroes": [
+    {
+     "re": "(?:SLUMP|ABATIMENTO)\\s*(?:=|DE|:)?\\s*(\\d{2,3})\\s*CM",
+     "fator": 10
+    },
+    {
+     "re": "(?:SLUMP|ABATIMENTO)\\s*(?:=|DE|:)?\\s*(\\d{2,3})"
+    }
+   ]
+  },
+  {
+   "k": "diam_mm",
+   "rotulo": "Diâmetro",
+   "curto": "Ø",
+   "unid": "mm",
+   "padroes": [
+    {
+     "re": "DIAMETRO\\s*(?:=|DE|:)?\\s*(\\d+(?:[.,]\\d+)?)\\s*CM",
+     "fator": 10
+    },
+    {
+     "re": "DIAMETRO\\s*(?:=|DE|:)?\\s*(\\d+(?:[.,]\\d+)?)\\s*MM"
+    }
+   ]
+  },
+  {
+   "k": "espessura_mm",
+   "rotulo": "Espessura",
+   "curto": "e",
+   "unid": "mm",
+   "busca": {
+    "prefixo": [
+     "ESPESSURA"
+    ]
+   },
+   "padroes": [
+    {
+     "re": "\\bE\\s*=\\s*(\\d+(?:[.,]\\d+)?)\\s*MM"
+    }
+   ]
+  },
+  {
+   "k": "aco",
+   "rotulo": "Aço",
+   "curto": "aço",
+   "unid": "",
+   "busca": {
+    "palavras": [
+     {
+      "w": "CA50",
+      "valor": "CA-50"
+     },
+     {
+      "w": "CA-50",
+      "valor": "CA-50"
+     },
+     {
+      "w": "CA60",
+      "valor": "CA-60"
+     },
+     {
+      "w": "CA-60",
+      "valor": "CA-60"
+     }
+    ]
+   },
+   "padroes": [
+    {
+     "re": "\\bCA\\s*-?\\s*(50|60)\\b",
+     "formato": "CA-{}"
+    }
+   ]
+  },
+  {
+   "k": "comprimento_m",
+   "rotulo": "Comprimento",
+   "curto": "L",
+   "unid": "m",
+   "busca": {
+    "prefixo": [
+     "COMPRIMENTO"
+    ]
+   },
+   "padroes": [
+    {
+     "re": "(?:MEDINDO|COMPRIMENTO(?: UTIL| DE MONTAGEM| MONTAGEM)?|BARRA(?: DE)?)\\s*(?:=|DE)?\\s*(\\d+(?:[.,]\\d+)?)\\s*M\\b"
+    },
+    {
+     "re": "\\((\\d+(?:[.,]\\d+)?)\\s*(?:OU\\s*\\d+(?:[.,]\\d+)?\\s*)?M\\)"
+    }
+   ]
+  },
+  {
+   "k": "norma",
+   "rotulo": "Norma",
+   "curto": "norma",
+   "unid": "",
+   "padroes": [
+    {
+     "re": "\\bNBR\\s*ISO\\s*(\\d{3,5})",
+     "formato": "NBR ISO {}"
+    },
+    {
+     "re": "\\bNBR\\s*(\\d{4,5})",
+     "formato": "NBR {}"
+    },
+    {
+     "re": "\\bISO\\s*(\\d{3,5})",
+     "formato": "ISO {}"
+    }
+   ]
+  }
+ ],
+ "grupos_servico": {
+  "concreto": [
+   "concretagem",
+   "concreto",
+   "lancamento de concreto"
+  ],
+  "concreto_magro": [
+   "concreto magro",
+   "lastro de concreto",
+   "concreto nao estrutural"
+  ],
+  "forma": [
+   "forma",
+   "formas",
+   "fabricacao de forma",
+   "montagem e desmontagem de forma"
+  ],
+  "armadura": [
+   "armacao",
+   "armadura",
+   "aco ca-50",
+   "aco ca 50",
+   "aco ca-60",
+   "corte e dobra"
+  ],
+  "escavacao": [
+   "escavacao mecanizada",
+   "escavacao mecanica",
+   "escavacao de vala",
+   "escavacao"
+  ],
+  "reaterro": [
+   "reaterro",
+   "aterro compactado",
+   "compactacao de aterro"
+  ],
+  "bota_fora": [
+   "bota-fora",
+   "bota fora",
+   "transporte de material",
+   "carga e descarga",
+   "transporte com caminhao basculante"
+  ],
+  "escoramento": [
+   "escoramento de vala",
+   "escoramento continuo",
+   "escoramento descontinuo",
+   "pontaletes",
+   "escoramento"
+  ],
+  "escoramento_laje": [
+   "escoramento de forma",
+   "escoramento de laje",
+   "escoramento"
+  ],
+  "impermeabilizacao": [
+   "impermeabilizacao",
+   "poliuretano",
+   "poliureia",
+   "membrana",
+   "manta asfaltica",
+   "emulsao asfaltica",
+   "pintura betuminosa"
+  ],
+  "preparo_substrato": [
+   "jateamento abrasivo",
+   "preparo de superficie",
+   "preparo do substrato",
+   "hidrojateamento",
+   "apicoamento",
+   "lixamento"
+  ],
+  "tratamento_fissuras": [
+   "tratamento de fissura",
+   "tratamento de trinca",
+   "injecao de fissura",
+   "selagem de fissura",
+   "fissura",
+   "trinca"
+  ],
+  "geocomposto": [
+   "geocomposto",
+   "manta drenante",
+   "geodreno",
+   "dreno"
+  ],
+  "teste_estanqueidade": [
+   "teste de estanqueidade",
+   "teste de impermeabilidade",
+   "prova de carga hidrostatica",
+   "estanqueidade"
+  ],
+  "regularizacao": [
+   "regularizacao",
+   "compactacao de subleito",
+   "preparo de fundo"
+  ],
+  "lona": [
+   "lona plastica",
+   "lona"
+  ],
+  "acabamento": [
+   "acabamento",
+   "desempeno",
+   "alisamento"
+  ],
+  "berco": [
+   "berco",
+   "envoltoria",
+   "lastro de areia",
+   "colchao de areia",
+   "areia"
+  ],
+  "tubo": [
+   "assentamento de tubo",
+   "assentamento",
+   "tubo"
+  ],
+  "poco_visita": [
+   "poco de visita",
+   "pv"
+  ],
+  "anel": [
+   "anel de concreto",
+   "aneis",
+   "anel"
+  ],
+  "pavimento_demolicao": [
+   "demolicao de pavimento",
+   "remocao de pavimento",
+   "corte de pavimento",
+   "demolicao"
+  ],
+  "pavimento_recomposicao": [
+   "recomposicao de pavimento",
+   "reposicao de pavimento",
+   "pavimentacao",
+   "recomposicao"
+  ],
+  "estaca": [
+   "estaca"
+  ],
+  "estaca_escavada": [
+   "estaca escavada",
+   "estaca broca",
+   "broca",
+   "trado"
+  ],
+  "estaca_helice": [
+   "helice continua",
+   "helice"
+  ],
+  "estaca_premoldada": [
+   "estaca pre-moldada",
+   "estaca premoldada",
+   "pre-moldada de concreto"
+  ],
+  "cravacao": [
+   "cravacao",
+   "bate-estaca",
+   "bate estaca"
+  ],
+  "arrasamento": [
+   "arrasamento",
+   "corte de cabeca",
+   "arrasamento de estaca"
+  ],
+  "mnd": [
+   "perfuracao direcional",
+   "metodo nao destrutivo",
+   "mnd",
+   "furo direcional",
+   "hdd"
+  ],
+  "alvenaria": [
+   "alvenaria",
+   "bloco ceramico",
+   "bloco de concreto"
+  ],
+  "revestimento": [
+   "chapisco",
+   "emboco",
+   "reboco",
+   "revestimento"
+  ],
+  "pintura": [
+   "pintura"
+  ],
+  "cerca": [
+   "cerca",
+   "alambrado",
+   "mourao",
+   "tela"
+  ],
+  "portao": [
+   "portao"
+  ],
+  "ligacao": [
+   "ligacao predial",
+   "ligacao domiciliar",
+   "ligacao"
+  ],
+  "ramal": [
+   "ramal predial",
+   "ramal"
+  ],
+  "equipamento": [
+   "fornecimento",
+   "instalacao",
+   "montagem"
+  ],
+  "junta": [
+   "junta serrada",
+   "corte de junta",
+   "junta"
+  ],
+  "sub_base": [
+   "sub-base",
+   "sub base",
+   "brita graduada",
+   "base de brita"
+  ],
+  "limpeza_terreno": [
+   "limpeza mecanizada de camada vegetal",
+   "raspagem",
+   "rocada",
+   "limpeza do terreno",
+   "limpeza de terreno",
+   "capina",
+   "camada vegetal"
+  ],
+  "destoca": [
+   "destoca",
+   "destocamento",
+   "remocao de arvore",
+   "corte de arvore",
+   "supressao"
+  ],
+  "locacao_obra": [
+   "locacao de obra",
+   "locacao da obra",
+   "gabarito",
+   "locacao convencional",
+   "locacao"
+  ],
+  "locacao_linha": [
+   "locacao de linha",
+   "locacao e nivelamento",
+   "locacao de rede",
+   "locacao de tubulacao",
+   "locacao"
+  ],
+  "lastro": [
+   "lastro com material granular",
+   "lastro de brita",
+   "lastro de areia",
+   "lastro de concreto magro",
+   "lastro"
+  ],
+  "esgotamento": [
+   "esgotamento de vala",
+   "esgotamento com bomba",
+   "esgotamento",
+   "rebaixamento de lencol"
+  ],
+  "pilar": [
+   "pilar",
+   "pilares"
+  ],
+  "viga": [
+   "viga",
+   "vigas"
+  ],
+  "baldrame": [
+   "baldrame",
+   "viga baldrame",
+   "vigas baldrame"
+  ],
+  "bloco": [
+   "bloco de coroamento",
+   "blocos de coroamento",
+   "coroamento",
+   "bloco"
+  ],
+  "sapata": [
+   "sapata",
+   "sapatas"
+  ],
+  "radier": [
+   "radier"
+  ],
+  "laje": [
+   "laje",
+   "lajes"
+  ],
+  "piso": [
+   "piso",
+   "pavimento de concreto"
+  ],
+  "parede": [
+   "parede",
+   "paredes",
+   "reservatorio",
+   "muro",
+   "cortina"
+  ],
+  "fundacao": [
+   "fundacao",
+   "fundacoes"
+  ],
+  "vala": [
+   "vala",
+   "valas",
+   "rede"
+  ],
+  "bloco_ancoragem": [
+   "bloco de ancoragem",
+   "ancoragem"
+  ]
+ }
+}

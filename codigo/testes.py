@@ -18,6 +18,7 @@ from pathlib import Path
 
 import polars as pl
 
+import catalogo
 import ciclo
 import cliente_gpu
 import comum
@@ -1319,6 +1320,61 @@ def testar_sinal_de_vida_e_quarentena(raiz):
              'o próprio pedido e o de outra tarefa não contam)')
 
 
+def testar_catalogo(raiz):
+    """0v35: a lista de material da prancha conferida no catálogo do orçamento: a normalização iguala as grafias, o
+    cabeçalho da tabela diz qual coluna é o quê, o código acha o material e a descrição acha o que veio sem código."""
+    import zipfile
+    n = catalogo.normalizar
+    conferir(n('Reg. gaveta FºFº DN 150 PN 16') == n('REGISTRO DE GAVETA, FERRO FUNDIDO DUCTIL, DN150, PN 16')
+             and n('TE FD JE 2GS BBB DN150') == n('Tê FoFo JE2GS BBB DN 150') and n('Concreto fck=25 MPa') == 'CONCRETO FCK25',
+             'catálogo: abreviaturas, sinônimos e número com unidade dão a mesma forma (FºFº, FoFo e FD = ferro fundido dúctil)')
+    conferir(catalogo.etiquetas('TUBO FD K-9 PP (5,8M) DN150') == {'material': 'ferro fundido', 'junta': 'ponta-ponta', 'classe': 'K9', 'dn': 150, 'comprimento_m': 5.8}
+             and catalogo.unidade('UN.')['codigo'] == catalogo.unidade('pç')['codigo'] == 'un',
+             'catálogo: as etiquetas e as unidades do orçamento (UN. e pç são un)')
+    # a tabela 10 de Foz (amostras/tabelas/211_foz): o título, o cabeçalho e os itens, como o glm-ocr × Vision entregam
+    foz = [['RETORNO LODO EEE FLOTOFILTRO'], ['Nº', 'ESPECIF/ COD SAM', 'DESCRIÇÃO', '1ª ETAPA', 'UN'],
+           ['90', '3875', 'CURVA FD JE 2GS BB 90 DN150', '01', 'pç'], ['91', '306847', 'TUBO FD K-9 PP (5,8M) DN150', '15', 'm'],
+           ['92', '', 'TE FD JE 2GS BBB DN150', '03', 'pç'], ['93', '999999', 'TUBO FD K-7 JE 2GS PB NBR 7675 DN 150', '02', 'pç']]
+    conferir(catalogo.itens_da_tabela(foz[1:])[0] == {'codigo': '3875', 'descricao': 'CURVA FD JE 2GS BB 90 DN150', 'unidade': 'pç'}
+             and catalogo.itens_da_tabela([['DATA', 'REVISÃO'], ['01/10', 'R0']]) == [],
+             'catálogo: o cabeçalho diz código (ESPECIF/COD SAM), descrição e unidade; tabela sem descrição não é lista de material')
+    sanepar = [('3875', 'CURVA 90 GRAUS FERRO FUNDIDO DUCTIL JE2GS BOLSA BOLSA DN 150', 'UN', 812.0),
+               ('306847', 'TUBO FERRO FUNDIDO DUCTIL K9 PONTA PONTA COMPRIMENTO 5,8 M DN 150', 'M', 410.0),
+               ('11487', 'TE FD JE2GS BBB DN 150', 'UN', 1290.0), ('11488', 'TE FD JE2GS BBB DN 200', 'UN', 1810.0),
+               ('134457', 'TUBO FD K7 JE2GS PONTA BOLSA NBR 7675 DN 150', 'M', 395.0)]
+    linhas = [{'fonte': 'sanepar', 'tipo': 'material', 'codigo': c, 'desc': d, 'unid': u, 'unid_cod': catalogo.unidade(u)['codigo'],
+               'unid_simbolo': catalogo.unidade(u)['simbolo'], 'preco': p, 'preco_des': None, 'ref': 'teste', 'forma': n(d),
+               'tags': json.dumps(catalogo.etiquetas(d))} for c, d, u, p in sanepar]
+    catalogo.carregar.cache_clear()
+    conferir(catalogo.carregar() is None, 'catálogo: sem o zip instalado não há índice (o pedido sai sem conferencia.csv)')
+    pl.DataFrame(linhas).write_parquet(raiz / 'catalogo.parquet')
+    with zipfile.ZipFile(raiz / 'catalogo.zip', 'w') as z:
+        z.write(raiz / 'catalogo.parquet', 'catalogo.parquet')
+        z.writestr('meta.json', json.dumps({'assinatura': 'teste', 'itens': len(linhas)}))
+    conferir(catalogo.instalar(raiz / 'catalogo.zip')['itens'] == 5 and catalogo.carregar() is not None, 'catálogo: o zip do orçamento instala em dados/catalogo')
+    tabela = [{'id': 'doc', 'imagem': 1, 'faixa': 0, 'linha': i, 'celulas': json.dumps(c), 'status': 'confirmada'} for i, c in enumerate(foz)]
+    r = {x['descricao']: x for x in catalogo.conferir_tabelas(tabela, catalogo.carregar())}
+    conferir(len(r) == 4 and r['CURVA FD JE 2GS BB 90 DN150']['situacao'] == 'código confere' and r['CURVA FD JE 2GS BB 90 DN150']['preco'] == 812.0
+             and r['TUBO FD K-9 PP (5,8M) DN150']['situacao'] == 'código confere',
+             'catálogo: o código COD SAM acha o material Sanepar, com a descrição confirmando e o preço')
+    te = r['TE FD JE 2GS BBB DN150']
+    conferir(te['situacao'] == 'pela descrição' and te['codigo_ref'] == '11487' and 'dn 150' in te['motivos'],
+             'catálogo: sem código, a descrição normalizada acha o tê de DN 150 (não o de DN 200)')
+    k7 = r['TUBO FD K-7 JE 2GS PB NBR 7675 DN 150']
+    conferir(k7['codigo_ref'] == '134457' and k7['situacao'] in ('pela descrição', 'revisar') and 'unidade' in k7['motivos'],
+             'catálogo: código que não existe cai na descrição; a unidade diferente (pç × m) aparece nos motivos')
+    import pedido
+    import shutil
+    comum.gravar('prancha_tabela', [{**t, 'id': 'catalogo_teste', 'extrator': 'prancha_ia', 'arquivo': f"x{t['linha']}"} for t in tabela])
+    (raiz / 'pedido_catalogo').mkdir()
+    anexos = pedido.exportar([{'id': 'catalogo_teste'}], raiz / 'pedido_catalogo')
+    saida = pl.read_csv(raiz / 'pedido_catalogo' / 'conferencia.csv', separator=';', infer_schema_length=0)
+    conferir(anexos == ['tabelas.csv', 'conferencia.csv'] and saida.height == 4 and saida['situacao'][0] == 'código confere',
+             'catálogo: o pedido leva a conferencia.csv ao lado da tabelas.csv quando o catálogo está instalado')
+    shutil.rmtree(catalogo.pasta())
+    catalogo.carregar.cache_clear()
+
+
 def principal():
     with tempfile.TemporaryDirectory() as temporaria:
         raiz = Path(temporaria)
@@ -1360,6 +1416,7 @@ def principal():
         testar_ensaio(raiz)
         testar_pedido(raiz)
         testar_velocidade()
+        testar_catalogo(raiz)
         testar_tabelas_em_formulario(raiz)
 
 
