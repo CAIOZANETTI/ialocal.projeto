@@ -85,7 +85,7 @@ def etiquetas(texto):
 
 # ---------------------------------------------------------------- texto (catalogo.yaml do orçamento)
 def _maiusculas(texto):
-    t = re.sub('[ØøΦφ]', ' DIAMETRO ', str(texto or ''))
+    t = re.sub('[”“″]', '"', re.sub('[ØøΦφ]', ' DIAMETRO ', str(texto or '')))  # 2” (Sanepar) = 2" (prancha)
     return unicodedata.normalize('NFKD', t).encode('ascii', 'ignore').decode().upper()
 
 
@@ -185,7 +185,7 @@ def pontuar(item, ln, idx):
     nota = pesos['peso_texto'] * tx + pesos['peso_unidade'] * un + pesos['peso_etiquetas'] * et
     motivos = [('ok' if tx >= 0.8 else 'aviso' if tx >= 0.5 else 'erro', f'descrição {round(tx * 100)}% semelhante'), *([mu] if mu else []), *me]
     return {**{k: ln.get(k) for k in ('fonte', 'tipo', 'codigo', 'desc', 'unid', 'preco', 'preco_des', 'ref')},
-            'nota': round(nota, 3), 'texto': round(tx, 3), 'motivos': [{'nivel': a, 'texto': b} for a, b in motivos]}
+            'nota': round(nota, 3), 'texto': round(tx, 3), 'etiquetas': et, 'motivos': [{'nivel': a, 'texto': b} for a, b in motivos]}
 
 
 def _por_texto(forma, idx, limite=400):
@@ -206,7 +206,8 @@ def conferir_item(item, idx, fonte=None):
     da_fonte = lambda i: not fonte or idx['linhas'][i].get('fonte') == fonte
     por_cod = [i for i in idx['por_codigo'].get(_chave_codigo(item.get('codigo')), []) if da_fonte(i)] if item.get('codigo') else []
     cod = sorted((pontuar(item, idx['linhas'][i], idx) for i in por_cod), key=lambda c: -c['nota'])
-    if cod and (not item['_forma'] or cod[0]['nota'] >= cf['revisar']):
+    # código com DN, PN, material ou junta diferente da descrição não confere (282665 é PN 16; a prancha de Cambé diz PN 10)
+    if cod and (not item['_forma'] or (cod[0]['nota'] >= cf['revisar'] and cod[0]['etiquetas'] > 0)):
         return {'situacao': 'código confere', 'melhor': cod[0], 'candidatos': cod[:cf['candidatos']]}
     txt = sorted((pontuar(item, idx['linhas'][i], idx) for i in _por_texto(item['_forma'], idx) if da_fonte(i)),
                  key=lambda c: (-c['nota'], len(c['desc'] or '')))[:cf['candidatos']]
@@ -225,7 +226,7 @@ def conferir(itens, idx, fonte=None):
 
 # ---------------------------------------------------------------- tabelas de prancha: qual coluna é o quê
 COLUNAS = {'codigo': r'^(COD|ESPECIF|SEQ|N.? ?ESTOQUE|ITEM SAM|SAM)', 'descricao': r'^(DESCRI|DISCRIMINA|ESPECIFICACAO|MATERIA)',
-           'unidade': r'^(UN|UND|UNID)\b'}
+           'unidade': r'^(UN|UND|UNID|UNIDADE)\b'}
 
 
 def colunas_da_tabela(cabecalho):
@@ -286,10 +287,29 @@ def instalar(zip_):
                 (pasta() / nome).write_bytes(z.read(nome))
         lido = json.loads(z.read('motor/conceitos.json')) if 'motor/conceitos.json' in z.namelist() else None
     meta = json.loads((pasta() / 'meta.json').read_text()) if (pasta() / 'meta.json').exists() else {}
+    renormalizar()
     if lido and lido.get('catalogo') != _cat():
         print('atenção: o dicionário do zip é outro que conferir conceitos/catalogo.json — rodar: codigo/catalogo.py dicionario', zip_)
     carregar.cache_clear()
     return meta
+
+
+def renormalizar():
+    """Refaz a forma comparável e as etiquetas de cada linha do catalogo.parquet com o dicionário deste repositório:
+    o zip traz as do dicionário do servidor no dia em que foi montado; assim o projeto e a tabela usam a mesma conta
+    (roda no instalar e no dicionario; ~30 s para 87 mil linhas)."""
+    import polars as pl
+
+    arq = pasta() / 'catalogo.parquet'
+    if not arq.exists():
+        return
+    tabela = pl.read_parquet(arq)
+    descricoes = tabela['desc'].to_list()
+    tags = [etiquetas(d) for d in descricoes]
+    fortes = {k: [t.get(k) for t in tags] for k in _cat()['conferencia']['etiquetas_fortes']}
+    tabela.with_columns(pl.Series('forma', [normalizar(d) for d in descricoes]), pl.Series('tags', [json.dumps(t, ensure_ascii=False) for t in tags]),
+                        *[pl.Series(k, vs, strict=False) for k, vs in fortes.items()]).write_parquet(arq)
+    carregar.cache_clear()
 
 
 @functools.cache
@@ -320,6 +340,9 @@ def dicionario(origem):
             'grupos_servico': c['busca_composicoes']['termos']}
     DICIONARIO.write_text(json.dumps(novo, ensure_ascii=False, indent=1) + '\n')
     dic.cache_clear()
+    for f in (_sinonimos_unid, _padroes, _sinonimos):
+        f.cache_clear()
+    renormalizar()
     return novo
 
 

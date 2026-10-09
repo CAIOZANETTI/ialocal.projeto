@@ -5,7 +5,7 @@
   "catalogo": null,
   "arquivos": {
    "busca_composicoes.yaml": "7cf738715242fda9b72d0fff8a8d7e0b6e10ce9faeec57e62ba074c7425cba6e",
-   "catalogo.yaml": "2863a51f206723ba5153d2add0c5c4a0bdf127f8be739b998b6588e5adfb42bb",
+   "catalogo.yaml": "96915820047358e27bc14b6b169633757f8782a7caed9741fb5f78f6ab62c415",
    "tags_tecnicas.yaml": "7374a1b479859eb204b5e7f66164a409fb81412b4bac14f52b0a7ce0a66fb1e5",
    "unidades_medida.yaml": "17dd0f483705fa8909ac6023cef9324ca9cc6a4cc64a447bfc4e16a4908c4e32"
   }
@@ -38,6 +38,16 @@
     "o_que": "vírgula decimal vira ponto: 0,50 → 0.50"
    },
    {
+    "re": "\\bPOL\\.?\\s*(\\d+(?:[./]\\d+)*)\\s*\"?",
+    "por": "\\1POL",
+    "o_que": "polegada antes do número: POL 2\" e POL 1.1/4 → 2POL, 1.1/4POL"
+   },
+   {
+    "re": "(\\d)\\s*X\\s*(?=\\d)",
+    "por": "\\1X",
+    "o_que": "medidas: 14 X 19 X 39 → 14X19X39"
+   },
+   {
     "re": "(\\d)\\s*(?:\"|''|POL\\b|POLEGADAS?\\b)",
     "por": "\\1POL",
     "o_que": "polegada: 1/2\" → 1/2POL, 3 POL → 3POL"
@@ -51,6 +61,11 @@
     "re": "(\\d)\\s*(MM|CM|M|KM|M2|M3|KG|T|L|MPA|KGF|KW|CV|HP|V|KV|A|HZ|RPM|MCA|BAR|W)\\b",
     "por": "\\1\\2",
     "o_que": "número com unidade: 100 MM → 100MM, 25 MPA → 25MPA"
+   },
+   {
+    "re": "(\\d+(?:\\.\\d+)?X\\d+(?:\\.\\d+)?(?:X\\d+(?:\\.\\d+)?)?)(?:CM|MM|M)\\b",
+    "por": "\\1",
+    "o_que": "medidas sem a unidade no fim: 19X19X39CM → 19X19X39"
    },
    {
     "re": "\\b(FCK\\d+)MPA\\b",

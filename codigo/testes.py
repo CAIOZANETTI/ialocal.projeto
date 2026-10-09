@@ -1363,6 +1363,9 @@ def testar_catalogo(raiz):
     k7 = r['TUBO FD K-7 JE 2GS PB NBR 7675 DN 150']
     conferir(k7['codigo_ref'] == '134457' and k7['situacao'] in ('pela descrição', 'revisar') and 'unidade' in k7['motivos'],
              'catálogo: código que não existe cai na descrição; a unidade diferente (pç × m) aparece nos motivos')
+    dn = catalogo.conferir(catalogo.itens_da_tabela([['codigo', 'descricao', 'unidade'], ['3875', 'CURVA FD JE 2GS BB 90 DN200', 'pç']]), catalogo.carregar())['itens'][0]
+    conferir(dn['unidade'] == 'pç' and dn['situacao'] == 'código diverge' and any(m['texto'] == 'dn 150 ≠ 200' for m in dn['melhor']['motivos']),
+             'catálogo: cabeçalho "unidade" é a unidade; código achado com DN diferente da descrição diverge (o 282665 PN 16 × PN 10 de Cambé)')
     import pedido
     import shutil
     comum.gravar('prancha_tabela', [{**t, 'id': 'catalogo_teste', 'extrator': 'prancha_ia', 'arquivo': f"x{t['linha']}"} for t in tabela])
