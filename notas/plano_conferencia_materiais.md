@@ -6,7 +6,7 @@ valida os materiais da Sanepar. A mesma sequência de estoque deve trazer o mesm
 peca). Nem tudo precisa estar no cadastro (serviços, formas, concreto, material novo): não é regra, é uma boa
 indicação de que a extração foi feita de forma correta."
 
-Estado: **plano em espera** (stand-by por pedido do Caio em 09/10; nada implementado). As medidas abaixo são do arquivo entregue e de um protótipo rodado na nuvem
+Estado: **plano em espera** (stand-by por pedido do Caio em 09/10; nada implementado). **Atualização 09/10 (0v36):** a primeira parte entrou por outro caminho — `codigo/catalogo.py` confere cada linha das tabelas no catálogo único do ialocal.orcamento (Sanepar + SINAPI + SICRO + Sienge), pelo código e, sem ele, pela descrição normalizada (sinônimos, unidades, etiquetas DN/PN/DE/material/junta), com `conferencia.csv` no pedido; testado com o catálogo real em Foz e Cambé (versoes.jsonl 0v36). Continuam deste plano: a equivalência DE ↔ polegada (§2.2) e o sinônimo por família (curva ↔ joelho, §2.3). As medidas abaixo são do arquivo entregue e de um protótipo rodado na nuvem
 com as linhas reais da tabela da Giselle (pedido 20261008-154155-874c26, o print de 08/10).
 
 ## 1. O arquivo

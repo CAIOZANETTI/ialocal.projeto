@@ -30,6 +30,9 @@ python3 -m venv .venv && .venv/bin/pip install polars pdfplumber pypdfium2 pillo
 .venv/bin/python codigo/ensaio.py rodar foz_10      # roda o ensaio de ponta a ponta, com a vez da GPU pedida ao maestro (prioridade 4)
 .venv/bin/python codigo/pedido.py lista             # 0v27: os pedidos por e-mail, as execuções e as validações
 .venv/bin/python codigo/pedido.py rodar <id>        # roda (de novo) um pedido à mão; o agendado (pedido.py vigiar) faz sozinho
+.venv/bin/python codigo/catalogo.py instalar ~/Downloads/catalogo_gel_<data>.zip   # 0v36: o catálogo do orçamento (Referências › Conferir lista › Baixar catálogo)
+.venv/bin/python codigo/catalogo.py conferir tabela.csv     # código;descrição;unidade com cabeçalho → tabela_conferida.csv
+.venv/bin/python codigo/catalogo.py normalizar "Reg. gaveta FºFº DN 150"   # a forma comparável e as etiquetas de um texto
 ```
 
 **O clone pede uma chave de acesso própria** (como os outros `ialocal.*`):
@@ -64,6 +67,7 @@ codigo/grade.py         o leitor só de código: a tabela pelas caixas das palav
 codigo/curadoria.py     Python decide o que vale entre N leitores: confirmada (com testemunha), confirmada_ia, divergente, so_<leitor>
 codigo/pedido.py        o pedido por e-mail (0v27): o documento que o Caio (ou quem verifica) manda ao mini, lido de ponta a ponta com a prioridade do Caio; o resultado (o que saiu, item a item, ferramentas, IAs locais e web, tempo), a entrega ao cliente (0v31: <PDF>_<execução>.xlsx, que o web anexa), o prompt de correção da recusa e o placar das validações
 codigo/ensaio.py        o ensaio: até 10 PDFs reais e fixos (Foz) de ponta a ponta — código, depois a IA na vez pedida ao maestro —, o registro de cada execução e o que mudou desde a anterior; pedido por PR em conceitos/ensaios.json
+codigo/catalogo.py      a conferência das listas de material (0v36): cada item (código, descrição, unidade) no catálogo do ialocal.orcamento — pelo código, depois pela descrição normalizada, unidade e etiquetas; conferencia.csv no pedido
 codigo/planilha.py      o XLSX da entrega ao cliente só com a biblioteca padrão: número como número, cabeçalho congelado com filtro, o que conferir em amarelo
 codigo/tempo.py         a velocidade do pedido (0v32): a linha do tempo do e-mail ao resultado gravado, o total por camada (fila, maestro, Ollama, Vision, python), cada função cronometrada e o que o Ollama diz que gastou → resultado.json → velocidade
 codigo/rastro.py        a vista única de quem leu o quê: uma linha por documento × etapa × executor (entrada, resultado, confirmados, pendentes, tempo, versão) → rastro.csv
@@ -75,6 +79,7 @@ codigo/mini.py          atualizar (só fast-forward da main) e instalar (launchd
 codigo/testes.py        prancha A1 sintética, entrega e Drive falsos, regras com os casos reais de 26/09
 codigo/versoes.jsonl    0v1…: data, resumo e as tarefas que cada versão muda (muda: refeitas sozinhas)
 
+conceitos/catalogo.json o dicionário do orçamento (padrões de texto, abreviaturas, sinônimos, palavras vazias, unidades, etiquetas técnicas, grupos de serviço, pesos da nota): cópia, não editar aqui
 conceitos/prancha.json  o que reconhece a prancha, famílias, carimbo (campos por rótulo-âncora, revisões), eixo, fatias, padrões, conferência
 conceitos/sondagem.json o boletim: como reconhecer, por onde ler cada página, os padrões do cabeçalho, do N-SPT e das camadas
 conceitos/ia.json       modelos e parâmetros das chamadas (cópia do extratores.json do extrator, 2v93)
@@ -158,5 +163,14 @@ Drive  saida/<acervo>/<obra>/projeto/   rastro.csv, pranchas.csv, prancha_leitur
   de novo a cada vez — a resposta de modelo igual vem do congelamento. O registro sobe ao Drive
   (`_sistema/projeto/ensaios.csv`, uma linha por execução × documento com o que mudou; `ensaios_execucoes.csv`) e daí ao
   GitHub pelo ialocal.dados; a tarefa que falha vira lição de operação.
+- **O conhecimento das referências vem do orçamento** (0v36). O `ialocal.orcamento` une Padrão GEL, SINAPI, SICRO,
+  Sanepar, Sienge e equipamentos numa tabela só e mantém o dicionário que iguala as grafias (FD = FoFo = FºFº = ferro
+  fundido dúctil; DN 150 = DN150; JE 2GS = JE2GS; pç = UN. = un). O dicionário chega aqui pelo git em
+  `conceitos/catalogo.json` — **edita-se lá** (`conceitos/catalogo.yaml`, `tags_tecnicas.yaml`, `unidades_medida.yaml`)
+  e aqui se roda `catalogo.py dicionario <zip ou conceitos.json>` num PR. O catálogo com os preços (`catalogo.parquet`) vem no zip do botão
+  Baixar catálogo e mora em `dados/catalogo/`, fora do git; trocar a versão das bases é instalar o zip novo. A conta é a
+  mesma de lá: o código (COD SAM) acha o material e a descrição confirma; sem código, a descrição normalizada, a unidade
+  e as etiquetas (DN, PN, DE, material, junta, classe) dão a nota (confere ≥ 0,75; revisar ≥ 0,5). Erro de grafia que
+  aparecer numa prancha (como o K-9 de Foz) se corrige no dicionário do orçamento, não no código daqui.
 - **A bancada E3 (qualidade) continua no extrator** por ora: a classe `prancha_pdf` mede os modelos numa amostra, à
   parte da produção. Trazê-la para cá é o passo seguinte, junto com os itens pendentes do `plano_projeto.md` §9.

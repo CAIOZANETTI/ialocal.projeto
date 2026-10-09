@@ -39,6 +39,7 @@ from pathlib import Path
 
 import polars as pl
 
+import catalogo
 import cliente_gpu
 import comum
 import ensaio
@@ -229,7 +230,7 @@ def rodar(pedido, motivo='à mão'):
         resultado['fim'] = comum.agora()
         pasta.mkdir(parents=True, exist_ok=True)
         try:  # a entrega ao cliente (0v31); se falhar, o pedido sai sem ela e com o motivo
-            resultado['entrega'] = entrega(resultado, pasta) + [a for a in resultado.get('anexos', []) if a == 'tabelas.csv'] \
+            resultado['entrega'] = entrega(resultado, pasta) + [a for a in resultado.get('anexos', []) if a in ('tabelas.csv', 'conferencia.csv')] \
                 if not resultado.get('erro') else []  # 0v34: a Giselle pediu 'as tabelas em csv'
         except Exception as falha:
             resultado['entrega'], resultado['erro_entrega'] = [], f'{type(falha).__name__}: {falha}'[:300]
@@ -409,6 +410,11 @@ def exportar(lista, pasta):
         if tabela is not None and tabela.height:
             tabela.write_csv(pasta / nome, separator=';', include_bom=True)
             feitos.append(nome)
+    if 'tabelas.csv' in feitos and (idx := catalogo.carregar()) is not None:  # 0v36: cada item das listas de material no catálogo do orçamento
+        conferidas = catalogo.conferir_tabelas(comum.ler('prancha_tabela', ids).to_dicts(), idx)
+        if conferidas:
+            pl.DataFrame(conferidas, infer_schema_length=None).write_csv(pasta / 'conferencia.csv', separator=';', include_bom=True)
+            feitos.append('conferencia.csv')
     return feitos
 
 
