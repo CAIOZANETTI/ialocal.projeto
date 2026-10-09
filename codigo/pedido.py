@@ -236,8 +236,18 @@ def rodar(pedido, motivo='à mão'):
             resultado['entrega'], resultado['erro_entrega'] = [], f'{type(falha).__name__}: {falha}'[:300]
         tempo.marco('entrega_pronta')
         tempo.marco('resultado_gravado')
-        resultado['velocidade'] = cronometro.velocidade(resultado.get('espera_gpu_s') or 0.0)
-    resultado['texto'] = texto(resultado, feitas[-1] if feitas else None)
+        try:  # 0v35: a medida nunca segura o resultado
+            resultado['velocidade'] = cronometro.velocidade(resultado.get('espera_gpu_s') or 0.0)
+        except Exception as falha:
+            resultado['erro_velocidade'] = f'{type(falha).__name__}: {falha}'[:300]
+    try:  # 0v35: o texto que quebra não pode prender o pedido (09/10: um TypeError no texto deixou o resultado sem gravar e
+        # o vigiar repetindo o mesmo pedido a cada minuto — o do Gabriel e o refazer da Giselle ficaram sem resposta)
+        resultado['texto'] = texto(resultado, feitas[-1] if feitas else None)
+    except Exception as falha:
+        resultado['erro_texto'] = traceback.format_exc()[-1500:]
+        resultado['texto'] = (f"Pedido {resultado['pedido']} · execução {resultado['execucao']}: a leitura terminou "
+                              f"({len(resultado.get('documentos', []))} documento(s)), mas o resumo em texto falhou "
+                              f"({type(falha).__name__}: {falha}). A entrega vai anexa; o detalhe está no resultado.json.\n")
     (pasta / 'resultado.txt').write_text(resultado['texto'])
     comum.gravar_no_lugar(pasta / 'resultado.json', json.dumps(resultado, ensure_ascii=False, indent=1))  # por último: o web espera por ele
     (comum.DADOS / 'pedido_ativo.json').unlink(missing_ok=True)
@@ -400,7 +410,7 @@ def exportar(lista, pasta):
         if tabela is not None and tabela.height:
             tabela.write_csv(pasta / nome, separator=';', include_bom=True)
             feitos.append(nome)
-    if 'tabelas.csv' in feitos and (idx := catalogo.carregar()) is not None:  # 0v35: cada item das listas de material no catálogo do orçamento
+    if 'tabelas.csv' in feitos and (idx := catalogo.carregar()) is not None:  # 0v36: cada item das listas de material no catálogo do orçamento
         conferidas = catalogo.conferir_tabelas(comum.ler('prancha_tabela', ids).to_dicts(), idx)
         if conferidas:
             pl.DataFrame(conferidas, infer_schema_length=None).write_csv(pasta / 'conferencia.csv', separator=';', include_bom=True)
@@ -602,10 +612,10 @@ def tabelas_em_texto(tabelas, imagens=None):
     if not tabelas:
         return ['   TABELAS — nenhuma tabela colada como imagem na folha (a tabela em texto/vetor ainda não é lida como tabela)'] + imagens_em_texto(imagens)
     contagem = Counter(t['status'] for t in tabelas)
-    imagens = len({t['imagem'] for t in tabelas})
+    quantas = len({t['imagem'] for t in tabelas})  # 0v35: era `imagens`, que apagava o inventário recebido e quebrava o texto
     corpo = [f"     {' | '.join(t['celulas'])}  [{t['status']}{': falta ' + t['nao_confirmados'] if t.get('nao_confirmados') else ''}]"
              for t in tabelas[:MOSTRAR]]
-    return [f"   TABELAS — glm-ocr (modo tabela) × Vision: {imagens} imagem(ns), {len(tabelas)} linha(s): "
+    return [f"   TABELAS — glm-ocr (modo tabela) × Vision: {quantas} imagem(ns), {len(tabelas)} linha(s): "
             f"{', '.join(f'{n} {s}' for s, n in contagem.items())}", *imagens_em_texto(imagens), *corpo] + \
         ([f'     … mais {len(tabelas) - MOSTRAR} linha(s) em tabelas.csv'] if len(tabelas) > MOSTRAR else [])
 

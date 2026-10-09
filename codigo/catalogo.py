@@ -2,7 +2,7 @@
 unidade) de uma tabela de prancha — "3875 | CURVA FD JE 2GS BB 90 DN150 | pç" — é procurada no catálogo único das bases
 (Padrão GEL, SINAPI, SICRO, Sanepar, Sienge, equipamentos) que o ialocal.orcamento monta.
 
-O conhecimento vem do ialocal.orcamento (desde a 0v35): lá o engenheiro edita os dicionários (padrões de texto, abreviaturas,
+O conhecimento vem do ialocal.orcamento (desde a 0v36): lá o engenheiro edita os dicionários (padrões de texto, abreviaturas,
 sinônimos, palavras vazias, unidades, etiquetas técnicas) e o servidor monta o catálogo; aqui chegam a cópia do
 dicionário em conceitos/catalogo.json (pelo git, é público) e o catalogo.parquet em dados/catalogo/ (fora do git: tem
 os preços de compra da GEL e de licitação, que mudam a cada versão das bases). A conta é a mesma de lá (motor/catalogo.py, motor 0.15.0): 1º pelo código,

@@ -30,7 +30,7 @@ python3 -m venv .venv && .venv/bin/pip install polars pdfplumber pypdfium2 pillo
 .venv/bin/python codigo/ensaio.py rodar foz_10      # roda o ensaio de ponta a ponta, com a vez da GPU pedida ao maestro (prioridade 4)
 .venv/bin/python codigo/pedido.py lista             # 0v27: os pedidos por e-mail, as execuções e as validações
 .venv/bin/python codigo/pedido.py rodar <id>        # roda (de novo) um pedido à mão; o agendado (pedido.py vigiar) faz sozinho
-.venv/bin/python codigo/catalogo.py instalar ~/Downloads/catalogo_gel_<data>.zip   # 0v35: o catálogo do orçamento (Referências › Conferir lista › Baixar catálogo)
+.venv/bin/python codigo/catalogo.py instalar ~/Downloads/catalogo_gel_<data>.zip   # 0v36: o catálogo do orçamento (Referências › Conferir lista › Baixar catálogo)
 .venv/bin/python codigo/catalogo.py conferir tabela.csv     # código;descrição;unidade com cabeçalho → tabela_conferida.csv
 .venv/bin/python codigo/catalogo.py normalizar "Reg. gaveta FºFº DN 150"   # a forma comparável e as etiquetas de um texto
 ```
@@ -67,7 +67,7 @@ codigo/grade.py         o leitor só de código: a tabela pelas caixas das palav
 codigo/curadoria.py     Python decide o que vale entre N leitores: confirmada (com testemunha), confirmada_ia, divergente, so_<leitor>
 codigo/pedido.py        o pedido por e-mail (0v27): o documento que o Caio (ou quem verifica) manda ao mini, lido de ponta a ponta com a prioridade do Caio; o resultado (o que saiu, item a item, ferramentas, IAs locais e web, tempo), a entrega ao cliente (0v31: <PDF>_<execução>.xlsx, que o web anexa), o prompt de correção da recusa e o placar das validações
 codigo/ensaio.py        o ensaio: até 10 PDFs reais e fixos (Foz) de ponta a ponta — código, depois a IA na vez pedida ao maestro —, o registro de cada execução e o que mudou desde a anterior; pedido por PR em conceitos/ensaios.json
-codigo/catalogo.py      a conferência das listas de material (0v35): cada item (código, descrição, unidade) no catálogo do ialocal.orcamento — pelo código, depois pela descrição normalizada, unidade e etiquetas; conferencia.csv no pedido
+codigo/catalogo.py      a conferência das listas de material (0v36): cada item (código, descrição, unidade) no catálogo do ialocal.orcamento — pelo código, depois pela descrição normalizada, unidade e etiquetas; conferencia.csv no pedido
 codigo/planilha.py      o XLSX da entrega ao cliente só com a biblioteca padrão: número como número, cabeçalho congelado com filtro, o que conferir em amarelo
 codigo/tempo.py         a velocidade do pedido (0v32): a linha do tempo do e-mail ao resultado gravado, o total por camada (fila, maestro, Ollama, Vision, python), cada função cronometrada e o que o Ollama diz que gastou → resultado.json → velocidade
 codigo/rastro.py        a vista única de quem leu o quê: uma linha por documento × etapa × executor (entrada, resultado, confirmados, pendentes, tempo, versão) → rastro.csv
@@ -163,7 +163,7 @@ Drive  saida/<acervo>/<obra>/projeto/   rastro.csv, pranchas.csv, prancha_leitur
   de novo a cada vez — a resposta de modelo igual vem do congelamento. O registro sobe ao Drive
   (`_sistema/projeto/ensaios.csv`, uma linha por execução × documento com o que mudou; `ensaios_execucoes.csv`) e daí ao
   GitHub pelo ialocal.dados; a tarefa que falha vira lição de operação.
-- **O conhecimento das referências vem do orçamento** (0v35). O `ialocal.orcamento` une Padrão GEL, SINAPI, SICRO,
+- **O conhecimento das referências vem do orçamento** (0v36). O `ialocal.orcamento` une Padrão GEL, SINAPI, SICRO,
   Sanepar, Sienge e equipamentos numa tabela só e mantém o dicionário que iguala as grafias (FD = FoFo = FºFº = ferro
   fundido dúctil; DN 150 = DN150; JE 2GS = JE2GS; pç = UN. = un). O dicionário chega aqui pelo git em
   `conceitos/catalogo.json` — **edita-se lá** (`conceitos/catalogo.yaml`, `tags_tecnicas.yaml`, `unidades_medida.yaml`)
