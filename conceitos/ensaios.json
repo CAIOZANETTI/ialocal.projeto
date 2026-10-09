@@ -4,7 +4,7 @@
     "fonte": "pedido do Caio de 07/10/2026: 'pegar a pasta 211 Foz do Iguaçu do Drive, no máximo 10 pranchas, rodar e fazer acontecer, pedindo prioridade ao maestro'",
     "atualizado_em": "2026-10-07"
   },
-  "pedido": {"ensaio": "foz_10", "id": "2026-10-08-a"},
+  "pedido": {"ensaio": "foz_pbhi", "id": "2026-10-09-a"},
   "_pedido": "a rodada (a cada 5 min no launchd) roda o ensaio pedido uma vez por id, antes do trabalho de sempre. Para rodar de novo — depois de um PR que muda o código, por exemplo — troca o id por PR: o mini puxa a main em até 5 min e a rodada seguinte executa. Sem pedido (null), nada roda sozinho; à mão: codigo/ensaio.py rodar <nome>",
   "ensaios": {
     "foz_10": {
@@ -26,6 +26,29 @@
       "_prioridade": "a vez da GPU pedida ao maestro: 4 passa à frente da extração de documentos (5) e da rodada do projeto (7). É curto (no máximo 10 PDFs) e devolve a vez entre um documento e outro quando o maestro pede",
       "limite_s": 7200,
       "_limite_s": "o ensaio para entre documentos depois disso; o que não rodou fica com o motivo na execução"
+    },
+    "foz_pbhi": {
+      "_o_que_e": "09/10/2026, pedido do Caio: as tabelas de material da ETA Vila C (projeto hidráulico, pasta 1. PBHI). As 10 pranchas mais difíceis pelo placar do protótipo contra o gabarito de 661 linhas (notas/plano_tabelas_deterministicas.md §2 e §7; gabarito no ialocal.dados, orcamentos/211_saa_foz_do_iguacu/referencia/claude_opus/tabelas_pbhi/). Roda o código de hoje: é o 'antes' de cada PR do plano",
+      "fontes": [
+        {"tipo": "drive", "caminho": "gdrive:entrada/orçamentos/211 - SAA Foz do Iguaçu/01. RECEBIDOS/LC2112026EDITAL_ELEMENTOS/UNIDADE 01/ANEXO C/1. PBHI"}
+      ],
+      "maximo": 10,
+      "formatos": ["A0", "A1", "A2", "A3", "fora_de_serie"],
+      "lista": [
+        "042A-SAA-0017-7471-PBHI-DE-0001ETAVILACSIFAOFILTROSMOD2-R0.pdf",
+        "013-SAA-0017-7471-PBHI-DE-0001ETAVILACTRATAM360LS-R1.pdf",
+        "019-SAA-0017-7471-PBHI-DE-0001ETAVILACTRATAM600LS-R1.pdf",
+        "004-SAA-0017-7471-PBHI-DE-0001ETAVILACLAYOUTPROCES-R5.pdf",
+        "065-SAA-0017-7471-PBHI-DE-0001ETAVILACESTTRATOLOEX-R1.pdf",
+        "066-SAA-0017-7471-PBHI-DE-0001ETAVILACESTTRATOLOEX-R1.pdf",
+        "059-SAA-0017-7471-PBHI-DE-0001ETAVILACDETPREDADM-R1.pdf",
+        "060-SAA-0017-7471-PBHI-DE-0001ETAVILACCANALETASDET-R2.pdf",
+        "009-SAA-0017-7471-PBHI-DE-0001ETAVILACINTERLIGAÇOES-R2.pdf",
+        "008-SAA-0017-7471-PBHI-DE-0001ETAVILACLAYGERAGUAPO-R2.pdf"
+      ],
+      "_lista": "fixa: as que o protótipo mais errou (042A e 008 são tabela vetorial com texto em curva; 013 imagem pequena com fundo roxo; 019 50 linhas com valores empilhados; 004 onze tabelas pequenas). O nome é o do Drive, com o Ç de INTERLIGAÇOES",
+      "prioridade": 4,
+      "limite_s": 7200
     }
   }
 }
