@@ -1,0 +1,1088 @@
+{
+ "@context": "../contexto.jsonld",
+ "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0",
+ "@type": "Prancha",
+ "codigoArquivo": "013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0",
+ "revisao": "R0",
+ "tipo": "ARMADURA",
+ "folha": "13/21",
+ "conteudo": "ARMADURA DAS PAREDES: PAR7 e PAR8",
+ "estrutura": "MOD_TRATAM_MICRO_AREIA_600Ls",
+ "unidadeConstrutiva": {
+  "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:ACT01"
+ },
+ "obra": {
+  "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes"
+ },
+ "pagina": 1,
+ "extrator": {
+  "nome": "ialocal.projeto-civil",
+  "versao": "0.0.1-teste-pbes",
+  "leitores": [
+   "tesseract 5.3.4 (psm 7, lista de caracteres por coluna)",
+   "rapidocr_onnxruntime (texto e localização)",
+   "geometria: ialocal.projeto/codigo/tabela.py (sem alteração)"
+  ]
+ },
+ "segundos": 162.2,
+ "tabelas": [
+  {
+   "@type": "Tabela",
+   "tipo": "armadura",
+   "caixaPt": [
+    2404.8,
+    581.3,
+    2719.2,
+    908.6
+   ],
+   "ordem": 3
+  },
+  {
+   "@type": "Tabela",
+   "tipo": "resumo_aco",
+   "caixaPt": [
+    2404.8,
+    934.1,
+    2719.2,
+    1025.8
+   ],
+   "ordem": 7
+  },
+  {
+   "@type": "Tabela",
+   "tipo": "resumo_materiais",
+   "caixaPt": [
+    3089.3,
+    1124.6,
+    3336.5,
+    1303.2
+   ],
+   "ordem": 11
+  }
+ ],
+ "elementos": [
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0:e:par7-0",
+   "@type": "Elemento",
+   "codigo": "PAR7",
+   "tipo": "parede",
+   "equivalentes": [
+    "PAR7"
+   ],
+   "multiplicidade": 1,
+   "nomeLido": "PAR7",
+   "grupoDeTabela": null,
+   "linhasDeArmadura": [
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 1,
+     "bitolaMm": 20.0,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 6,
+     "comprimentoUnitarioCm": 1009,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 6054,
+     "massaKg": 149.292,
+     "posicaoLidaPeloOcr": "1",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    },
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 2,
+     "bitolaMm": 10.0,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 84,
+     "comprimentoUnitarioCm": 1066,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 89544,
+     "massaKg": 552.486,
+     "posicaoLidaPeloOcr": "2",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    },
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 3,
+     "bitolaMm": 10.0,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 80,
+     "comprimentoUnitarioCm": 225,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 18000,
+     "massaKg": 111.06,
+     "posicaoLidaPeloOcr": "3",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    },
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 4,
+     "bitolaMm": 10.0,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 80,
+     "comprimentoUnitarioCm": 250,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 20000,
+     "massaKg": 123.4,
+     "posicaoLidaPeloOcr": "4",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    },
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 5,
+     "bitolaMm": 10.0,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 124,
+     "comprimentoUnitarioCm": 652,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 80848,
+     "massaKg": 498.832,
+     "posicaoLidaPeloOcr": "5",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    },
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 6,
+     "bitolaMm": 10.0,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 124,
+     "comprimentoUnitarioCm": 190,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 23560,
+     "massaKg": 145.365,
+     "posicaoLidaPeloOcr": "6",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 1431.1,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido",
+      "verificacao": {
+       "nivel": "prancha",
+       "consenso": "peso_total+resumo_linhas+tabelas",
+       "fontes": [
+        "tabelas de armadura",
+        "RESUMO AÇO (linhas)",
+        "Peso Total impresso"
+       ]
+      }
+     },
+     "chaveOrcamento": "ACT01/PAR7/aco/CA-50/10",
+     "classeAco": "CA-50",
+     "bitolaMm": 10.0,
+     "comprimentoM": 2319.52,
+     "linhasDeArmadura": 5
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 149.3,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido",
+      "verificacao": {
+       "nivel": "prancha",
+       "consenso": "peso_total+resumo_linhas+tabelas",
+       "fontes": [
+        "tabelas de armadura",
+        "RESUMO AÇO (linhas)",
+        "Peso Total impresso"
+       ]
+      }
+     },
+     "chaveOrcamento": "ACT01/PAR7/aco/CA-50/20",
+     "classeAco": "CA-50",
+     "bitolaMm": 20.0,
+     "comprimentoM": 60.54,
+     "linhasDeArmadura": 1
+    }
+   ],
+   "massaTotalKg": 1580.4
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0:e:par8-0",
+   "@type": "Elemento",
+   "codigo": "PAR8",
+   "tipo": "parede",
+   "equivalentes": [
+    "PAR8"
+   ],
+   "multiplicidade": 1,
+   "nomeLido": "PAR8",
+   "grupoDeTabela": null,
+   "linhasDeArmadura": [
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 1,
+     "bitolaMm": 12.5,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 2,
+     "comprimentoUnitarioCm": 440,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 880,
+     "massaKg": 8.474,
+     "posicaoLidaPeloOcr": "1",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    },
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 2,
+     "bitolaMm": 20.0,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 2,
+     "comprimentoUnitarioCm": 624,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 1248,
+     "massaKg": 30.776,
+     "posicaoLidaPeloOcr": "2",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    },
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 3,
+     "bitolaMm": 8.0,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 16,
+     "comprimentoUnitarioCm": 435,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 6960,
+     "massaKg": 27.492,
+     "posicaoLidaPeloOcr": "3",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    },
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 4,
+     "bitolaMm": 8.0,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 10,
+     "comprimentoUnitarioCm": 422,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 4220,
+     "massaKg": 16.669,
+     "posicaoLidaPeloOcr": "4",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    },
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 5,
+     "bitolaMm": 8.0,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 10,
+     "comprimentoUnitarioCm": 436,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 4360,
+     "massaKg": 17.222,
+     "posicaoLidaPeloOcr": "5",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    },
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 6,
+     "bitolaMm": 20.0,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 2,
+     "comprimentoUnitarioCm": 869,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 1738,
+     "massaKg": 42.859,
+     "posicaoLidaPeloOcr": "6",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    },
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 7,
+     "bitolaMm": 20.0,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 2,
+     "comprimentoUnitarioCm": 869,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 1738,
+     "massaKg": 42.859,
+     "posicaoLidaPeloOcr": "7",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    },
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 8,
+     "bitolaMm": 20.0,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 1,
+     "comprimentoUnitarioCm": 860,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 860,
+     "massaKg": 21.208,
+     "posicaoLidaPeloOcr": "8",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    },
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 9,
+     "bitolaMm": 12.5,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 3,
+     "comprimentoUnitarioCm": 850,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 2550,
+     "massaKg": 24.556,
+     "posicaoLidaPeloOcr": null,
+     "posicaoReindexada": true,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    },
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 10,
+     "bitolaMm": 10.0,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 40,
+     "comprimentoUnitarioCm": 810,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 32400,
+     "massaKg": 199.908,
+     "posicaoLidaPeloOcr": "10",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    },
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 11,
+     "bitolaMm": 10.0,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 40,
+     "comprimentoUnitarioCm": 851,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 34040,
+     "massaKg": 210.027,
+     "posicaoLidaPeloOcr": "11",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    },
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 12,
+     "bitolaMm": 10.0,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 40,
+     "comprimentoUnitarioCm": 189,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 7560,
+     "massaKg": 46.645,
+     "posicaoLidaPeloOcr": "12",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    },
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 13,
+     "bitolaMm": 8.0,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 35,
+     "comprimentoUnitarioCm": 256,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 8960,
+     "massaKg": 35.392,
+     "posicaoLidaPeloOcr": "13",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    },
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 14,
+     "bitolaMm": 8.0,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 35,
+     "comprimentoUnitarioCm": 247,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 8645,
+     "massaKg": 34.148,
+     "posicaoLidaPeloOcr": "14",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    },
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 15,
+     "bitolaMm": 10.0,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 52,
+     "comprimentoUnitarioCm": 652,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 33904,
+     "massaKg": 209.188,
+     "posicaoLidaPeloOcr": "15",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    },
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 16,
+     "bitolaMm": 10.0,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 52,
+     "comprimentoUnitarioCm": 211,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 10972,
+     "massaKg": 67.697,
+     "posicaoLidaPeloOcr": "16",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    },
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 17,
+     "bitolaMm": 10.0,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 52,
+     "comprimentoUnitarioCm": 669,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 34788,
+     "massaKg": 214.642,
+     "posicaoLidaPeloOcr": "17",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    },
+    {
+     "@type": "LinhaArmadura",
+     "posicao": 18,
+     "bitolaMm": 10.0,
+     "classeAco": "CA-50",
+     "quantidadeBarras": 2,
+     "comprimentoUnitarioCm": 160,
+     "comprimentoUnitarioTipo": "numerico",
+     "comprimentoTotalCm": 320,
+     "massaKg": 1.974,
+     "posicaoLidaPeloOcr": "18",
+     "posicaoReindexada": false,
+     "confereQuantXUnit": true,
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido"
+     }
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 130.9,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido",
+      "verificacao": {
+       "nivel": "prancha",
+       "consenso": "peso_total+resumo_linhas+tabelas",
+       "fontes": [
+        "tabelas de armadura",
+        "RESUMO AÇO (linhas)",
+        "Peso Total impresso"
+       ]
+      }
+     },
+     "chaveOrcamento": "ACT01/PAR8/aco/CA-50/8",
+     "classeAco": "CA-50",
+     "bitolaMm": 8.0,
+     "comprimentoM": 331.45,
+     "linhasDeArmadura": 5
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 950.1,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido",
+      "verificacao": {
+       "nivel": "prancha",
+       "consenso": "peso_total+resumo_linhas+tabelas",
+       "fontes": [
+        "tabelas de armadura",
+        "RESUMO AÇO (linhas)",
+        "Peso Total impresso"
+       ]
+      }
+     },
+     "chaveOrcamento": "ACT01/PAR8/aco/CA-50/10",
+     "classeAco": "CA-50",
+     "bitolaMm": 10.0,
+     "comprimentoM": 1539.84,
+     "linhasDeArmadura": 7
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 33.0,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido",
+      "verificacao": {
+       "nivel": "prancha",
+       "consenso": "peso_total+resumo_linhas+tabelas",
+       "fontes": [
+        "tabelas de armadura",
+        "RESUMO AÇO (linhas)",
+        "Peso Total impresso"
+       ]
+      }
+     },
+     "chaveOrcamento": "ACT01/PAR8/aco/CA-50/12.5",
+     "classeAco": "CA-50",
+     "bitolaMm": 12.5,
+     "comprimentoM": 34.3,
+     "linhasDeArmadura": 2
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 137.7,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+      },
+      "tabela": "armadura",
+      "caixaPt": [
+       [
+        2404.8,
+        581.3,
+        2719.2,
+        908.6
+       ]
+      ],
+      "estado": "lido",
+      "verificacao": {
+       "nivel": "prancha",
+       "consenso": "peso_total+resumo_linhas+tabelas",
+       "fontes": [
+        "tabelas de armadura",
+        "RESUMO AÇO (linhas)",
+        "Peso Total impresso"
+       ]
+      }
+     },
+     "chaveOrcamento": "ACT01/PAR8/aco/CA-50/20",
+     "classeAco": "CA-50",
+     "bitolaMm": 20.0,
+     "comprimentoM": 55.84,
+     "linhasDeArmadura": 4
+    }
+   ],
+   "massaTotalKg": 1251.7
+  }
+ ],
+ "quantidades": [
+  {
+   "@type": "Quantidade",
+   "grandeza": "aco",
+   "valor": 2832.0,
+   "unidade": "kg",
+   "evidencia": {
+    "@type": "Evidencia",
+    "prancha": {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0"
+    },
+    "tabela": "armadura+resumo_aco",
+    "caixaPt": [
+     [
+      2404.8,
+      581.3,
+      2719.2,
+      908.6
+     ],
+     [
+      2404.8,
+      934.1,
+      2719.2,
+      1025.8
+     ]
+    ],
+    "estado": "confirmado",
+    "verificacao": {
+     "nivel": "prancha",
+     "consenso": "peso_total+resumo_linhas+tabelas",
+     "fontes": [
+      "tabelas de armadura",
+      "RESUMO AÇO (linhas)",
+      "Peso Total impresso"
+     ]
+    }
+   },
+   "chaveOrcamento": "ACT01/total/aco",
+   "escopo": "prancha",
+   "resumoGeral": 2832.0,
+   "diferencaParaResumoKg": 0.0
+  }
+ ],
+ "alertas": [],
+ "conferenciaComResumoGeral": {
+  "linhaNoResumo": 64,
+  "aco": {
+   "extraidoKg": 2832.0,
+   "resumoGeralKg": 2832.0,
+   "somaDasTabelasKg": 2832.0,
+   "consenso": "peso_total+resumo_linhas+tabelas"
+  }
+ }
+}

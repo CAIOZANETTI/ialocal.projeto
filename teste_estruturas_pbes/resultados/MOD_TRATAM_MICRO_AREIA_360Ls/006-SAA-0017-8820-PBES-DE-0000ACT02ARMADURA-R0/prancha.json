@@ -1,0 +1,121 @@
+{
+ "estrutura": "MOD_TRATAM_MICRO_AREIA_360Ls",
+ "codigo_arquivo": "006-SAA-0017-8820-PBES-DE-0000ACT02ARMADURA-R0",
+ "caixas": [
+  {
+   "n": 0,
+   "tipo": "outra",
+   "caixa_pt": [
+    2840.2,
+    33.1,
+    3336.5,
+    837.1
+   ]
+  },
+  {
+   "n": 1,
+   "tipo": "outra",
+   "caixa_pt": [
+    2102.4,
+    301.4,
+    2225.3,
+    448.8
+   ]
+  },
+  {
+   "n": 2,
+   "tipo": "outra",
+   "caixa_pt": [
+    153.1,
+    360.0,
+    765.6,
+    1297.0
+   ]
+  },
+  {
+   "n": 3,
+   "tipo": "outra",
+   "caixa_pt": [
+    2840.2,
+    839.5,
+    3087.4,
+    1065.6
+   ]
+  },
+  {
+   "n": 4,
+   "tipo": "outra",
+   "caixa_pt": [
+    3089.3,
+    839.5,
+    3336.5,
+    1065.6
+   ]
+  },
+  {
+   "n": 5,
+   "tipo": "armadura",
+   "caixa_pt": [
+    2237.8,
+    1014.7,
+    2552.2,
+    1448.2
+   ]
+  },
+  {
+   "n": 6,
+   "tipo": "outra",
+   "caixa_pt": [
+    2840.2,
+    1068.0,
+    3336.5,
+    1122.2
+   ]
+  },
+  {
+   "n": 7,
+   "tipo": "outra",
+   "caixa_pt": [
+    2840.2,
+    1124.6,
+    3087.4,
+    1303.2
+   ]
+  },
+  {
+   "n": 8,
+   "tipo": "resumo_materiais",
+   "caixa_pt": [
+    3089.3,
+    1124.6,
+    3336.5,
+    1303.2
+   ]
+  },
+  {
+   "n": 9,
+   "tipo": "outra",
+   "caixa_pt": [
+    2840.2,
+    1305.6,
+    3336.0,
+    1653.1
+   ]
+  },
+  {
+   "n": 10,
+   "tipo": "resumo_aco",
+   "caixa_pt": [
+    2237.8,
+    1474.1,
+    2552.2,
+    1546.1
+   ]
+  }
+ ],
+ "erro": "",
+ "n_resumo_materiais": 4,
+ "n_resumo_aco": 2,
+ "n_armadura": 36,
+ "segundos": 179.6
+}

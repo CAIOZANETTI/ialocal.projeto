@@ -1,0 +1,59 @@
+{
+ "@context": "../contexto.jsonld",
+ "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000ETL01FORMA-R0",
+ "@type": "Prancha",
+ "codigoArquivo": "001-SAA-0017-8820-PBES-DE-0000ETL01FORMA-R0",
+ "revisao": "R0",
+ "tipo": "FORMA",
+ "folha": "01/07",
+ "conteudo": "LOCAÇÃO, CARGAS, FORMA DO PAVIMENTO TÉRREO e PAVIMENTO SUPERIOR",
+ "estrutura": "REFORMA_EDIFIC_LODO",
+ "unidadeConstrutiva": {
+  "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:ETL01"
+ },
+ "obra": {
+  "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes"
+ },
+ "pagina": 1,
+ "extrator": {
+  "nome": "ialocal.projeto-civil",
+  "versao": "0.0.1-teste-pbes",
+  "leitores": [
+   "tesseract 5.3.4 (psm 7, lista de caracteres por coluna)",
+   "rapidocr_onnxruntime (texto e localização)",
+   "geometria: ialocal.projeto/codigo/tabela.py (sem alteração)"
+  ]
+ },
+ "segundos": 46.4,
+ "tabelas": [
+  {
+   "@type": "Tabela",
+   "tipo": "resumo_metalico",
+   "caixaPt": [
+    2883.4,
+    523.2,
+    3308.2,
+    942.7
+   ],
+   "ordem": 2
+  }
+ ],
+ "elementos": [],
+ "quantidades": [],
+ "alertas": [
+  {
+   "@type": "Alerta",
+   "classe": "arquivo_diferente_da_linha",
+   "texto": "estrutura metálica (RESUMO DO MATERIAL, ≈1404 kg); a linha de mesmo nome no resumo geral é de concreto"
+  }
+ ],
+ "conferenciaComResumoGeral": {
+  "linhaNoResumo": 90,
+  "aco": {
+   "extraidoKg": null,
+   "resumoGeralKg": 0.0,
+   "somaDasTabelasKg": null,
+   "consenso": "sem consenso"
+  }
+ }
+}

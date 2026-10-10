@@ -1,0 +1,195 @@
+{
+ "@context": "../contexto.jsonld",
+ "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:CXA03",
+ "@type": "UnidadeConstrutiva",
+ "codigo": "CXA03",
+ "nome": "CAIXAS DE INTERLIGAÇÃO CHEGADA ÁGUA BRUTA - CAIXA 03",
+ "nomeVemDe": "relacao de desenhos",
+ "estrutura": "INTERLIGAÇÕES",
+ "obra": {
+  "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes"
+ },
+ "pranchas": [
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000CXA03FORMARMAD-R0",
+   "codigoArquivo": "001-SAA-0017-8820-PBES-DE-0000CXA03FORMARMAD-R0",
+   "folha": "01/01",
+   "tipo": "FORMARMAD"
+  }
+ ],
+ "elementos": [
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:CXA03:e:lajes-do-fundo",
+   "@type": "Elemento",
+   "codigo": "LAJES-DO-FUNDO",
+   "tipo": "divisao",
+   "equivalentes": null,
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000CXA03FORMARMAD-R0:e:lajes-do-fundo",
+     "codigoArquivo": "001-SAA-0017-8820-PBES-DE-0000CXA03FORMARMAD-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "forma",
+     "valor": 2.56,
+     "unidade": "m²",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas"
+     },
+     "chaveOrcamento": "CXA03/LAJES-DO-FUNDO/forma"
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "concreto",
+     "valor": 2.05,
+     "unidade": "m³",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas"
+     },
+     "chaveOrcamento": "CXA03/LAJES-DO-FUNDO/concreto"
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:CXA03:e:paredes",
+   "@type": "Elemento",
+   "codigo": "PAREDES",
+   "tipo": "divisao",
+   "equivalentes": null,
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000CXA03FORMARMAD-R0:e:paredes",
+     "codigoArquivo": "001-SAA-0017-8820-PBES-DE-0000CXA03FORMARMAD-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "forma",
+     "valor": 48.4,
+     "unidade": "m²",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas"
+     },
+     "chaveOrcamento": "CXA03/PAREDES/forma"
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "concreto",
+     "valor": 4.84,
+     "unidade": "m³",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas"
+     },
+     "chaveOrcamento": "CXA03/PAREDES/concreto"
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:CXA03:e:bl1",
+   "@type": "Elemento",
+   "codigo": "BL1",
+   "tipo": "divisao",
+   "equivalentes": null,
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000CXA03FORMARMAD-R0:e:bl1",
+     "codigoArquivo": "001-SAA-0017-8820-PBES-DE-0000CXA03FORMARMAD-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "forma",
+     "valor": 0.93,
+     "unidade": "m²",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas"
+     },
+     "chaveOrcamento": "CXA03/BL1/forma"
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "concreto",
+     "valor": 0.12,
+     "unidade": "m³",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas"
+     },
+     "chaveOrcamento": "CXA03/BL1/concreto"
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:CXA03:e:conjunto",
+   "@type": "Elemento",
+   "codigo": "CONJUNTO",
+   "tipo": "conjunto",
+   "equivalentes": [
+    "CONJUNTO"
+   ],
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000CXA03FORMARMAD-R0:e:conjunto-0",
+     "codigoArquivo": "001-SAA-0017-8820-PBES-DE-0000CXA03FORMARMAD-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 644.8,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000CXA03FORMARMAD-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "CXA03/CONJUNTO/aco/CA-50/8",
+     "classeAco": "CA-50",
+     "bitolaMm": 8.0
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 110.1,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000CXA03FORMARMAD-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "CXA03/CONJUNTO/aco/CA-50/12.5",
+     "classeAco": "CA-50",
+     "bitolaMm": 12.5
+    }
+   ]
+  }
+ ],
+ "totais": {
+  "@type": "Totais",
+  "concretoM3": 7.01,
+  "formaM2": 51.89,
+  "lastroM3": 0.51,
+  "enchimentoM3": 0.0,
+  "acoKgSomaDosElementos": 754.9,
+  "acoKgPorPrancha": 755.0
+ }
+}

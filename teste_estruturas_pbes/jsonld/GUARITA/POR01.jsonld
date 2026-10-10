@@ -1,0 +1,743 @@
+{
+ "@context": "../contexto.jsonld",
+ "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:POR01",
+ "@type": "UnidadeConstrutiva",
+ "codigo": "POR01",
+ "nome": "PORTARIA / GUARITA",
+ "nomeVemDe": "relacao de desenhos",
+ "estrutura": "GUARITA",
+ "obra": {
+  "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes"
+ },
+ "pranchas": [
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000POR01FORMA-R0",
+   "codigoArquivo": "001-SAA-0017-8820-PBES-DE-0000POR01FORMA-R0",
+   "folha": "01/02",
+   "tipo": "FORMA"
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0",
+   "codigoArquivo": "002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0",
+   "folha": "02/02",
+   "tipo": "ARMADURA"
+  }
+ ],
+ "elementos": [
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:POR01:e:blocos",
+   "@type": "Elemento",
+   "codigo": "BLOCOS",
+   "tipo": "divisao",
+   "equivalentes": null,
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000POR01FORMA-R0:e:blocos",
+     "codigoArquivo": "001-SAA-0017-8820-PBES-DE-0000POR01FORMA-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "forma",
+     "valor": 5.76,
+     "unidade": "m²",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas"
+     },
+     "chaveOrcamento": "POR01/BLOCOS/forma"
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "concreto",
+     "valor": 0.86,
+     "unidade": "m³",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas"
+     },
+     "chaveOrcamento": "POR01/BLOCOS/concreto"
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:POR01:e:laje-terreo",
+   "@type": "Elemento",
+   "codigo": "LAJE-TERREO",
+   "tipo": "divisao",
+   "equivalentes": null,
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000POR01FORMA-R0:e:laje-terreo",
+     "codigoArquivo": "001-SAA-0017-8820-PBES-DE-0000POR01FORMA-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "concreto",
+     "valor": 1.91,
+     "unidade": "m³",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas"
+     },
+     "chaveOrcamento": "POR01/LAJE-TERREO/concreto"
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:POR01:e:vigas",
+   "@type": "Elemento",
+   "codigo": "VIGAS",
+   "tipo": "divisao",
+   "equivalentes": null,
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000POR01FORMA-R0:e:vigas",
+     "codigoArquivo": "001-SAA-0017-8820-PBES-DE-0000POR01FORMA-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "forma",
+     "valor": 42.47,
+     "unidade": "m²",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas"
+     },
+     "chaveOrcamento": "POR01/VIGAS/forma"
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "concreto",
+     "valor": 3.61,
+     "unidade": "m³",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas"
+     },
+     "chaveOrcamento": "POR01/VIGAS/concreto"
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:POR01:e:pilares",
+   "@type": "Elemento",
+   "codigo": "PILARES",
+   "tipo": "divisao",
+   "equivalentes": null,
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000POR01FORMA-R0:e:pilares",
+     "codigoArquivo": "001-SAA-0017-8820-PBES-DE-0000POR01FORMA-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "forma",
+     "valor": 10.26,
+     "unidade": "m²",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas"
+     },
+     "chaveOrcamento": "POR01/PILARES/forma"
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "concreto",
+     "valor": 0.51,
+     "unidade": "m³",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas"
+     },
+     "chaveOrcamento": "POR01/PILARES/concreto"
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:POR01:e:laje-cobertura",
+   "@type": "Elemento",
+   "codigo": "LAJE-COBERTURA",
+   "tipo": "divisao",
+   "equivalentes": null,
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000POR01FORMA-R0:e:laje-cobertura",
+     "codigoArquivo": "001-SAA-0017-8820-PBES-DE-0000POR01FORMA-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "forma",
+     "valor": 30.57,
+     "unidade": "m²",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas"
+     },
+     "chaveOrcamento": "POR01/LAJE-COBERTURA/forma"
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "concreto",
+     "valor": 4.59,
+     "unidade": "m³",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas"
+     },
+     "chaveOrcamento": "POR01/LAJE-COBERTURA/concreto"
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:POR01:e:p1",
+   "@type": "Elemento",
+   "codigo": "P1",
+   "tipo": "pilar",
+   "equivalentes": [
+    "P1",
+    "P2",
+    "P3",
+    "P4"
+   ],
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0:e:p1-0",
+     "codigoArquivo": "002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+    },
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0:e:p1-0",
+     "codigoArquivo": "002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 35.5,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+       },
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "POR01/P1/aco/CA-50/6.3",
+     "classeAco": "CA-50",
+     "bitolaMm": 6.3
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 42.6,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+       },
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "POR01/P1/aco/CA-50/10",
+     "classeAco": "CA-50",
+     "bitolaMm": 10.0
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 16.7,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+       },
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "POR01/P1/aco/CA-60/5",
+     "classeAco": "CA-60",
+     "bitolaMm": 5.0
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:POR01:e:laje-da-cobertura",
+   "@type": "Elemento",
+   "codigo": "LAJE-DA-COBERTURA",
+   "tipo": "laje",
+   "equivalentes": [
+    "LAJE-DA-COBERTURA"
+   ],
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0:e:laje-da-cobertura-0",
+     "codigoArquivo": "002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 339.2,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "POR01/LAJE-DA-COBERTURA/aco/CA-50/6.3",
+     "classeAco": "CA-50",
+     "bitolaMm": 6.3
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:POR01:e:laje-do-pav-terreo",
+   "@type": "Elemento",
+   "codigo": "LAJE-DO-PAV-TERREO",
+   "tipo": "laje",
+   "equivalentes": [
+    "LAJE-DO-PAV-TERREO"
+   ],
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0:e:laje-do-pav-terreo-0",
+     "codigoArquivo": "002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 71.1,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "POR01/LAJE-DO-PAV-TERREO/aco/CA-50/6.3",
+     "classeAco": "CA-50",
+     "bitolaMm": 6.3
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:POR01:e:v1",
+   "@type": "Elemento",
+   "codigo": "V1",
+   "tipo": "viga",
+   "equivalentes": [
+    "V1",
+    "V2"
+   ],
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0:e:v1-1",
+     "codigoArquivo": "002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 19.1,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "POR01/V1/aco/CA-50/10",
+     "classeAco": "CA-50",
+     "bitolaMm": 10.0
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 4.4,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "POR01/V1/aco/CA-60/5",
+     "classeAco": "CA-60",
+     "bitolaMm": 5.0
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:POR01:e:v3",
+   "@type": "Elemento",
+   "codigo": "V3",
+   "tipo": "viga",
+   "equivalentes": [
+    "V3",
+    "V4"
+   ],
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0:e:v3-1",
+     "codigoArquivo": "002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 12.5,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "POR01/V3/aco/CA-50/10",
+     "classeAco": "CA-50",
+     "bitolaMm": 10.0
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 29.2,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "POR01/V3/aco/CA-50/12.5",
+     "classeAco": "CA-50",
+     "bitolaMm": 12.5
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 6.9,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "POR01/V3/aco/CA-60/5",
+     "classeAco": "CA-60",
+     "bitolaMm": 5.0
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:POR01:e:v5",
+   "@type": "Elemento",
+   "codigo": "V5",
+   "tipo": "viga",
+   "equivalentes": [
+    "V5",
+    "V6"
+   ],
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0:e:v5-1",
+     "codigoArquivo": "002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 18.1,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "POR01/V5/aco/CA-50/10",
+     "classeAco": "CA-50",
+     "bitolaMm": 10.0
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 4.8,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "POR01/V5/aco/CA-60/5",
+     "classeAco": "CA-60",
+     "bitolaMm": 5.0
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:POR01:e:v7",
+   "@type": "Elemento",
+   "codigo": "V7",
+   "tipo": "viga",
+   "equivalentes": [
+    "V7",
+    "V8"
+   ],
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0:e:v7-1",
+     "codigoArquivo": "002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 29.9,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "POR01/V7/aco/CA-50/10",
+     "classeAco": "CA-50",
+     "bitolaMm": 10.0
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 7.3,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "POR01/V7/aco/CA-60/5",
+     "classeAco": "CA-60",
+     "bitolaMm": 5.0
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:POR01:e:va1",
+   "@type": "Elemento",
+   "codigo": "VA1",
+   "tipo": "viga",
+   "equivalentes": [
+    "VA1"
+   ],
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0:e:va1-1",
+     "codigoArquivo": "002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 31.1,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "POR01/VA1/aco/CA-50/10",
+     "classeAco": "CA-50",
+     "bitolaMm": 10.0
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 22.9,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "POR01/VA1/aco/CA-60/5",
+     "classeAco": "CA-60",
+     "bitolaMm": 5.0
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:POR01:e:va2",
+   "@type": "Elemento",
+   "codigo": "VA2",
+   "tipo": "viga",
+   "equivalentes": [
+    "VA2"
+   ],
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0:e:va2-1",
+     "codigoArquivo": "002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 34.7,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "POR01/VA2/aco/CA-50/10",
+     "classeAco": "CA-50",
+     "bitolaMm": 10.0
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 25.2,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "POR01/VA2/aco/CA-60/5",
+     "classeAco": "CA-60",
+     "bitolaMm": 5.0
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:POR01:e:verga-e-contra-verga",
+   "@type": "Elemento",
+   "codigo": "VERGA-E-CONTRA-VERGA",
+   "tipo": "grupo",
+   "equivalentes": [
+    "VERGA-E-CONTRA-VERGA"
+   ],
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0:e:verga-e-contra-verga-1",
+     "codigoArquivo": "002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 6.8,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "POR01/VERGA-E-CONTRA-VERGA/aco/CA-60/5",
+     "classeAco": "CA-60",
+     "bitolaMm": 5.0
+    }
+   ]
+  }
+ ],
+ "totais": {
+  "@type": "Totais",
+  "concretoM3": 11.48,
+  "formaM2": 89.06,
+  "lastroM3": 0.79,
+  "enchimentoM3": 0.0,
+  "acoKgSomaDosElementos": 758.0,
+  "acoKgPorPrancha": 758.0
+ }
+}

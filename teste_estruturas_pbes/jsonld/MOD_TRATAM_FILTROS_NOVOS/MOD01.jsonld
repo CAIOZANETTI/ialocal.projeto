@@ -1,0 +1,428 @@
+{
+ "@context": "../contexto.jsonld",
+ "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:MOD01",
+ "@type": "UnidadeConstrutiva",
+ "codigo": "MOD01",
+ "nome": "MÓDULO DE TRATAMENTO FILTRO",
+ "nomeVemDe": "relacao de desenhos",
+ "estrutura": "MOD_TRATAM_FILTROS_NOVOS",
+ "obra": {
+  "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes"
+ },
+ "pranchas": [
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000MOD01FORMA-R1",
+   "codigoArquivo": "001-SAA-0017-8820-PBES-DE-0000MOD01FORMA-R1",
+   "folha": "01/18",
+   "tipo": "FORMA"
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1",
+   "codigoArquivo": "008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1",
+   "folha": "08/18",
+   "tipo": "ARMADURA"
+  }
+ ],
+ "elementos": [
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:MOD01:e:detalhe-do-bloco-para-1-estaca-x10",
+   "@type": "Elemento",
+   "codigo": "DETALHE-DO-BLOCO-PARA-1-ESTACA-X10",
+   "tipo": "bloco",
+   "equivalentes": [
+    "DETALHE-DO-BLOCO-PARA-1-ESTACA-X10"
+   ],
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1:e:detalhe-do-bloco-para-1-estaca-x10-0",
+     "codigoArquivo": "008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 126.9,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1"
+       }
+      ]
+     },
+     "chaveOrcamento": "MOD01/DETALHE-DO-BLOCO-PARA-1-ESTACA-X10/aco/CA-50/6.3",
+     "classeAco": "CA-50",
+     "bitolaMm": 6.3
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:MOD01:e:detalhe-do-bloco-para-2-estacas-x15",
+   "@type": "Elemento",
+   "codigo": "DETALHE-DO-BLOCO-PARA-2-ESTACAS-X15",
+   "tipo": "bloco",
+   "equivalentes": [
+    "DETALHE-DO-BLOCO-PARA-2-ESTACAS-X15"
+   ],
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1:e:detalhe-do-bloco-para-2-estacas-x15-0",
+     "codigoArquivo": "008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 11.8,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1"
+       }
+      ]
+     },
+     "chaveOrcamento": "MOD01/DETALHE-DO-BLOCO-PARA-2-ESTACAS-X15/aco/CA-50/6.3",
+     "classeAco": "CA-50",
+     "bitolaMm": 6.3
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 516.7,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1"
+       }
+      ]
+     },
+     "chaveOrcamento": "MOD01/DETALHE-DO-BLOCO-PARA-2-ESTACAS-X15/aco/CA-50/8",
+     "classeAco": "CA-50",
+     "bitolaMm": 8.0
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 849.3,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1"
+       }
+      ]
+     },
+     "chaveOrcamento": "MOD01/DETALHE-DO-BLOCO-PARA-2-ESTACAS-X15/aco/CA-50/16",
+     "classeAco": "CA-50",
+     "bitolaMm": 16.0
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:MOD01:e:detalhe-do-bloco-para-4-estacas-x16",
+   "@type": "Elemento",
+   "codigo": "DETALHE-DO-BLOCO-PARA-4-ESTACAS-X16",
+   "tipo": "bloco",
+   "equivalentes": [
+    "DETALHE-DO-BLOCO-PARA-4-ESTACAS-X16"
+   ],
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1:e:detalhe-do-bloco-para-4-estacas-x16-0",
+     "codigoArquivo": "008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 12.5,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1"
+       }
+      ]
+     },
+     "chaveOrcamento": "MOD01/DETALHE-DO-BLOCO-PARA-4-ESTACAS-X16/aco/CA-50/6.3",
+     "classeAco": "CA-50",
+     "bitolaMm": 6.3
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 253.8,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1"
+       }
+      ]
+     },
+     "chaveOrcamento": "MOD01/DETALHE-DO-BLOCO-PARA-4-ESTACAS-X16/aco/CA-50/8",
+     "classeAco": "CA-50",
+     "bitolaMm": 8.0
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 3623.6,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1"
+       }
+      ]
+     },
+     "chaveOrcamento": "MOD01/DETALHE-DO-BLOCO-PARA-4-ESTACAS-X16/aco/CA-50/16",
+     "classeAco": "CA-50",
+     "bitolaMm": 16.0
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:MOD01:e:p1",
+   "@type": "Elemento",
+   "codigo": "P1",
+   "tipo": "pilar",
+   "equivalentes": [
+    "P1",
+    "P12"
+   ],
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1:e:p1-0",
+     "codigoArquivo": "008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 123.5,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1"
+       }
+      ]
+     },
+     "chaveOrcamento": "MOD01/P1/aco/CA-50/6.3",
+     "classeAco": "CA-50",
+     "bitolaMm": 6.3
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 682.8,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1"
+       }
+      ]
+     },
+     "chaveOrcamento": "MOD01/P1/aco/CA-50/16",
+     "classeAco": "CA-50",
+     "bitolaMm": 16.0
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:MOD01:e:par3",
+   "@type": "Elemento",
+   "codigo": "PAR3",
+   "tipo": "parede",
+   "equivalentes": [
+    "PAR3",
+    "PAR6"
+   ],
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1:e:par3-1",
+     "codigoArquivo": "008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 271.4,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1"
+       }
+      ]
+     },
+     "chaveOrcamento": "MOD01/PAR3/aco/CA-50/8",
+     "classeAco": "CA-50",
+     "bitolaMm": 8.0
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 28.4,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1"
+       }
+      ]
+     },
+     "chaveOrcamento": "MOD01/PAR3/aco/CA-50/12.5",
+     "classeAco": "CA-50",
+     "bitolaMm": 12.5
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:MOD01:e:par4",
+   "@type": "Elemento",
+   "codigo": "PAR4",
+   "tipo": "parede",
+   "equivalentes": [
+    "PAR4"
+   ],
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1:e:par4-1",
+     "codigoArquivo": "008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 293.0,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1"
+       }
+      ]
+     },
+     "chaveOrcamento": "MOD01/PAR4/aco/CA-50/8",
+     "classeAco": "CA-50",
+     "bitolaMm": 8.0
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 57.3,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1"
+       }
+      ]
+     },
+     "chaveOrcamento": "MOD01/PAR4/aco/CA-50/12.5",
+     "classeAco": "CA-50",
+     "bitolaMm": 12.5
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:MOD01:e:par5",
+   "@type": "Elemento",
+   "codigo": "PAR5",
+   "tipo": "parede",
+   "equivalentes": [
+    "PAR5"
+   ],
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1:e:par5-1",
+     "codigoArquivo": "008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 135.7,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1"
+       }
+      ]
+     },
+     "chaveOrcamento": "MOD01/PAR5/aco/CA-50/8",
+     "classeAco": "CA-50",
+     "bitolaMm": 8.0
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 14.2,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1"
+       }
+      ]
+     },
+     "chaveOrcamento": "MOD01/PAR5/aco/CA-50/12.5",
+     "classeAco": "CA-50",
+     "bitolaMm": 12.5
+    }
+   ]
+  }
+ ],
+ "totais": {
+  "@type": "Totais",
+  "concretoM3": 0.0,
+  "formaM2": 0.0,
+  "lastroM3": 0.0,
+  "enchimentoM3": 0.0,
+  "acoKgSomaDosElementos": 7000.9,
+  "acoKgPorPrancha": 6977.0
+ }
+}

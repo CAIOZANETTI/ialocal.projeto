@@ -1,0 +1,12 @@
+estrutura;codigo_arquivo;grandeza;extraido;resumo_geral;dif;origem;classe;nota
+INTERLIGAÇÕES;001-SAA-0017-8820-PBES-DE-0000CXA01FORMARMAD-R0;aço ca50_12_5;14.0;144.0;-130.0;RESUMO AÇO da prancha;diferenca;
+INTERLIGAÇÕES;001-SAA-0017-8820-PBES-DE-0000CXA05FORMARMAD-R0;aco_total_kg[soma das tabelas de armadura];974.0;934.0;40.0;tabelas de armadura (Σ comp × kg/m);diferenca;
+INTERLIGAÇÕES;001-SAA-0017-8820-PBES-DE-0000CXA05FORMARMAD-R0;aço ca50_8_0;838.0;799.0;39.0;tabelas de armadura (Σ comp × kg/m);diferenca;
+MOD_TRATAM_FILTROS_NOVOS;008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1;aco_total_kg[soma das tabelas de armadura];7001.0;6978.0;23.0;tabelas de armadura (Σ comp × kg/m);revisao;revisão diferente: o resumo traz R0, o PDF é R1
+MOD_TRATAM_FILTROS_NOVOS;008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1;aço ca50_8_0;1471.0;1447.0;24.0;tabelas de armadura (Σ comp × kg/m);revisao;revisão diferente: o resumo traz R0, o PDF é R1
+MOD_TRATAM_MICRO_AREIA_360Ls;006-SAA-0017-8820-PBES-DE-0000ACT02ARMADURA-R0;aço ca50_12_5;5.0;85.0;-80.0;RESUMO AÇO da prancha;diferenca;
+MOD_TRATAM_MICRO_AREIA_360Ls;009-SAA-0017-8820-PBES-DE-0000ACT02ARMADURA-R0;aco_total_kg[soma das tabelas de armadura];2261.0;1986.0;275.0;tabelas de armadura (Σ comp × kg/m);diferenca;
+MOD_TRATAM_MICRO_AREIA_360Ls;009-SAA-0017-8820-PBES-DE-0000ACT02ARMADURA-R0;aço ca50_8_0;509.0;234.0;275.0;tabelas de armadura (Σ comp × kg/m);diferenca;
+REFORMA_EDIFIC_LODO;001-SAA-0017-8820-PBES-DE-0000ETL01FORMA-R0;concreto_m3;;87.95;;resumo_materiais da prancha;nao_extraido;
+REFORMA_EDIFIC_LODO;001-SAA-0017-8820-PBES-DE-0000ETL01FORMA-R0;forma_m2;;576.3;;resumo_materiais da prancha;nao_extraido;
+REFORMA_EDIFIC_LODO;001-SAA-0017-8820-PBES-DE-0000ETL01FORMA-R0;lastro_m3;;4.34;;barra LASTRO;nao_extraido;
