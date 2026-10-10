@@ -1,0 +1,241 @@
+{
+ "@context": "contexto.jsonld",
+ "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes",
+ "@type": "Obra",
+ "nome": "ETA Vila C — Projeto Básico Estrutural (PBES)",
+ "localidade": "Foz do Iguaçu - PR",
+ "contratante": "SANEPAR",
+ "fase": "PBES",
+ "sistema": "Sistema de Abastecimento de Água",
+ "ordemDeServico": "359534",
+ "geradoEm": "2026-10-10",
+ "extrator": {
+  "nome": "ialocal.projeto-civil",
+  "versao": "0.0.1-teste-pbes",
+  "leitores": [
+   "tesseract 5.3.4 (psm 7, lista de caracteres por coluna)",
+   "rapidocr_onnxruntime (texto e localização)",
+   "geometria: ialocal.projeto/codigo/tabela.py (sem alteração)"
+  ]
+ },
+ "unidades": [
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:ABR01",
+   "codigo": "ABR01",
+   "nome": "Abrigo Bombas Prods Quimicos",
+   "estrutura": "ABRIGO_BOMBAS_PRODS_QUIMICOS",
+   "pranchas": 1,
+   "totais": {
+    "@type": "Totais",
+    "concretoM3": 4.77,
+    "formaM2": 35.43,
+    "lastroM3": 0.22,
+    "enchimentoM3": 0.0,
+    "acoKgSomaDosElementos": 476.8,
+    "acoKgPorPrancha": 477.0
+   }
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:BLO01",
+   "codigo": "BLO01",
+   "nome": "BLOCOS DE APOIO e ANCORAGEM",
+   "estrutura": "BLOCOS_DE_APOIO_E_ANCORAGEM",
+   "pranchas": 3,
+   "totais": {
+    "@type": "Totais",
+    "concretoM3": 22.22,
+    "formaM2": 107.15,
+    "lastroM3": 0.65,
+    "enchimentoM3": 0.0,
+    "acoKgSomaDosElementos": 809.6,
+    "acoKgPorPrancha": 810.0
+   }
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:POR01",
+   "codigo": "POR01",
+   "nome": "PORTARIA / GUARITA",
+   "estrutura": "GUARITA",
+   "pranchas": 2,
+   "totais": {
+    "@type": "Totais",
+    "concretoM3": 11.48,
+    "formaM2": 89.06,
+    "lastroM3": 0.79,
+    "enchimentoM3": 0.0,
+    "acoKgSomaDosElementos": 758.0,
+    "acoKgPorPrancha": 758.0
+   }
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:CXA01",
+   "codigo": "CXA01",
+   "nome": "CAIXAS DE INTERLIGAÇÃO CHEGADA ÁGUA BRUTA - CAIXA 01",
+   "estrutura": "INTERLIGAÇÕES",
+   "pranchas": 1,
+   "totais": {
+    "@type": "Totais",
+    "concretoM3": 10.85,
+    "formaM2": 75.05,
+    "lastroM3": 0.89,
+    "enchimentoM3": 0.0,
+    "acoKgSomaDosElementos": 1067.0,
+    "acoKgPorPrancha": 1067.0
+   }
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:CXA02",
+   "codigo": "CXA02",
+   "nome": "CAIXAS DE INTERLIGAÇÃO CHEGADA ÁGUA BRUTA - CAIXA 02",
+   "estrutura": "INTERLIGAÇÕES",
+   "pranchas": 1,
+   "totais": {
+    "@type": "Totais",
+    "concretoM3": 13.07,
+    "formaM2": 87.98,
+    "lastroM3": 1.09,
+    "enchimentoM3": 0.0,
+    "acoKgSomaDosElementos": 1202.3,
+    "acoKgPorPrancha": 1202.0
+   }
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:CXA03",
+   "codigo": "CXA03",
+   "nome": "CAIXAS DE INTERLIGAÇÃO CHEGADA ÁGUA BRUTA - CAIXA 03",
+   "estrutura": "INTERLIGAÇÕES",
+   "pranchas": 1,
+   "totais": {
+    "@type": "Totais",
+    "concretoM3": 7.01,
+    "formaM2": 51.89,
+    "lastroM3": 0.51,
+    "enchimentoM3": 0.0,
+    "acoKgSomaDosElementos": 754.9,
+    "acoKgPorPrancha": 755.0
+   }
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:CXA04",
+   "codigo": "CXA04",
+   "nome": "CAIXAS DE INTERLIGAÇÃO CHEGADA ÁGUA BRUTA - CAIXA 04",
+   "estrutura": "INTERLIGAÇÕES",
+   "pranchas": 1,
+   "totais": {
+    "@type": "Totais",
+    "concretoM3": 11.1,
+    "formaM2": 75.05,
+    "lastroM3": 0.99,
+    "enchimentoM3": 0.0,
+    "acoKgSomaDosElementos": 994.0,
+    "acoKgPorPrancha": 994.0
+   }
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:CXA05",
+   "codigo": "CXA05",
+   "nome": "CAIXAS DE INTERLIGAÇÃO CHEGADA ÁGUA BRUTA - CAIXA 05",
+   "estrutura": "INTERLIGAÇÕES",
+   "pranchas": 1,
+   "totais": {
+    "@type": "Totais",
+    "concretoM3": 9.39,
+    "formaM2": 64.77,
+    "lastroM3": 0.76,
+    "enchimentoM3": 0.0,
+    "acoKgSomaDosElementos": 973.5,
+    "acoKgPorPrancha": 934.0
+   }
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:MOD01",
+   "codigo": "MOD01",
+   "nome": "MÓDULO DE TRATAMENTO FILTRO",
+   "estrutura": "MOD_TRATAM_FILTROS_NOVOS",
+   "pranchas": 2,
+   "totais": {
+    "@type": "Totais",
+    "concretoM3": 0.0,
+    "formaM2": 0.0,
+    "lastroM3": 0.0,
+    "enchimentoM3": 0.0,
+    "acoKgSomaDosElementos": 7000.9,
+    "acoKgPorPrancha": 6977.0
+   }
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:ACT02",
+   "codigo": "ACT02",
+   "nome": "ACTIFLO 360 LITROS",
+   "estrutura": "MOD_TRATAM_MICRO_AREIA_360Ls",
+   "pranchas": 12,
+   "totais": {
+    "@type": "Totais",
+    "concretoM3": 202.2,
+    "formaM2": 1067.7,
+    "lastroM3": 6.6,
+    "enchimentoM3": 6.66,
+    "acoKgSomaDosElementos": 21439.6,
+    "acoKgPorPrancha": 21163.0
+   }
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:ACT01",
+   "codigo": "ACT01",
+   "nome": "ACTIFLO 600 LITROS",
+   "estrutura": "MOD_TRATAM_MICRO_AREIA_600Ls",
+   "pranchas": 21,
+   "totais": {
+    "@type": "Totais",
+    "concretoM3": 478.1,
+    "formaM2": 2540.5,
+    "lastroM3": 19.5,
+    "enchimentoM3": 23.25,
+    "acoKgSomaDosElementos": 45998.1,
+    "acoKgPorPrancha": 45999.0
+   }
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:ETL01",
+   "codigo": "ETL01",
+   "nome": "ESTAÇÃO DE TRATAMENTO DE LODO",
+   "estrutura": "REFORMA_EDIFIC_LODO",
+   "pranchas": 1,
+   "totais": {
+    "@type": "Totais",
+    "concretoM3": 0.0,
+    "formaM2": 0.0,
+    "lastroM3": 0.0,
+    "enchimentoM3": 0.0,
+    "acoKgSomaDosElementos": 0.0,
+    "acoKgPorPrancha": 0.0
+   }
+  }
+ ],
+ "cobertura": {
+  "@type": "Cobertura",
+  "linhasNoResumoGeral": 104,
+  "pdfsNaPasta": 47,
+  "comPdfExato": 44,
+  "comPdfOutraRevisao": 2,
+  "semPdfNaPasta": 58,
+  "pdfsSemLinhaNoResumo": 1
+ },
+ "alertas": [
+  {
+   "@type": "Alerta",
+   "classe": "arquivo_diferente_da_linha",
+   "texto": "REFORMA_EDIFIC_LODO/…ETL01FORMA-R0 é estrutura metálica; a linha do resumo geral de mesmo nome é de concreto"
+  },
+  {
+   "@type": "Alerta",
+   "classe": "nome_duplicado_no_resumo",
+   "texto": "CXA01 e CXA02 aparecem duas vezes no resumo geral, em unidades construtivas diferentes"
+  },
+  {
+   "@type": "Alerta",
+   "classe": "revisao",
+   "texto": "MOD01 001 e 008: PDF em R1, resumo geral em R0"
+  }
+ ]
+}

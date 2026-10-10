@@ -34,7 +34,12 @@ def tratar_armadura(df):
     df = df.copy()
     df['valida'] = df['valida'].astype(str) == 'True'
     df['pos_lida'] = df['pos']
-    df['pos'] = df.groupby(['tabela', 'sub_tabela', 'elemento'], sort=False).cumcount() + 1 if 'sub_tabela' in df else df.groupby(['tabela', 'elemento'], sort=False).cumcount() + 1
+    df['elemento'] = df['elemento'].where(df['elemento'].str.strip() != '', '(conjunto)')      # folha de caixa única: sem título de elemento
+    chave = ['tabela', 'sub_tabela', 'elemento'] if 'sub_tabela' in df else ['tabela', 'elemento']
+    df['pos'] = 0
+    # a POS é a sequência 1..n entre as linhas que valem (a linha de ruído não conta)
+    df.loc[df['valida'] | (df['total_cm'].astype(str) != ''), 'pos'] = 1
+    df['pos'] = df.groupby(chave, sort=False)['pos'].cumsum()
     df['pos_reindexada'] = df['pos'].astype(str) != df['pos_lida']
     for c in ('bit_mm', 'quant', 'total_cm'): df[c] = df[c].map(f)
     df['unit_cm'] = df['unit_txt'].map(f)
@@ -106,9 +111,20 @@ def tipo_prancha(cod):
 
 
 def main():
-    gab = {r['arquivo']: r for r in GAB['linhas']}
-    gab_base = {}
-    for r in GAB['linhas']: gab_base.setdefault(sem_revisao(r['arquivo']), r)
+    gab, gab_base = {}, {}          # nome do arquivo -> linhas do resumo (CXA01 e CXA02 aparecem 2x, em unidades diferentes)
+    for r in GAB['linhas']:
+        gab.setdefault(r['arquivo'], []).append(r)
+        gab_base.setdefault(sem_revisao(r['arquivo']), []).append(r)
+
+    def radical(txt):
+        return {w[:7] for w in re.findall(r'[A-ZÇÃÕÉÊÁÍÓÚ]{5,}', (txt or '').upper().replace('_', ' '))}
+
+    def escolher(linhas, estrutura):
+        """Entre linhas de mesmo nome, a da unidade construtiva que tem a ver com a pasta (INTERLIGAÇÕES ~ CAIXAS DE INTERLIGAÇÃO)."""
+        if not linhas: return None
+        if len(linhas) == 1: return linhas[0]
+        return max(linhas, key=lambda l: len(radical(l.get('unidade_construtiva')) & radical(estrutura)))
+    escolhidas = set()
     reg_all, arm_all, aco_all, mat_all, met_all, div = [], [], [], [], [], []
     for pj in sorted(glob.glob(f'{SAIDA}/*/*/prancha.json')):
         info = json.load(open(pj)); est, cod = info['estrutura'], info['codigo_arquivo']
@@ -116,10 +132,11 @@ def main():
         aco = ler(est, cod, 'resumo_aco'); mat = ler(est, cod, 'resumo_materiais'); met = ler(est, cod, 'resumo_material_metalico')
         for df, acc in ((arm, arm_all), (aco, aco_all), (mat, mat_all), (met, met_all)):
             if not df.empty: acc.append(df)
-        g, nota = gab.get(cod), ''
+        g, nota = escolher(gab.get(cod), est), ''
         if g is None:
-            g = gab_base.get(sem_revisao(cod))
+            g = escolher(gab_base.get(sem_revisao(cod)), est)
             nota = ('revisão diferente: o resumo traz ' + g['arquivo'][-2:] + ', o PDF é ' + cod[-2:]) if g else 'sem linha no resumo geral'
+        if g: escolhidas.add(g['ordem'])
         reg = {'estrutura': est, 'codigo_arquivo': cod, 'tipo': tipo_prancha(cod), 'linha_no_resumo': 'sim' if g else 'não', 'nota': nota, 'erro': info['erro']}
         # ---- forma/concreto (tabela RESUMO DOS MATERIAIS da prancha)
         tot = mat[mat['divisao'].str.upper().str.startswith('TOTAL')] if not mat.empty else mat
@@ -241,8 +258,11 @@ def main():
     por.merge(ref, on='estrutura', how='left').to_csv(f'{SAIDA}/consolidado/totais_por_estrutura.csv', sep=';', index=False)
     # ---- cobertura: o que o resumo geral lista x o que existe na pasta do Drive
     tem = {r['codigo_arquivo'] for r in reg_all}; tem_base = {sem_revisao(c) for c in tem}
-    cob = [{'arquivo_no_resumo': a, 'pdf_na_pasta': 'sim' if a in tem else ('sim (outra revisão)' if sem_revisao(a) in tem_base else 'não')} for a in gab]
-    cob += [{'arquivo_no_resumo': '', 'pdf_na_pasta': c + ' (sem linha no resumo)'} for c in sorted(tem) if c not in gab and sem_revisao(c) not in gab_base]
+    cob = []
+    for r in GAB['linhas']:
+        achou = 'sim' if r['ordem'] in escolhidas and r['arquivo'] in tem else ('sim (outra revisão)' if r['ordem'] in escolhidas else 'não')
+        cob.append({'ordem': r['ordem'], 'folha': r['folha'], 'unidade_construtiva': r.get('unidade_construtiva'), 'arquivo_no_resumo': r['arquivo'], 'pdf_na_pasta': achou})
+    cob += [{'ordem': None, 'arquivo_no_resumo': '', 'pdf_na_pasta': c + ' (sem linha no resumo)'} for c in sorted(tem) if c not in gab and sem_revisao(c) not in gab_base]
     pd.DataFrame(cob).to_csv(f'{SAIDA}/consolidado/cobertura_resumo_x_pasta.csv', sep=';', index=False)
     print(len(reg_all), 'pranchas;', len(div), 'divergências')
 

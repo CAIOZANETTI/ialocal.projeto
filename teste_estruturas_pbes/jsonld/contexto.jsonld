@@ -1,0 +1,230 @@
+{
+ "@context": {
+  "@version": 1.1,
+  "civil": "https://ialocal.dev/civil/v1#",
+  "xsd": "http://www.w3.org/2001/XMLSchema#",
+  "prov": "http://www.w3.org/ns/prov#",
+  "schema": "https://schema.org/",
+  "Obra": "civil:Obra",
+  "UnidadeConstrutiva": "civil:UnidadeConstrutiva",
+  "Prancha": "civil:Prancha",
+  "Tabela": "civil:Tabela",
+  "Elemento": "civil:Elemento",
+  "LinhaArmadura": "civil:LinhaArmadura",
+  "Quantidade": "civil:Quantidade",
+  "Evidencia": "prov:Entity",
+  "Alerta": "civil:Alerta",
+  "Cobertura": "civil:Cobertura",
+  "Totais": "civil:Totais",
+  "nome": "civil:nome",
+  "localidade": "civil:localidade",
+  "contratante": "civil:contratante",
+  "fase": "civil:fase",
+  "sistema": "civil:sistema",
+  "ordemDeServico": "civil:ordemDeServico",
+  "geradoEm": "civil:geradoEm",
+  "codigo": "civil:codigo",
+  "nomeVemDe": "civil:nomeVemDe",
+  "estrutura": "civil:estrutura",
+  "codigoArquivo": "civil:codigoArquivo",
+  "revisao": "civil:revisao",
+  "tipo": "civil:tipo",
+  "folha": "civil:folha",
+  "conteudo": "civil:conteudo",
+  "pagina": "civil:pagina",
+  "segundos": "civil:segundos",
+  "nomeLido": "civil:nomeLido",
+  "multiplicidade": "civil:multiplicidade",
+  "grupoDeTabela": "civil:grupoDeTabela",
+  "posicao": "civil:posicao",
+  "classeAco": "civil:classeAco",
+  "comprimentoUnitarioTipo": "civil:comprimentoUnitarioTipo",
+  "posicaoLidaPeloOcr": "civil:posicaoLidaPeloOcr",
+  "grandeza": "civil:grandeza",
+  "unidade": "civil:unidade",
+  "chaveOrcamento": "civil:chaveOrcamento",
+  "escopo": "civil:escopo",
+  "estado": "civil:estado",
+  "reparo": "civil:reparo",
+  "texto": "civil:texto",
+  "classe": "civil:classe",
+  "consenso": "civil:consenso",
+  "nivel": "civil:nivel",
+  "versao": "civil:versao",
+  "leitores": "civil:leitores",
+  "equivalentes": "civil:equivalentes",
+  "tabela": "civil:tabela",
+  "valor": {
+   "@id": "civil:valor",
+   "@type": "xsd:decimal"
+  },
+  "bitolaMm": {
+   "@id": "civil:bitolaMm",
+   "@type": "xsd:decimal"
+  },
+  "quantidadeBarras": {
+   "@id": "civil:quantidadeBarras",
+   "@type": "xsd:integer"
+  },
+  "comprimentoUnitarioCm": {
+   "@id": "civil:comprimentoUnitarioCm",
+   "@type": "xsd:integer"
+  },
+  "comprimentoTotalCm": {
+   "@id": "civil:comprimentoTotalCm",
+   "@type": "xsd:integer"
+  },
+  "massaKg": {
+   "@id": "civil:massaKg",
+   "@type": "xsd:decimal"
+  },
+  "massaTotalKg": {
+   "@id": "civil:massaTotalKg",
+   "@type": "xsd:decimal"
+  },
+  "comprimentoM": {
+   "@id": "civil:comprimentoM",
+   "@type": "xsd:decimal"
+  },
+  "resumoGeral": {
+   "@id": "civil:resumoGeral",
+   "@type": "xsd:decimal"
+  },
+  "diferencaParaResumoKg": {
+   "@id": "civil:diferencaParaResumoKg",
+   "@type": "xsd:decimal"
+  },
+  "concretoM3": {
+   "@id": "civil:concretoM3",
+   "@type": "xsd:decimal"
+  },
+  "formaM2": {
+   "@id": "civil:formaM2",
+   "@type": "xsd:decimal"
+  },
+  "lastroM3": {
+   "@id": "civil:lastroM3",
+   "@type": "xsd:decimal"
+  },
+  "enchimentoM3": {
+   "@id": "civil:enchimentoM3",
+   "@type": "xsd:decimal"
+  },
+  "acoKgSomaDosElementos": {
+   "@id": "civil:acoKgSomaDosElementos",
+   "@type": "xsd:decimal"
+  },
+  "acoKgPorPrancha": {
+   "@id": "civil:acoKgPorPrancha",
+   "@type": "xsd:decimal"
+  },
+  "linhasDeArmadura": {
+   "@id": "civil:temLinhaDeArmadura",
+   "@container": "@set"
+  },
+  "linhaNoResumo": {
+   "@id": "civil:linhaNoResumo",
+   "@type": "xsd:integer"
+  },
+  "extraidoKg": {
+   "@id": "civil:extraidoKg",
+   "@type": "xsd:decimal"
+  },
+  "resumoGeralKg": {
+   "@id": "civil:resumoGeralKg",
+   "@type": "xsd:decimal"
+  },
+  "somaDasTabelasKg": {
+   "@id": "civil:somaDasTabelasKg",
+   "@type": "xsd:decimal"
+  },
+  "linhasNoResumoGeral": {
+   "@id": "civil:linhasNoResumoGeral",
+   "@type": "xsd:integer"
+  },
+  "pdfsNaPasta": {
+   "@id": "civil:pdfsNaPasta",
+   "@type": "xsd:integer"
+  },
+  "comPdfExato": {
+   "@id": "civil:comPdfExato",
+   "@type": "xsd:integer"
+  },
+  "comPdfOutraRevisao": {
+   "@id": "civil:comPdfOutraRevisao",
+   "@type": "xsd:integer"
+  },
+  "semPdfNaPasta": {
+   "@id": "civil:semPdfNaPasta",
+   "@type": "xsd:integer"
+  },
+  "pdfsSemLinhaNoResumo": {
+   "@id": "civil:pdfsSemLinhaNoResumo",
+   "@type": "xsd:integer"
+  },
+  "ordem": {
+   "@id": "civil:ordem",
+   "@type": "xsd:integer"
+  },
+  "posicaoReindexada": {
+   "@id": "civil:posicaoReindexada",
+   "@type": "xsd:boolean"
+  },
+  "confereQuantXUnit": {
+   "@id": "civil:confereQuantXUnit",
+   "@type": "xsd:boolean"
+  },
+  "caixaPt": {
+   "@id": "civil:caixaPt",
+   "@type": "@json"
+  },
+  "obra": {
+   "@id": "civil:daObra",
+   "@type": "@id"
+  },
+  "unidadeConstrutiva": {
+   "@id": "civil:daUnidadeConstrutiva",
+   "@type": "@id"
+  },
+  "prancha": {
+   "@id": "prov:wasDerivedFrom",
+   "@type": "@id"
+  },
+  "foiLidoEm": {
+   "@id": "prov:wasDerivedFrom",
+   "@type": "@id"
+  },
+  "unidades": {
+   "@id": "civil:temUnidade",
+   "@container": "@set"
+  },
+  "pranchas": {
+   "@id": "civil:temPrancha",
+   "@container": "@set"
+  },
+  "tabelas": {
+   "@id": "civil:temTabela",
+   "@container": "@set"
+  },
+  "elementos": {
+   "@id": "civil:temElemento",
+   "@container": "@set"
+  },
+  "quantidades": {
+   "@id": "civil:temQuantidade",
+   "@container": "@set"
+  },
+  "alertas": {
+   "@id": "civil:temAlerta",
+   "@container": "@set"
+  },
+  "evidencia": "prov:wasGeneratedBy",
+  "extrator": "civil:extrator",
+  "cobertura": "civil:cobertura",
+  "totais": "civil:totais",
+  "conferenciaComResumoGeral": "civil:conferenciaComResumoGeral",
+  "aco": "civil:aco",
+  "verificacao": "civil:verificacao",
+  "fontes": "civil:fontes"
+ }
+}

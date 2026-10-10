@@ -1,0 +1,30 @@
+{
+ "@context": "../contexto.jsonld",
+ "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:ETL01",
+ "@type": "UnidadeConstrutiva",
+ "codigo": "ETL01",
+ "nome": "ESTAÇÃO DE TRATAMENTO DE LODO",
+ "nomeVemDe": "relacao de desenhos",
+ "estrutura": "REFORMA_EDIFIC_LODO",
+ "obra": {
+  "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes"
+ },
+ "pranchas": [
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000ETL01FORMA-R0",
+   "codigoArquivo": "001-SAA-0017-8820-PBES-DE-0000ETL01FORMA-R0",
+   "folha": "01/07",
+   "tipo": "FORMA"
+  }
+ ],
+ "elementos": [],
+ "totais": {
+  "@type": "Totais",
+  "concretoM3": 0.0,
+  "formaM2": 0.0,
+  "lastroM3": 0.0,
+  "enchimentoM3": 0.0,
+  "acoKgSomaDosElementos": 0.0,
+  "acoKgPorPrancha": 0.0
+ }
+}

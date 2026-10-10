@@ -1,0 +1,239 @@
+{
+ "@context": "../contexto.jsonld",
+ "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:ABR01",
+ "@type": "UnidadeConstrutiva",
+ "codigo": "ABR01",
+ "nome": "Abrigo Bombas Prods Quimicos",
+ "nomeVemDe": "pasta do Drive",
+ "estrutura": "ABRIGO_BOMBAS_PRODS_QUIMICOS",
+ "obra": {
+  "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes"
+ },
+ "pranchas": [
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000ABR0101FORMARMAD-R0",
+   "codigoArquivo": "001-SAA-0017-8820-PBES-DE-0000ABR0101FORMARMAD-R0",
+   "folha": null,
+   "tipo": "FORMARMAD"
+  }
+ ],
+ "elementos": [
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:ABR01:e:laje-do-fundo",
+   "@type": "Elemento",
+   "codigo": "LAJE-DO-FUNDO",
+   "tipo": "divisao",
+   "equivalentes": null,
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000ABR0101FORMARMAD-R0:e:laje-do-fundo",
+     "codigoArquivo": "001-SAA-0017-8820-PBES-DE-0000ABR0101FORMARMAD-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "concreto",
+     "valor": 0.5,
+     "unidade": "m³",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas"
+     },
+     "chaveOrcamento": "ABR01/LAJE-DO-FUNDO/concreto"
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:ABR01:e:paredes",
+   "@type": "Elemento",
+   "codigo": "PAREDES",
+   "tipo": "divisao",
+   "equivalentes": null,
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000ABR0101FORMARMAD-R0:e:paredes",
+     "codigoArquivo": "001-SAA-0017-8820-PBES-DE-0000ABR0101FORMARMAD-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "forma",
+     "valor": 27.57,
+     "unidade": "m²",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas"
+     },
+     "chaveOrcamento": "ABR01/PAREDES/forma"
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "concreto",
+     "valor": 3.07,
+     "unidade": "m³",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas"
+     },
+     "chaveOrcamento": "ABR01/PAREDES/concreto"
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:ABR01:e:laje-bases",
+   "@type": "Elemento",
+   "codigo": "LAJE-BASES",
+   "tipo": "divisao",
+   "equivalentes": null,
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000ABR0101FORMARMAD-R0:e:laje-bases",
+     "codigoArquivo": "001-SAA-0017-8820-PBES-DE-0000ABR0101FORMARMAD-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "forma",
+     "valor": 3.9,
+     "unidade": "m²",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas"
+     },
+     "chaveOrcamento": "ABR01/LAJE-BASES/forma"
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "concreto",
+     "valor": 0.55,
+     "unidade": "m³",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas"
+     },
+     "chaveOrcamento": "ABR01/LAJE-BASES/concreto"
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:ABR01:e:laje-cobertura",
+   "@type": "Elemento",
+   "codigo": "LAJE-COBERTURA",
+   "tipo": "divisao",
+   "equivalentes": null,
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000ABR0101FORMARMAD-R0:e:laje-cobertura",
+     "codigoArquivo": "001-SAA-0017-8820-PBES-DE-0000ABR0101FORMARMAD-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "forma",
+     "valor": 3.96,
+     "unidade": "m²",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas"
+     },
+     "chaveOrcamento": "ABR01/LAJE-COBERTURA/forma"
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "concreto",
+     "valor": 0.65,
+     "unidade": "m³",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas"
+     },
+     "chaveOrcamento": "ABR01/LAJE-COBERTURA/concreto"
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:ABR01:e:conjunto",
+   "@type": "Elemento",
+   "codigo": "CONJUNTO",
+   "tipo": "conjunto",
+   "equivalentes": [
+    "CONJUNTO"
+   ],
+   "foiLidoEm": [
+    {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000ABR0101FORMARMAD-R0:e:conjunto-0",
+     "codigoArquivo": "001-SAA-0017-8820-PBES-DE-0000ABR0101FORMARMAD-R0"
+    }
+   ],
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 10.2,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000ABR0101FORMARMAD-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "ABR01/CONJUNTO/aco/CA-50/6.3",
+     "classeAco": "CA-50",
+     "bitolaMm": 6.3
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 397.7,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000ABR0101FORMARMAD-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "ABR01/CONJUNTO/aco/CA-50/8",
+     "classeAco": "CA-50",
+     "bitolaMm": 8.0
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "aco",
+     "valor": 68.9,
+     "unidade": "kg",
+     "evidencia": {
+      "@type": "Evidencia",
+      "estado": "somado_entre_folhas",
+      "prancha": [
+       {
+        "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:001-SAA-0017-8820-PBES-DE-0000ABR0101FORMARMAD-R0"
+       }
+      ]
+     },
+     "chaveOrcamento": "ABR01/CONJUNTO/aco/CA-50/12.5",
+     "classeAco": "CA-50",
+     "bitolaMm": 12.5
+    }
+   ]
+  }
+ ],
+ "totais": {
+  "@type": "Totais",
+  "concretoM3": 4.77,
+  "formaM2": 35.43,
+  "lastroM3": 0.22,
+  "enchimentoM3": 0.0,
+  "acoKgSomaDosElementos": 476.8,
+  "acoKgPorPrancha": 477.0
+ }
+}

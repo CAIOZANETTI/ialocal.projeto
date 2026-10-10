@@ -1,0 +1,540 @@
+{
+ "@context": "../contexto.jsonld",
+ "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0",
+ "@type": "Prancha",
+ "codigoArquivo": "002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0",
+ "revisao": "R0",
+ "tipo": "FORMA",
+ "folha": "02/21",
+ "conteudo": "FORMA DO FUNDO",
+ "estrutura": "MOD_TRATAM_MICRO_AREIA_600Ls",
+ "unidadeConstrutiva": {
+  "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:ACT01"
+ },
+ "obra": {
+  "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes"
+ },
+ "pagina": 1,
+ "extrator": {
+  "nome": "ialocal.projeto-civil",
+  "versao": "0.0.1-teste-pbes",
+  "leitores": [
+   "tesseract 5.3.4 (psm 7, lista de caracteres por coluna)",
+   "rapidocr_onnxruntime (texto e localização)",
+   "geometria: ialocal.projeto/codigo/tabela.py (sem alteração)"
+  ]
+ },
+ "segundos": 67.6,
+ "tabelas": [
+  {
+   "@type": "Tabela",
+   "tipo": "resumo_materiais",
+   "caixaPt": [
+    3089.3,
+    1124.6,
+    3336.5,
+    1303.2
+   ],
+   "ordem": 8
+  }
+ ],
+ "elementos": [
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0:e:blocos",
+   "@type": "Elemento",
+   "codigo": "BLOCOS",
+   "tipo": "divisao",
+   "nomeLido": "BLOCOS",
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "forma",
+     "valor": 170.0,
+     "unidade": "m²",
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0"
+      },
+      "tabela": "resumo_materiais",
+      "caixaPt": [
+       [
+        3089.3,
+        1124.6,
+        3336.5,
+        1303.2
+       ]
+      ],
+      "estado": "lido"
+     },
+     "chaveOrcamento": "ACT01/blocos/forma"
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "concreto",
+     "valor": 30.35,
+     "unidade": "m³",
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0"
+      },
+      "tabela": "resumo_materiais",
+      "caixaPt": [
+       [
+        3089.3,
+        1124.6,
+        3336.5,
+        1303.2
+       ]
+      ],
+      "estado": "lido"
+     },
+     "chaveOrcamento": "ACT01/blocos/concreto"
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0:e:laje-do-fundo",
+   "@type": "Elemento",
+   "codigo": "LAJE-DO-FUNDO",
+   "tipo": "divisao",
+   "nomeLido": "LAJE DO FUNDO",
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "forma",
+     "valor": 42.15,
+     "unidade": "m²",
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0"
+      },
+      "tabela": "resumo_materiais",
+      "caixaPt": [
+       [
+        3089.3,
+        1124.6,
+        3336.5,
+        1303.2
+       ]
+      ],
+      "estado": "lido"
+     },
+     "chaveOrcamento": "ACT01/laje-do-fundo/forma"
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "concreto",
+     "valor": 101.15,
+     "unidade": "m³",
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0"
+      },
+      "tabela": "resumo_materiais",
+      "caixaPt": [
+       [
+        3089.3,
+        1124.6,
+        3336.5,
+        1303.2
+       ]
+      ],
+      "estado": "lido"
+     },
+     "chaveOrcamento": "ACT01/laje-do-fundo/concreto"
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0:e:paredes",
+   "@type": "Elemento",
+   "codigo": "PAREDES",
+   "tipo": "divisao",
+   "nomeLido": "PAREDES",
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "forma",
+     "valor": 2078.5,
+     "unidade": "m²",
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0"
+      },
+      "tabela": "resumo_materiais",
+      "caixaPt": [
+       [
+        3089.3,
+        1124.6,
+        3336.5,
+        1303.2
+       ]
+      ],
+      "estado": "lido"
+     },
+     "chaveOrcamento": "ACT01/paredes/forma"
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "concreto",
+     "valor": 312.8,
+     "unidade": "m³",
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0"
+      },
+      "tabela": "resumo_materiais",
+      "caixaPt": [
+       [
+        3089.3,
+        1124.6,
+        3336.5,
+        1303.2
+       ]
+      ],
+      "estado": "lido"
+     },
+     "chaveOrcamento": "ACT01/paredes/concreto"
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0:e:vigas",
+   "@type": "Elemento",
+   "codigo": "VIGAS",
+   "tipo": "divisao",
+   "nomeLido": "VIGAS",
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "forma",
+     "valor": 75.0,
+     "unidade": "m²",
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0"
+      },
+      "tabela": "resumo_materiais",
+      "caixaPt": [
+       [
+        3089.3,
+        1124.6,
+        3336.5,
+        1303.2
+       ]
+      ],
+      "estado": "lido"
+     },
+     "chaveOrcamento": "ACT01/vigas/forma"
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "concreto",
+     "valor": 8.4,
+     "unidade": "m³",
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0"
+      },
+      "tabela": "resumo_materiais",
+      "caixaPt": [
+       [
+        3089.3,
+        1124.6,
+        3336.5,
+        1303.2
+       ]
+      ],
+      "estado": "lido"
+     },
+     "chaveOrcamento": "ACT01/vigas/concreto"
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0:e:tampa-passarelas",
+   "@type": "Elemento",
+   "codigo": "TAMPA-PASSARELAS",
+   "tipo": "divisao",
+   "nomeLido": "TAMPA+PASSARELAS",
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "forma",
+     "valor": 115.95,
+     "unidade": "m²",
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0"
+      },
+      "tabela": "resumo_materiais",
+      "caixaPt": [
+       [
+        3089.3,
+        1124.6,
+        3336.5,
+        1303.2
+       ]
+      ],
+      "estado": "lido"
+     },
+     "chaveOrcamento": "ACT01/tampa-passarelas/forma"
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "concreto",
+     "valor": 19.35,
+     "unidade": "m³",
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0"
+      },
+      "tabela": "resumo_materiais",
+      "caixaPt": [
+       [
+        3089.3,
+        1124.6,
+        3336.5,
+        1303.2
+       ]
+      ],
+      "estado": "lido"
+     },
+     "chaveOrcamento": "ACT01/tampa-passarelas/concreto"
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0:e:pilares",
+   "@type": "Elemento",
+   "codigo": "PILARES",
+   "tipo": "divisao",
+   "nomeLido": "PILARES",
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "forma",
+     "valor": 33.4,
+     "unidade": "m²",
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0"
+      },
+      "tabela": "resumo_materiais",
+      "caixaPt": [
+       [
+        3089.3,
+        1124.6,
+        3336.5,
+        1303.2
+       ]
+      ],
+      "estado": "lido"
+     },
+     "chaveOrcamento": "ACT01/pilares/forma"
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "concreto",
+     "valor": 2.4,
+     "unidade": "m³",
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0"
+      },
+      "tabela": "resumo_materiais",
+      "caixaPt": [
+       [
+        3089.3,
+        1124.6,
+        3336.5,
+        1303.2
+       ]
+      ],
+      "estado": "lido"
+     },
+     "chaveOrcamento": "ACT01/pilares/concreto"
+    }
+   ]
+  },
+  {
+   "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0:e:escadas",
+   "@type": "Elemento",
+   "codigo": "ESCADAS",
+   "tipo": "divisao",
+   "nomeLido": "ESCADAS",
+   "quantidades": [
+    {
+     "@type": "Quantidade",
+     "grandeza": "forma",
+     "valor": 25.5,
+     "unidade": "m²",
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0"
+      },
+      "tabela": "resumo_materiais",
+      "caixaPt": [
+       [
+        3089.3,
+        1124.6,
+        3336.5,
+        1303.2
+       ]
+      ],
+      "estado": "lido"
+     },
+     "chaveOrcamento": "ACT01/escadas/forma"
+    },
+    {
+     "@type": "Quantidade",
+     "grandeza": "concreto",
+     "valor": 3.65,
+     "unidade": "m³",
+     "evidencia": {
+      "@type": "Evidencia",
+      "prancha": {
+       "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0"
+      },
+      "tabela": "resumo_materiais",
+      "caixaPt": [
+       [
+        3089.3,
+        1124.6,
+        3336.5,
+        1303.2
+       ]
+      ],
+      "estado": "lido"
+     },
+     "chaveOrcamento": "ACT01/escadas/concreto"
+    }
+   ]
+  }
+ ],
+ "quantidades": [
+  {
+   "@type": "Quantidade",
+   "grandeza": "concreto",
+   "valor": 478.1,
+   "unidade": "m³",
+   "evidencia": {
+    "@type": "Evidencia",
+    "prancha": {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0"
+    },
+    "tabela": "resumo_materiais",
+    "caixaPt": [
+     [
+      3089.3,
+      1124.6,
+      3336.5,
+      1303.2
+     ]
+    ],
+    "estado": "confirmado"
+   },
+   "chaveOrcamento": "ACT01/total/concreto",
+   "escopo": "prancha",
+   "resumoGeral": 478.1
+  },
+  {
+   "@type": "Quantidade",
+   "grandeza": "forma",
+   "valor": 2540.5,
+   "unidade": "m²",
+   "evidencia": {
+    "@type": "Evidencia",
+    "prancha": {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0"
+    },
+    "tabela": "resumo_materiais",
+    "caixaPt": [
+     [
+      3089.3,
+      1124.6,
+      3336.5,
+      1303.2
+     ]
+    ],
+    "estado": "confirmado"
+   },
+   "chaveOrcamento": "ACT01/total/forma",
+   "escopo": "prancha",
+   "resumoGeral": 2540.5
+  },
+  {
+   "@type": "Quantidade",
+   "grandeza": "lastro",
+   "valor": 19.5,
+   "unidade": "m³",
+   "evidencia": {
+    "@type": "Evidencia",
+    "prancha": {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0"
+    },
+    "tabela": "barra_lastro",
+    "caixaPt": [
+     [
+      3089.3,
+      1124.6,
+      3336.5,
+      1303.2
+     ]
+    ],
+    "estado": "confirmado"
+   },
+   "chaveOrcamento": "ACT01/total/lastro",
+   "escopo": "prancha",
+   "resumoGeral": 19.5
+  },
+  {
+   "@type": "Quantidade",
+   "grandeza": "enchimento",
+   "valor": 23.25,
+   "unidade": "m³",
+   "evidencia": {
+    "@type": "Evidencia",
+    "prancha": {
+     "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0"
+    },
+    "tabela": "barra_enchimento",
+    "caixaPt": [
+     [
+      3089.3,
+      1124.6,
+      3336.5,
+      1303.2
+     ]
+    ],
+    "estado": "confirmado"
+   },
+   "chaveOrcamento": "ACT01/total/enchimento",
+   "escopo": "prancha",
+   "resumoGeral": 23.25
+  }
+ ],
+ "alertas": [],
+ "conferenciaComResumoGeral": {
+  "linhaNoResumo": 53,
+  "aco": {
+   "extraidoKg": null,
+   "resumoGeralKg": 0.0,
+   "somaDasTabelasKg": null,
+   "consenso": "sem consenso"
+  }
+ }
+}

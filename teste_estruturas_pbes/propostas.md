@@ -49,7 +49,7 @@ Os dois leitores só concordam em célula de vários dígitos; nas curtas o Tess
 | 44 · `541` · 15004 | unit `341` | 44 × 341 |
 | `—` · 809 · 7281 | quant `9` | 7281 ÷ 809 |
 
-42 de 968 linhas (4,3%) precisaram de reparo; **depois dele, 885 de 890 linhas com unit numérico fecham a conta** e nenhuma falha. É a mesma ideia do princípio do Mini
+40 de 954 linhas (4,2%) precisaram de reparo; **depois dele, 883 de 883 linhas com unit numérico fecham a conta**. É a mesma ideia do princípio do Mini
 ("número só é fato com testemunha de natureza diferente"), com uma testemunha que não é OCR.
 
 ## P5. Física NBR 7480 e consenso de três fontes
@@ -62,7 +62,7 @@ contra 30 de 33 usando só a soma das tabelas. Sem consenso (2 pranchas) o aço 
 
 ## P6. POS reindexada por elemento
 
-O dígito isolado erra (185 de 968 POS, 19%). A POS é sequência 1..n dentro do elemento: `groupby(elemento).cumcount() + 1`, guardando `pos_lida` para auditoria. É o que a skill
+O dígito isolado erra (52 de 954 POS, 5,5%). A POS é sequência 1..n dentro do elemento: `groupby(elemento).cumcount() + 1`, guardando `pos_lida` para auditoria. É o que a skill
 `extrair-quantitativos-pdf` já prescreve ("reindexar determinístico por grupo").
 
 ## P7. O resumo geral é uma segunda testemunha de graça

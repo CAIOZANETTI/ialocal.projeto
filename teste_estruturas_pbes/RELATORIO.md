@@ -51,16 +51,16 @@ A soma das divisões fecha com a linha TOTAL em 10 de 10 tabelas preenchidas lid
 
 ### 3.2 Aço (tabelas de armadura + RESUMO AÇO)
 
-968 linhas de armadura lidas nas 34 pranchas de aço (33 com linha no resumo geral; ABR01 não tem).
+954 linhas de armadura lidas nas 34 pranchas de aço (953 com total e bitola) (33 com linha no resumo geral; ABR01 não tem).
 
 | conferência | resultado |
 |---|---|
 | Aço total adotado (consenso de 3 fontes) × resumo geral | **33 de 33 a ≤ 2 kg** (23 exatos, 10 com ±1–2 kg) |
 | Só a soma das tabelas de armadura (Σ comprimento × kg/m, NBR 7480) × resumo geral | 30 de 33 a ≤ 2 kg |
 | Aço por bitola (soma das tabelas) × resumo geral | 112 de 115 células (≤ 3 kg) |
-| Linhas com unidade numérica em que quant × unit = total (após reparo) | 885 de 890 (99,4%); 0 falham; 5 sem conferência (célula ausente) |
-| Reparos automáticos (todos registrados em `reparo`) | 42 de 968 linhas (4,3%): 19 quant, 11 unit, 11 total, 1 suspeita |
-| POS que o OCR leu diferente da sequência | 185 de 968 (19%): é o dígito isolado; a POS é **reindexada** por elemento |
+| Linhas com unidade numérica em que quant × unit = total (após reparo) | 883 de 883 (100%) |
+| Reparos automáticos (todos registrados em `reparo`) | 40 de 954 linhas (4,2%): 19 quant, 10 unit, 10 total, 1 suspeita |
+| POS que o OCR leu diferente da sequência | 52 de 954 (5,5%): é o dígito isolado; a POS é **reindexada** por elemento |
 
 O **consenso** usa três fontes independentes: Σ das tabelas, Σ das linhas do RESUMO AÇO e o "Peso Total" impresso. O valor só é adotado quando duas concordam (princípio do Mini: número só é fato com duas leituras). Exemplo real: na ACT01-012 o OCR leu o Peso Total como `208`; as outras duas fontes dão 2081–2082 e o consenso corrige.
 
@@ -76,26 +76,27 @@ O que **não** ficou bom: o RESUMO AÇO por bitola perdeu dígitos em 2 células
 
 ### 3.3 O que não foi verificado linha a linha
 
-Não existe gabarito por linha de armadura. A exatidão linha a linha foi garantida por regra física (quant × unit = total; bitola por peso/comprimento) e por **uma prancha conferida visualmente por inteiro** (ACT01-009: 29 linhas, todos os valores batem; só a POS 9, que o OCR não lê, e que a reindexação resolve). As 78 linhas `--CORR--`/`--VAR--` não têm unit para conferir: valem pelo total e pela soma da prancha.
+Não existe gabarito por linha de armadura. A exatidão linha a linha foi garantida por regra física (quant × unit = total; bitola por peso/comprimento) e por **uma prancha conferida visualmente por inteiro** (ACT01-009: 29 linhas, todos os valores batem; só a POS 9, que o OCR não lê, e que a reindexação resolve). As 70 linhas `--CORR--`/`--VAR--` não têm unit para conferir: valem pelo total e pela soma da prancha.
 
 ## 4. Cobertura: o que o resumo geral lista e a pasta tem
 
 | | arquivos |
 |---|---|
-| Linhas do resumo geral | 104 |
+| Linhas do resumo geral | 104 (102 nomes distintos) |
 | PDFs na pasta (exatos) | 44 |
 | PDFs na pasta em **outra revisão** (MOD01 001 e 008: o resumo traz R0, a pasta R1) | 2 |
 | PDFs na pasta **sem linha no resumo** (ABR01) | 1 |
-| Linhas do resumo **sem PDF na pasta** (MOD01 17, CAT 10, CMC 8, EEE 7, ETL01 6, REC 5, DEP 2, CXA01 1; 5 deles são projetos de impermeabilização) | 56 |
+| Linhas do resumo **sem PDF na pasta** (MOD01 17, CAT 10, CMC 8, EEE 7, ETL01 6, REC 5, DEP 2, CXA saída de água tratada 3; 5 deles são projetos de impermeabilização) | 58 |
 
-Os 56 desenhos que faltam impedem fechar a linha **TOTAIS** da obra (229.654 kg de aço). Só as 46 linhas comparáveis fecham: soma do aço extraído 80.659 kg × 80.662 kg no resumo (−3 kg), em 33 pranchas.
+Os 58 desenhos que faltam impedem fechar a linha **TOTAIS** da obra (229.654 kg de aço). Só as 46 linhas comparáveis fecham: soma do aço extraído 80.659 kg × 80.662 kg no resumo (−3 kg), em 33 pranchas.
 
 ## 5. Achados sobre o próprio projeto (auditoria)
 
 1. **Revisões diferentes.** `MOD01 001` e `008` estão em R1 na pasta e em R0 no resumo; o Peso Total impresso na prancha R1 é 6977 kg e o resumo diz 6978 kg.
 2. **Arquivo que não corresponde à linha.** `REFORMA_EDIFIC_LODO/001-…ETL01FORMA-R0.PDF` é uma **estrutura metálica** ("ESTRUTURA METÁLICA · FORMAS, PLANTAS, CORTE E DETALHES"; tabela "RESUMO DO MATERIAL (TOTAL)", itens somam 1404,0 kg). A linha de mesmo nome no resumo (87,95 m³ · 576,30 m² · 4,34 m³) e a Relação de Desenhos ("LOCAÇÃO, CARGAS, FORMA DO PAVIMENTO TÉRREO…") descrevem outro desenho de concreto. Possível troca de arquivo na pasta; precisa de confirmação do Caio.
 3. **Arredondamento do desenho.** Em 10 pranchas o total do resumo difere ±1–2 kg do impresso na folha. Em `BLO01-002` o Peso Total impresso é 427 kg e a soma das linhas do próprio RESUMO AÇO, 426.
-4. **ABR01** (abrigo de bombas) não tem linha no resumo geral: 4,77 m³ · 35,43 m² · 0,22 m³ lastro · 477 kg de aço, extraídos aqui.
+4. **Nome de arquivo duplicado no próprio resumo.** `…CXA01FORMARMAD-R0` e `…CXA02FORMARMAD-R0` aparecem duas vezes (linhas 49 e 100; 51 e 101), em unidades diferentes: "Caixas saída água tratada CX01/CX02" (folha 01/02) e "Caixas de interligação chegada água bruta – caixa 01/02" (folha 01/01). Os PDFs da pasta INTERLIGAÇÕES são os da segunda. Duas linhas do resumo com o mesmo nome de arquivo e conteúdo diferente quebram qualquer chave por nome: a chave tem de ser (arquivo, unidade) ou (arquivo, folha).
+5. **ABR01** (abrigo de bombas) não tem linha no resumo geral: 4,77 m³ · 35,43 m² · 0,22 m³ lastro · 477 kg de aço, extraídos aqui.
 
 ## 6. Custo
 

@@ -1,0 +1,53 @@
+{
+ "@context": "../contexto.jsonld",
+ "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:p:006-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0",
+ "@type": "Prancha",
+ "codigoArquivo": "006-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0",
+ "revisao": "R0",
+ "tipo": "FORMA",
+ "folha": "06/21",
+ "conteudo": "CORTES G.G, H.H, I.I e J.J",
+ "estrutura": "MOD_TRATAM_MICRO_AREIA_600Ls",
+ "unidadeConstrutiva": {
+  "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes:u:ACT01"
+ },
+ "obra": {
+  "@id": "urn:ialocal:civil:eta-vila-c-foz-pbes"
+ },
+ "pagina": 1,
+ "extrator": {
+  "nome": "ialocal.projeto-civil",
+  "versao": "0.0.1-teste-pbes",
+  "leitores": [
+   "tesseract 5.3.4 (psm 7, lista de caracteres por coluna)",
+   "rapidocr_onnxruntime (texto e localização)",
+   "geometria: ialocal.projeto/codigo/tabela.py (sem alteração)"
+  ]
+ },
+ "segundos": 72.4,
+ "tabelas": [
+  {
+   "@type": "Tabela",
+   "tipo": "resumo_materiais",
+   "caixaPt": [
+    3089.3,
+    1124.6,
+    3336.5,
+    1303.2
+   ],
+   "ordem": 7
+  }
+ ],
+ "elementos": [],
+ "quantidades": [],
+ "alertas": [],
+ "conferenciaComResumoGeral": {
+  "linhaNoResumo": 57,
+  "aco": {
+   "extraidoKg": null,
+   "resumoGeralKg": 0.0,
+   "somaDasTabelasKg": null,
+   "consenso": "sem consenso"
+  }
+ }
+}

@@ -22,7 +22,8 @@ resultados/consolidado/
     mini_localizacao.csv              as tabelas-alvo × as que o malhas() do Mini achou
     resultado_codigo_do_mini.json     o que o código atual do Mini devolveu (0 itens)
     tabela_armadura.csv, resumo_aco.csv, resumo_materiais.csv, resumo_material_metalico.csv   o detalhe empilhado
-gabarito/gabarito_resumo.json      o Resumo de Materiais lido pelo código (104 desenhos × 13 colunas), fecha com a linha TOTAIS
+gabarito/gabarito_resumo.json      o Resumo de Materiais + Relação de Desenhos lidos pelo código (104 linhas × 13 colunas, folha, unidade), fecha com a linha TOTAIS
+jsonld/                            a SAÍDA de entrega: obra.jsonld, <estrutura>/<UNIDADE>.jsonld, <estrutura>/<prancha>.jsonld, quantitativos.jsonl, contexto.jsonld
 codigo/                            extrator de referência, lote, conferência, teste do Mini, testes
 ```
 
@@ -47,4 +48,4 @@ memória (`malha_min_linhas = 2`, zona do carimbo liberada), e isso está dito n
 ## O que o teste não cobre
 
 Vision e glm-ocr (só existem no Mac mini); gabarito por linha de armadura (só uma prancha, a ACT01-009, foi conferida por inteiro a olho);
-os 56 desenhos que o resumo lista e a pasta não tem. Detalhes em `RELATORIO.md` §7.
+os 58 desenhos que o resumo lista e a pasta não tem. Detalhes em `RELATORIO.md` §7.

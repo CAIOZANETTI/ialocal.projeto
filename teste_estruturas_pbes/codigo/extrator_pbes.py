@@ -178,6 +178,13 @@ def _ler_armadura_uma(rgb):
             continue
         cel = lambda i, lista: tess(cinza[max(0, y0 - 5):y1 + 6, lim[i] + 4:lim[i + 1] - 4], lista)
         classe = cel(0, '0123456789AB')
+        if not re.search(r'50|60', classe):
+            # banda sem classe de aço (50A/60B) na 1ª coluna: título de elemento que ocupou a coluna TOTAL (texto longo) e o OCR leu como dado
+            palavras = ocr(rgb[max(0, y0 - 6):y1 + 7, 24:rgb.shape[1] - 24])
+            texto = ' '.join(t[3] for t in sorted(palavras, key=lambda t: t[0])).strip()
+            if re.search(r'[A-Za-z]{3,}|PAR\d|V\d', texto):
+                elemento = texto
+                continue
         pos = cel(1, '0123456789')
         bit = cel(2, '0123456789.')
         quant = cel(3, '0123456789')
