@@ -45,6 +45,7 @@ import comum
 import entrega
 import ia
 import licoes
+import placar_tabelas
 import rastro
 
 COMPARAR = ('e_prancha', 'boletim_sondagem', 'formato', 'classe', 'familia', 'desenho', 'carimbo_camada', 'carimbo_numero_desenho',
@@ -411,13 +412,21 @@ def rodar(nome, prioridade=None, sortear=False, pedido=''):
     if sem_ollama:
         falhas.append({'arquivo': '', 'caminho': '(ensaio)', 'tarefa': 'ollama', 'erro': sem_ollama})
     carimbos = diagnostico_dos_carimbos(nome, execucao, documentos)
+    placar = {}
+    if regra.get('gabarito'):  # 0v38: o ensaio com gabarito de tabelas mede as duas saídas (glm-ocr e grade) na mesma execução
+        try:
+            placar = placar_tabelas.do_ensaio(nome, execucao)
+        except Exception as falha:  # o placar não derruba o ensaio: vai como aviso
+            avisos.append(f'placar das tabelas: {type(falha).__name__}: {falha}'[:300])
     resumo = {'ensaio': nome, 'execucao': execucao, 'pedido': pedido, **comum.codigo(), 'fonte': fonte or {}, 'prioridade': prioridade,
               'documentos': len(documentos), 'pranchas': sum(l['e_prancha'] == 'True' for l in linhas),
               'boletins': sum(l['boletim_sondagem'] == 'True' for l in linhas),
               'conferencia': {c: sum((l['conferencia'] or '') == c for l in linhas) for c in sorted({l['conferencia'] or '' for l in linhas})},
               'com_erro': len({f['caminho'] for f in falhas}), 'mudaram': sum(bool(l['mudou']) and l['mudou'] != 'novo' for l in linhas),
               'segundos': round(time.monotonic() - inicio, 1), 'espera_gpu_s': round(espera, 1), 'interrompido': interrompido,
-              'avisos': avisos, 'falhas': falhas, 'fim': comum.agora()}
+              'avisos': avisos, 'falhas': falhas, 'fim': comum.agora(),
+              'placar_tabelas': json.dumps({e: {k: t[k] for k in ('linhas_gabarito', 'linhas_certas', 'essenciais_certos', 'acerto_essencial', 'faltou', 'sobrou')}
+                                            for e, t in placar.items()}, ensure_ascii=False) if placar else ''}
     if documentos:
         gravar(nome, linhas, resumo, carimbos)
         licoes.gerar()
@@ -459,6 +468,10 @@ def do_pedido():
     """Chamado pela rodada (que já segura a trava): roda o ensaio pedido, se houver. Uma falha não derruba a rodada."""
     pedido = pendente()
     if pedido is None:
+        return None
+    if regras()['ensaios'][pedido[0]].get('gabarito') and not placar_tabelas.tabela.disponivel():
+        # 0v38: o ensaio das tabelas espera o mini.py atualizar instalar o OpenCV (requisitos.txt); o pedido não se gasta
+        print(f'ensaio {pedido[0]}: esperando o OpenCV do requisitos.txt (o mini.py atualizar instala em até 5 min)', flush=True)
         return None
     try:
         return rodar(pedido[0], pedido=pedido[1])

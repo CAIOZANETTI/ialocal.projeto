@@ -17,7 +17,7 @@ No Mac mini, em `~/dados/ialocal.projeto` (destino permitido, MASTER-PLAN §5.3,
 cd ~/dados
 git clone git@github-projeto:CAIOZANETTI/ialocal.projeto.git   # só na primeira vez; a chave, abaixo
 cd ialocal.projeto
-python3 -m venv .venv && .venv/bin/pip install polars pdfplumber pypdfium2 pillow apple-fm-sdk pyobjc-framework-Vision
+python3 -m venv .venv && .venv/bin/pip install -r codigo/requisitos.txt apple-fm-sdk pyobjc-framework-Vision   # o mini.py atualizar reinstala quando o requisitos.txt muda (0v38)
 .venv/bin/python codigo/testes.py           # qualquer máquina: entrega falsa, Drive falso, IA falsa
 .venv/bin/python codigo/ciclo.py rodada     # uma rodada à mão (a agendada faz o mesmo)
 .venv/bin/python codigo/ciclo.py status     # só regrava saidas/status.json
@@ -32,6 +32,7 @@ python3 -m venv .venv && .venv/bin/pip install polars pdfplumber pypdfium2 pillo
 .venv/bin/python codigo/pedido.py rodar <id>        # roda (de novo) um pedido à mão; o agendado (pedido.py vigiar) faz sozinho
 .venv/bin/python codigo/catalogo.py instalar ~/Downloads/catalogo_gel_<data>.zip   # 0v36: o catálogo do orçamento (Referências › Conferir lista › Baixar catálogo)
 .venv/bin/python codigo/catalogo.py conferir tabela.csv     # código;descrição;unidade com cabeçalho → tabela_conferida.csv
+.venv/bin/python codigo/placar_tabelas.py ensaio foz_pbhi   # 0v38: as tabelas do ensaio contra o gabarito (glm-ocr × grade)
 .venv/bin/python codigo/catalogo.py normalizar "Reg. gaveta FºFº DN 150"   # a forma comparável e as etiquetas de um texto
 ```
 
@@ -63,6 +64,8 @@ codigo/entrega.py       lê o que o extrator entregou (só lê): PDFs A3 ou maio
 codigo/respostas.py     as respostas da equipe às demandas (guardadas pelo ialocal.web): PDFs para a rodada, CSV gabarito, o resultado
 codigo/ia.py            a porta para os modelos locais (Ollama, Vision, Apple FM) e, na exceção §5.6, a API da NVIDIA (nvidia), com congelamento das respostas
 codigo/bancada.py       a bancada de todos os leitores: código primeiro, depois agentes e modelos; qualidade, tempo útil, taxa de erro e tempo perdido; placar e veredito (saidas/bancada_agentes.csv)
+codigo/tabela.py        0v38: a tabela de material pela grade (ler_tabelas, tarefa de código): imagem colada nativa e malha vetorial, grade pelas linhas desenhadas (OpenCV), Vision na tabela inteira + PP-OCR nas colunas curtas, regras de conceitos/tabela.json
+codigo/placar_tabelas.py 0v38: a leitura de tabelas contra o gabarito (amostras/tabelas/211_foz_pbhi, 661 linhas): numa pasta de PDFs ou no que o ensaio gravou
 codigo/grade.py         o leitor só de código: a tabela pelas caixas das palavras do Vision (linhas pela altura, colunas pelo cabeçalho), sem modelo
 codigo/curadoria.py     Python decide o que vale entre N leitores: confirmada (com testemunha), confirmada_ia, divergente, so_<leitor>
 codigo/pedido.py        o pedido por e-mail (0v27): o documento que o Caio (ou quem verifica) manda ao mini, lido de ponta a ponta com a prioridade do Caio; o resultado (o que saiu, item a item, ferramentas, IAs locais e web, tempo), a entrega ao cliente (0v31: <PDF>_<execução>.xlsx, que o web anexa), o prompt de correção da recusa e o placar das validações
@@ -155,7 +158,7 @@ Drive  saida/<acervo>/<obra>/projeto/   rastro.csv, pranchas.csv, prancha_leitur
   o eixo tem 540 m", "refazer"); a recusa vira `correcao_*.md`, o prompt para o Claude, e, quando o commit muda, o
   pedido roda de novo sozinho e diz o que mudou. O placar de cada item por execução e commit fica em
   `saidas/pedidos.csv` (Drive `_sistema/projeto/pedidos.csv`): é ele que diz qual algoritmo funcionou. A leitura
-  ainda olha só a página 1 de cada PDF (o resultado avisa) e a tabela em texto/vetor ainda não é lida como tabela.
+  ainda olha só a página 1 de cada PDF (o resultado avisa); desde a 0v38 a tabela vetorial (malha desenhada) é lida pela grade.
 - **O ensaio se pede por PR** (0v26). `conceitos/ensaios.json → pedido` diz qual ensaio e um id; a rodada de 5 min roda
   o ensaio uma vez por id, antes do trabalho de sempre, pedindo a vez da GPU ao maestro com prioridade 4 (à frente dos
   documentos, que é 5). Para rodar de novo depois de mudar o código, um PR troca o id. O ensaio lê sempre os mesmos

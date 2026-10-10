@@ -28,9 +28,11 @@ import prancha
 import rastro
 import respostas
 import sondagem
+import tabela
 
 TAREFAS = {'ler_prancha': ('prancha', 'prancha'), 'ler_prancha_ia': ('prancha', 'prancha_ia'),  # tarefa → (família, extrator
-           'ler_sondagem': ('sondagem', 'sondagem'), 'ler_sondagem_ia': ('sondagem', 'sondagem_ia')}  # do resumo dela)
+           'ler_sondagem': ('sondagem', 'sondagem'), 'ler_sondagem_ia': ('sondagem', 'sondagem_ia'),  # do resumo dela)
+           'ler_tabelas': ('prancha', 'tabelas')}  # 0v38: a tabela pela grade, código antes da IA (tabela.py)
 FALHAS = comum.DADOS / 'falhas.jsonl'
 
 
@@ -111,6 +113,8 @@ def proxima_tarefa(documento, linhas, em_dia):
             return 'ler_sondagem'
         digitalizadas = json.loads(linhas[(documento['id'], 'sondagem')].get('paginas_ocr') or '[]')
         return 'ler_sondagem_ia' if digitalizadas and not em_dia(documento, 'ler_sondagem_ia') else None
+    if perfil['e_prancha'] and not em_dia(documento, 'ler_tabelas'):
+        return 'ler_tabelas'
     return 'ler_prancha_ia' if perfil['e_prancha'] and not em_dia(documento, 'ler_prancha_ia') else None
 
 
@@ -118,7 +122,7 @@ def executar(tarefa, documento, rodada):
     """Uma leitura; a falha fica em dados/falhas.jsonl com o erro e a rodada segue. Devolve o erro ('' se leu)."""
     marca = time.perf_counter()
     try:
-        getattr(sondagem if 'sondagem' in tarefa else prancha, tarefa)(documento, rodada)
+        getattr(sondagem if 'sondagem' in tarefa else tabela if tarefa == 'ler_tabelas' else prancha, tarefa)(documento, rodada)
         erro = ''
     except Exception as falha:
         erro = f'{type(falha).__name__}: {falha}'[:500]

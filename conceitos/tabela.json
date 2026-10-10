@@ -1,0 +1,74 @@
+{
+  "metadata": {
+    "o_que_e": "A leitura da tabela de material pela grade (codigo/tabela.py, 0v38): onde achar a tabela, como medir a grade, quem lê o quê, as regras de domínio. Muda por PR, com o placar do gabarito (amostras/tabelas/211_foz_pbhi) dizendo se melhorou.",
+    "fonte": "pedido do Caio de 09-10/10/2026; notas/plano_tabelas_deterministicas.md; protótipo medido em notas/prototipo_tabela/",
+    "atualizado_em": "2026-10-10"
+  },
+  "localizar": {
+    "imagem_minima_px": 400,
+    "fracao_folha_max": 0.5,
+    "profundidade_formularios": 15,
+    "_imagem": "a imagem colada (Excel no CAD) lida com os pixels dela, sem reduzir: na ETA Vila C são 400 dpi; a imagem que cobre metade da folha ou mais é a folha escaneada (outra rota)",
+    "malha_dpi": 150,
+    "malha_min_linhas": 5,
+    "malha_min_largura_pt": 120,
+    "malha_dpi_leitura": 400,
+    "malha_max": 12,
+    "_malha_max": "no máximo tantas malhas vetoriais lidas por folha (as que passam no 'é tabela?'): a planta com muita grade desenhada não segura a rodada",
+    "carimbo": [0.70, 0.70, 1.0, 1.0],
+    "_malha": "a tabela desenhada em vetor (texto real ou em curva, SHX): a folha renderizada a malha_dpi, as horizontais e verticais longas pela morfologia, cada bloco com pelo menos malha_min_linhas horizontais vira candidata; fora do carimbo (fração da folha, origem em cima) e fora das imagens já lidas; a candidata é renderizada de novo a malha_dpi_leitura para o OCR"
+  },
+  "grade": {
+    "tinta_limiar": 140,
+    "tinta_saturacao_max": 70,
+    "_tinta": "tinta = escuro (cinza < limiar) e sem cor (saturação < máx, ou muito escuro): o fundo roxo/magenta da 2ª etapa deixa de ser tinta e não apaga o asterisco nem o 1º algarismo (019, 013)",
+    "horizontal_fracao": 0.25,
+    "vertical_fracao_da_linha": 0.7,
+    "linha_minima_px": 25,
+    "linha_alvo_px": 60,
+    "ampliar_abaixo_px": 45,
+    "ampliar_max": 3.0,
+    "moldura_fracao": 0.012,
+    "_grade": "horizontal: abertura morfológica com 25 % da largura; vertical: medida dentro de cada faixa de linha, com núcleo de 0,7 da altura típica (a letra não vira coluna); linha mais baixa que linha_minima_px é a moldura dupla; se a linha típica tem menos de ampliar_abaixo_px (imagem a ~200 dpi), amplia até linha_alvo_px",
+    "e_tabela_min_horizontais": 4,
+    "e_tabela_fracao_clara": 0.6,
+    "_e_tabela": "foto, mapa e render 3D não têm 4 horizontais de meia largura e não são 60 % claros: não vão ao OCR (Joinville 08/10: nomes de rua do Google Earth viravam linhas de tabela)"
+  },
+  "cabecalho": {
+    "item": "^(N|NO|N°|Nº|ITEM)$",
+    "codigo": "ESPECIF|COD",
+    "descricao": "DESCRI|DISCRIM",
+    "quantidade": "^QT|QUANT",
+    "unidade": "^UN",
+    "etapa": "ETAPA",
+    "_cabecalho": "o rótulo sem acento, maiúsculo, sem espaço, barra e ponto; ETAPA numera pela ordem (etapa1, etapa2). Rótulo ilegível: a ordem fixa da relação Sanepar (Nº, código, descrição, quantidades, UN) e o conteúdo dão o papel",
+    "rotulos": {"item": "Nº", "codigo": "ESPECIF/COD SAM", "descricao": "DESCRIÇÃO", "quantidade": "QUANT.", "etapa1": "1ª ETAPA", "etapa2": "2ª ETAPA", "unidade": "UN"},
+    "_rotulos": "o cabeçalho que vai na linha 0 de prancha_tabela: o catalogo.py reconhece ESPECIF, DESCRI e UN"
+  },
+  "leitores": {
+    "a": ["vision", "tesseract", "rapidocr"],
+    "_a": "a tabela inteira uma vez, com caixa por palavra (a palavra vai para a célula pela geometria): o primeiro disponível. No mini, o Vision; fora dele, o Tesseract (por)",
+    "b": "rapidocr",
+    "_b": "as células curtas (item, código, quantidades, unidade) empilhadas por coluna, uma chamada por coluna, pelo PP-OCR (RapidOCR, ONNX, CPU; Apache-2.0), sem o classificador de ângulo (girava a palavra 180°: 299699 → 669667). Sem ele, a linha fica um_leitor",
+    "curtas": ["item", "codigo", "quantidade", "etapa1", "etapa2", "unidade"],
+    "listas": {"num": "0123456789,.-", "codigo": "0123456789-", "item": "0123456789*S/Nabc-", "unidade": "PÇpçMmKkGgCJjUuNnLlVBb²³23/"},
+    "preferir_a": ["codigo", "unidade"],
+    "_preferir_a": "as duas leituras com forma válida e diferentes: no código e na unidade fica o leitor A, nos números o B (medido no gabarito, v4); a célula fica divergente"
+  },
+  "regras": {
+    "unidades": {"PC": "pç", "PÇ": "pç", "PCS": "pç", "M": "m", "KG": "kg", "KG/M": "kg/m", "CJ": "cj", "UN": "un", "UN.": "un", "UND": "un", "UD": "un",
+                 "M2": "m²", "M²": "m²", "M3": "m³", "M³": "m³", "VB": "vb", "L": "l", "GL": "gl", "JG": "jg", "PAR": "par", "T": "t",
+                 "BARRAS": "barras", "BARRA": "barras", "BR": "barras", "BARAS": "barras"},
+    "unidades_confusas": {"PG": "PC", "PE": "PC", "OC": "PC", "BE": "PC", "PO": "PC", "PS": "PC", "5D": "PC", "3D": "PC", "P¢": "PC", "PQ": "PC", "PR": "PC", "PA": "PC",
+                          "K G": "KG", "KA": "KG", "K9": "KG", "KQ": "KG", "CI": "CJ", "C)": "CJ", "MO": "M", "RN": "M"},
+    "_unidades_confusas": "o que os OCRs leram no lugar da unidade no gabarito da ETA Vila C (013: pg, pá, pr; 004: [so; 019: ps, 5d)",
+    "pn": ["6", "10", "16", "25", "40"],
+    "dn": ["15", "20", "25", "32", "40", "50", "60", "65", "75", "80", "100", "125", "150", "200", "250", "300", "350", "400", "450", "500", "600",
+           "700", "800", "900", "1000", "1100", "1200", "1400", "1500"],
+    "confusoes": {"O": "0", "o": "0", "D": "0", "Q": "0", "I": "1", "l": "1", "|": "1", "i": "1", "Z": "12", "z": "12", "S": "58", "s": "5",
+                  "B": "8", "G": "6", "b": "6", "g": "9", "q": "9", "A": "4", "d": "4", "T": "7"},
+    "_pn_dn": "PN e DN só mudam se a troca dos caracteres confundíveis leva a UM valor da série (PNZO → PN10, DNI00 → DN100); sem candidato único, fica como leu",
+    "sem_numero": ["SIN", "SIM", "5/N", "/N", "SN", "S/N", "S N"],
+    "_sem_numero": "o item 'S/N' como os OCRs o leram (013)"
+  }
+}

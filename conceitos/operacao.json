@@ -28,6 +28,7 @@
                   "ia.ler_celulas", "ia.imagem_para_ia", "ia.versao_ollama",
                   "prancha.perfilar", "prancha.ler_carimbo", "prancha.recorte_do_carimbo", "prancha.ler_carimbo_ocr", "prancha.familia",
                   "prancha.eixo", "prancha.ler_fatias", "prancha.ler_tabela", "prancha.ler_imagens", "prancha.conferir", "prancha.desempatar",
+                  "tabela.ler_tabelas", "tabela.imagens", "tabela.malhas", "tabela.grade", "tabela.ler", "tabela.vision", "tabela.tesseract", "tabela.rapidocr",
                   "sondagem.ler_sondagem", "sondagem.ler_sondagem_ia", "comum.gravar", "pedido.exportar", "pedido.paginas_jsonl", "pedido.entrega"],
       "_funcoes": "0v32, Caio (08/10): 'a última tarefa gastou 9 minutos; preciso saber todos os tempos — maestro > projeto > ollama > python, tudo'. As funções que o pedido cronometra (codigo/tempo.py): cada uma embrulhada só durante o pedido, com chamadas, segundos (com as que ela chama), proprio_s (sem elas), máximo e erros; ia.ollama, ia.ler_com_vision, ia.apple e ia.nvidia medem as camadas dos motores. A que sumiu do código vai em velocidade.nao_medidas: atualizar a lista por PR"
     },

@@ -999,7 +999,7 @@ def testar_ensaio(raiz):
     lista = json.loads((ensaio.pasta() / 'foz' / 'lista.json').read_text())
     conferir(len(execucoes) == 1 and execucoes[0]['pedido'] == 'p1' and execucoes[0]['fonte']['tipo'] == 'entrega'
              and any('drive' in a for a in execucoes[0]['avisos']) and execucoes[0]['documentos'] == len(lista['caminhos']) == len(linhas) >= 2
-             and prancha_lida['tarefas'] == 'ler_prancha,ler_prancha_ia' and prancha_lida['fatias_lidas'] == '24'
+             and prancha_lida['tarefas'] == 'ler_prancha,ler_tabelas,ler_prancha_ia' and prancha_lida['fatias_lidas'] == '24'
              and next(l for l in linhas if l['arquivo'] == 'memorial_a3.pdf')['tarefas'] == 'ler_prancha'
              and {l['mudou'] for l in linhas} == {'novo'} and lista['fonte']['tipo'] == 'entrega',
              'o pedido p1 roda o ensaio dentro da rodada: o Drive não listou (aviso) e a entrega deu os PDFs de Foz; a prancha pelo '
@@ -1084,7 +1084,7 @@ def testar_pedido(raiz):
     e1 = feitas[0]
     pasta_e1 = comum.SAIDAS / 'pedidos' / 'p1' / 'e1'
     conferir(len(feitas) == 1 and not pedido.execucoes('m1') and not pedido.execucoes('f1') and e1['motivo'] == 'primeira leitura' and not e1['erro']
-             and e1['documentos'][0]['e_prancha'] and [t['tarefa'] for t in e1['documentos'][0]['tarefas']] == ['ler_prancha', 'ler_prancha_ia'],
+             and e1['documentos'][0]['e_prancha'] and [t['tarefa'] for t in e1['documentos'][0]['tarefas']] == ['ler_prancha', 'ler_tabelas', 'ler_prancha_ia'],
              'pedido: o PDF do projeto é lido pelo código e pela IA; o memorial (outro leitor) e o fantasma fundido em outro ficam de fora')
     texto = (pasta_e1 / 'resultado.txt').read_text()
     conferir(all(t in texto for t in ('CARIMBO — pelo código', 'titulo: ADUTORA DE AGUA TRATADA AAT-06', 'TRAÇADO — pelo código, a faixa colorida',
@@ -1221,7 +1221,7 @@ def testar_tabelas_em_formulario(raiz):
              'o resultado do pedido diz cada imagem da folha: lida (faixas, linhas) ou por que não')
     tabelas = [{'imagem': 1, 'faixa': 1, 'linha': 1, 'celulas': ['40', '300491', 'CURVA CPVC 90', '54', 'PÇ'], 'status': 'confirmada', 'nao_confirmados': ''}]
     com_tabela = pedido.tabelas_em_texto(tabelas, imagens)
-    conferir(com_tabela[0].startswith('   TABELAS — glm-ocr (modo tabela) × Vision: 1 imagem(ns), 1 linha(s)')
+    conferir(com_tabela[0].startswith('   TABELAS — glm-ocr (modo tabela) × Vision: 1 tabela(s), 1 linha(s)')
              and '   Imagens na folha: 4 (3 lida(s) como tabela)' in com_tabela and any('300491' in l for l in com_tabela),
              'o texto com tabela lida e o inventário (0v35: a contagem local `imagens` apagava o inventário e o pedido quebrava '
              'no texto — o do Gabriel de 09/10 ficou sem resposta)')
@@ -1401,6 +1401,147 @@ def testar_catalogo(raiz):
     catalogo.carregar.cache_clear()
 
 
+def testar_tabela_regras():
+    """0v38, as regras de domínio da tabela pela grade (tabela.py; conceitos/tabela.json), com os exemplos do gabarito
+    da ETA Vila C que as motivaram."""
+    import tabela
+    conferir(tabela.decimal('13.76') == '13,76' and tabela.decimal('1440') == '1440' and tabela.numero('1.234,5') == 1234.5
+             and tabela.numero('-') is None,
+             'decimal: o ponto que o PP-OCR põe no lugar da vírgula vira vírgula (13.76 → 13,76); o milhar continua milhar')
+    registro = tabela.empilhar({'etapa1': '02 - 20,06', 'unidade': 'pç / kg'})
+    conferir(registro['etapa1'] == '02 / 20,06' and tabela.empilhar({'etapa1': '02-20,06-', 'unidade': 'kg'})['etapa1'] == '02 / 20,06'
+             and tabela.empilhar({'quantidade': '1440', 'unidade': 'pç'})['quantidade'] == '1440',
+             'empilhar: "02 - 20,06" são dois valores (019 *35), também quando o "pç" de cima se perdeu; o número sozinho fica')
+    conferir([tabela.unidade(u) for u in ('PÇ', 'pg', '5d', 'ka', 'UD', 'BARRAS', 'kg/m', 'xyz')] == ['pç', 'pç', 'pç', 'kg', 'un', 'barras', 'kg/m', None],
+             'unidade: as confusões medidas no gabarito (pg, 5d → pç; ka → kg; UD → un) e o desconhecido fica None')
+    texto, trocas = tabela.vocabulario('CURVA FD FF 90 PNZO BN150 TE PN 40 DNI00 DN 999')
+    conferir(texto == 'CURVA FD FF 90 PN10 DN150 TE PN 40 DN100 DN 999' and ('PNZO', 'PN10') in trocas and len(trocas) == 3,
+             'PN/DN por vocabulário fechado: PNZO → PN10, BN150 → DN150, DNI00 → DN100; PN 40 é da série e fica; DN 999 sem candidato fica')
+    conferir([tabela.item_sem_numero(t) for t in ('SIN', '5/N', 'SN', '33a')] == ['S/N', 'S/N', 'S/N', '33a'],
+             'o item S/N como os OCRs o leem (SIN, 5/N, SN) volta a S/N')
+    casos = [tabela.juntar('quantidade', ['18,35'], ['18.35']), tabela.juntar('quantidade', ['o1'], ['01']),
+             tabela.juntar('codigo', ['306888'], ['305888']), tabela.juntar('codigo', ['-'], []), tabela.juntar('unidade', ['PÇ'], ['PC']),
+             tabela.juntar('quantidade', ['01'], None)]
+    conferir([e for _, e in casos] == ['confirmada', 'so_b', 'divergente', 'so_a', 'confirmada', 'um_leitor'] and casos[2][0] == ['306888'],
+             'dois leitores: iguais depois de normalizar → confirmada; só um com forma válida → so_a/so_b; os dois válidos e '
+             'diferentes → divergente (no código fica o leitor A); sem o leitor B → um_leitor')
+    conferir(tabela.status({'estado': {'codigo': 'confirmada', 'quantidade': 'confirmada'}, 'codigo': '1', 'quantidade': '2'}, True) == ('confirmada', '')
+             and tabela.status({'estado': {'codigo': 'divergente', 'quantidade': 'so_a'}, 'codigo': '1', 'quantidade': '2'}, True) == ('divergente', 'codigo,quantidade')
+             and tabela.status({'estado': {'codigo': 'so_a'}, 'codigo': '1'}, True) == ('so_um_leitor', 'codigo'),
+             'a linha só é confirmada se toda célula curta preenchida foi lida igual pelos dois (0v38: nunca por vacuidade)')
+
+
+TABELA_FALSA = [['RELAÇÃO DE MATERIAIS'], ['Nº', 'ESPECIF/COD SAM', 'DESCRIÇÃO', 'QTDE', 'UN'],
+                ['01', '300491', 'CURVA CPVC JS BB 90 PNZO', '09', 'PÇ'], ['02', '300386', 'TUBO CPVC SCH80', '1,50', 'm'],
+                ['S/N', '302026', 'PEÇA ESPECIAL EM AÇO INOX', '12', 'CJ']]
+COLUNAS_FALSAS = [0, 90, 300, 1100, 1250, 1380]
+
+
+def imagem_de_tabela(roxo=False):
+    """A tabela do Excel colada no CAD, desenhada: título numa caixa, cabeçalho e 3 itens, linhas de 70 px."""
+    import cv2
+    import numpy as np
+    imagem = np.full((5 * 70 + 20, 1400, 3), 255, np.uint8)
+    for k in range(6):
+        cv2.line(imagem, (0, 10 + 70 * k), (1380, 10 + 70 * k), (0, 0, 0), 3)
+    for x in (0, 1380):
+        cv2.line(imagem, (x, 10), (x, 360), (0, 0, 0), 3)
+    for x in COLUNAS_FALSAS[1:-1]:
+        cv2.line(imagem, (x, 80), (x, 360), (0, 0, 0), 3)
+    if roxo:
+        imagem[153:218, 3:88] = (153, 102, 255)
+    return imagem
+
+
+def palavras_falsas(linhas_por_faixa, x_colunas, y0=10, altura=70):
+    saida = []
+    for k, textos in enumerate(linhas_por_faixa):
+        for j, texto in enumerate(textos):
+            esquerda = x_colunas[j] + 10 if len(textos) > 1 else 500
+            saida.append({'t': texto, 'x': esquerda, 'y': y0 + altura * k + 25, 'w': 8 * max(len(texto), 1), 'h': 20, 'c': 90.0, 'lin': (k, j)})
+    return [p for p in saida if p['t']]
+
+
+def testar_tabela_grade(raiz):
+    """0v38: a grade pelas linhas desenhadas lê a tabela sintética com leitores falsos (sem OCR de verdade): título,
+    cabeçalho → papéis, 3 itens, a 2ª leitura confirma as curtas, PN pelo vocabulário; a foto não é tabela; no PDF, a
+    tarefa ler_tabelas grava o cabeçalho canônico e os itens em prancha_tabela e o ler_prancha_ia não relê a imagem."""
+    try:
+        import cv2
+        import numpy as np
+    except ImportError:
+        print('--  sem OpenCV: a grade não é testada nesta máquina (codigo/requisitos.txt)')
+        return
+    import pypdfium2 as pdfium
+    import tabela
+    imagem = imagem_de_tabela(roxo=True)
+    leitor_a = lambda limpa: palavras_falsas(TABELA_FALSA, COLUNAS_FALSAS)
+    colunas_curtas = {0: ['01', '02', 'S/N'], 1: ['300491', '300386', '302026'], 3: ['09', '1.50', '12'], 4: ['PC', 'm', 'CJ']}
+    chamadas = []
+
+    def leitor_b(faixa):
+        coluna = sorted(colunas_curtas)[len(chamadas)]
+        chamadas.append(coluna)
+        altura = faixa.shape[0] / 3
+        return [{'t': t, 'x': 20, 'y': altura * k + 20, 'w': 40, 'h': 20, 'c': 99.0, 'lin': (k,)} for k, t in enumerate(colunas_curtas[coluna])]
+    lida = tabela.ler(imagem, leitor_a, leitor_b)
+    itens = lida['itens']
+    conferir(tabela.e_tabela(imagem) and not tabela.e_tabela(np.random.default_rng(1).integers(0, 255, (600, 900, 3), dtype=np.uint8))
+             and lida['titulo'] == ['RELAÇÃO DE MATERIAIS'] and lida['cabecalho'] == ['item', 'codigo', 'descricao', 'quantidade', 'unidade']
+             and [i['codigo'] for i in itens] == ['300491', '300386', '302026'] and [i['quantidade'] for i in itens] == ['09', '1,50', '12']
+             and [i['unidade'] for i in itens] == ['pç', 'm', 'cj'] and itens[0]['descricao'].endswith('PN10')
+             and [tabela.status(i, True)[0] for i in itens] == ['confirmada'] * 3 and chamadas == [0, 1, 3, 4] and itens[0]['colorido'] == ['item'],
+             'a grade lê a tabela sintética: título, papéis pelo cabeçalho, 3 itens; o 2º leitor, uma chamada por coluna curta, '
+             'confirma; 1.50 → 1,50; PNZO → PN10; o fundo roxo do item é marcado; ruído não é tabela')
+    sem_rotulo = [list(l) for l in TABELA_FALSA]
+    sem_rotulo[1][3] = '#@'
+    lida = tabela.ler(imagem, lambda limpa: palavras_falsas(sem_rotulo, COLUNAS_FALSAS), None)
+    conferir(lida['cabecalho'] == ['item', 'codigo', 'descricao', 'quantidade', 'unidade'] and lida['itens'][1]['quantidade'] == '1,50'
+             and tabela.status(lida['itens'][0], False) == ('um_leitor', ''),
+             'rótulo de coluna ilegível: entre a descrição e a UN é quantidade (ordem fixa da relação Sanepar); sem o 2º leitor, um_leitor')
+    # no PDF: a imagem colada vira linhas de prancha_tabela pela tarefa ler_tabelas
+    caminho = raiz / 'tabela_grade.pdf'
+    png = raiz / 'tabela.png'
+    cv2.imwrite(str(png), imagem)
+    caminho.write_bytes(pdf_com_imagens([(imagem.shape[1], imagem.shape[0], (1700, 1200, 420, 111), None)]))
+    documento = pdfium.PdfDocument(caminho)
+    achadas = tabela.imagens(documento[0])
+    documento.close()
+    conferir(len(achadas) == 1 and achadas[0][2] is not None and achadas[0][2].shape[:2] == imagem.shape[:2],
+             'a imagem colada sai com os pixels dela (sem thumbnail): o tamanho nativo')
+    originais = tabela.leitor_a, tabela.leitor_b, tabela.imagens
+    tabela.leitor_a, tabela.leitor_b = (lambda: ('falso', leitor_a)), (lambda: ('falso_b', leitor_b))
+    tabela.imagens = lambda pagina: [(1, [1700.0, 373.0, 2120.0, 484.0], imagem, '')]
+    chamadas.clear()
+    try:
+        documento = {'id': '_ensaios/x/tabela_grade.pdf', 'caminho': 'x/tabela_grade.pdf', 'acervo': '_ensaios', 'obra': 'x', 'versao': 'v1',
+                     'nome': 'tabela_grade.pdf', 'arquivo_local': str(caminho)}
+        resumo = tabela.ler_tabelas(documento, 'r1')
+    finally:
+        tabela.leitor_a, tabela.leitor_b, tabela.imagens = originais
+    linhas = [l for l in comum.ler('prancha_tabela', [documento['id']]).to_dicts() if l['extrator'] == 'tabelas']
+    linhas.sort(key=lambda l: l['linha'])
+    conferir(resumo['itens'] == 3 and resumo['itens_confirmados'] == 3 and json.loads(linhas[0]['celulas']) == ['Nº', 'ESPECIF/COD SAM', 'DESCRIÇÃO', 'QUANT.', 'UN']
+             and json.loads(linhas[1]['celulas'])[1] == '300491' and tabela.lidas_pela_grade(documento['id']) == {1}
+             and catalogo_reconhece(linhas),
+             'ler_tabelas grava o cabeçalho canônico (o catálogo reconhece ESPECIF, DESCRI e UN) e os itens; o ler_prancha_ia '
+             'sabe que a imagem 1 já foi lida pela grade e não a manda ao glm-ocr')
+    import placar_tabelas
+    itens = placar_tabelas.itens_de_celulas(linhas)
+    gabarito = [{'item': '01', 'codigo': '300491', 'quantidade': '09', 'unidade': 'pç', 'descricao': 'CURVA CPVC JS BB 90 PN10'},
+                {'item': '02', 'codigo': '300386', 'quantidade': '1,50', 'unidade': 'm', 'descricao': 'TUBO CPVC SCH80'},
+                {'item': 'S/N', 'codigo': '302026', 'quantidade': '12', 'unidade': 'cj', 'descricao': 'PEÇA ESPECIAL EM AÇO INOX'},
+                {'item': '04', 'codigo': '300456', 'quantidade': '01', 'unidade': 'pç', 'descricao': 'CAP'}]
+    medida = placar_tabelas.comparar(itens, gabarito)
+    conferir(medida['linhas_certas'] == 3 and medida['faltou'] == 1 and medida['sobrou'] == 0 and medida['essenciais_certos'] == 3,
+             'o placar casa a extração com o gabarito pela ordem e por (item, código): 3 certas, 1 faltou, nenhuma sobrou')
+
+
+def catalogo_reconhece(linhas):
+    import catalogo
+    return catalogo.colunas_da_tabela(json.loads(linhas[0]['celulas'])) == {'codigo': 1, 'descricao': 2, 'unidade': 4}
+
+
 def principal():
     with tempfile.TemporaryDirectory() as temporaria:
         raiz = Path(temporaria)
@@ -1431,6 +1572,8 @@ def principal():
         testar_sinal_de_vida_e_quarentena(raiz)
         testar_agentes(raiz)
         testar_curadoria()
+        testar_tabela_regras()
+        testar_tabela_grade(raiz)
         testar_grade()
         testar_grade_com_o_vision()
         testar_celulas()
