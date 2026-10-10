@@ -1,0 +1,830 @@
+{
+ "linhas": [
+  {
+   "arquivo": "001-SAA-0017-8820-PBES-DE-0000CMC01FORMA-R0",
+   "pagina_resumo": 1,
+   "concreto_m3": 364.64,
+   "forma_m2": 1625.64,
+   "enchimento_m3": 0.15,
+   "lastro_m3": 19.41,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "002-SAA-0017-8820-PBES-DE-0000CMC01FORMA-R0",
+   "pagina_resumo": 1,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "003-SAA-0017-8820-PBES-DE-0000CMC01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_8_0": 5494.0,
+   "ca50_10_0": 9974.0,
+   "aco_total_kg": 15468.0
+  },
+  {
+   "arquivo": "004-SAA-0017-8820-PBES-DE-0000CMC01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_10_0": 3425.0,
+   "ca50_20_0": 638.0,
+   "aco_total_kg": 4063.0
+  },
+  {
+   "arquivo": "005-SAA-0017-8820-PBES-DE-0000CMC01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_10_0": 5269.0,
+   "ca50_20_0": 1014.0,
+   "aco_total_kg": 6283.0
+  },
+  {
+   "arquivo": "006-SAA-0017-8820-PBES-DE-0000CMC01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_10_0": 4466.0,
+   "ca50_20_0": 829.0,
+   "aco_total_kg": 5295.0
+  },
+  {
+   "arquivo": "007-SAA-0017-8820-PBES-DE-0000CMC01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_10_0": 5175.0,
+   "ca50_20_0": 1001.0,
+   "aco_total_kg": 6176.0
+  },
+  {
+   "arquivo": "001-SAA-0017-8820-IMPE-DE-0000CMC01FORMA-R0",
+   "pagina_resumo": 1,
+   "concreto_m3": 15.6,
+   "forma_m2": 450.45,
+   "imperm_m2": 23669.0,
+   "ca60_5_0": 1186.0,
+   "aco_total_kg": 1186.0
+  },
+  {
+   "arquivo": "001-SAA-0017-8820-PBES-DE-0000CAT01FORMA-R0",
+   "pagina_resumo": 1,
+   "concreto_m3": 127.93,
+   "forma_m2": 873.23,
+   "enchimento_m3": 0.41,
+   "lastro_m3": 7.76,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "002-SAA-0017-8820-PBES-DE-0000CAT01FORMA-R0",
+   "pagina_resumo": 1,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "003-SAA-0017-8820-PBES-DE-0000CAT01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_8_0": 2396.0,
+   "aco_total_kg": 2396.0
+  },
+  {
+   "arquivo": "004-SAA-0017-8820-PBES-DE-0000CAT01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_8_0": 1635.0,
+   "aco_total_kg": 1635.0
+  },
+  {
+   "arquivo": "005-SAA-0017-8820-PBES-DE-0000CAT01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_8_0": 1802.0,
+   "ca50_16_0": 567.0,
+   "aco_total_kg": 2369.0
+  },
+  {
+   "arquivo": "006-SAA-0017-8820-PBES-DE-0000CAT01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_8_0": 1322.0,
+   "ca50_16_0": 447.0,
+   "aco_total_kg": 1769.0
+  },
+  {
+   "arquivo": "007-SAA-0017-8820-PBES-DE-0000CAT01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_8_0": 997.0,
+   "ca50_16_0": 464.0,
+   "aco_total_kg": 1461.0
+  },
+  {
+   "arquivo": "008-SAA-0017-8820-PBES-DE-0000CAT01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_8_0": 1734.0,
+   "ca50_16_0": 600.0,
+   "aco_total_kg": 2334.0
+  },
+  {
+   "arquivo": "009-SAA-0017-8820-PBES-DE-0000CAT01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_8_0": 1576.0,
+   "ca50_16_0": 511.0,
+   "aco_total_kg": 2087.0
+  },
+  {
+   "arquivo": "001-SAA-0017-8820-IMPE-DE-0000CAT01FORMA-R0",
+   "pagina_resumo": 1,
+   "imperm_m2": 498.5
+  },
+  {
+   "arquivo": "001-SAA-0017-8820-PBES-DE-0000DEP01FORMA-R0",
+   "pagina_resumo": 1,
+   "concreto_m3": 15.19,
+   "forma_m2": 66.8,
+   "lastro_m3": 0.26,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "002-SAA-0017-8820-PBES-DE-0000DEP01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca60_5_0": 101.0,
+   "ca50_6_3": 69.0,
+   "ca50_8_0": 819.0,
+   "ca50_10_0": 63.0,
+   "ca50_12_5": 136.0,
+   "ca50_16_0": 144.0,
+   "aco_total_kg": 1332.0
+  },
+  {
+   "arquivo": "001-SAA-0017-8820-PBES-DE-0000EEE01FORMA-R0",
+   "pagina_resumo": 1,
+   "concreto_m3": 59.19,
+   "forma_m2": 266.86,
+   "enchimento_m3": 3.98,
+   "lastro_m3": 4.24,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "002-SAA-0017-8820-PBES-DE-0000EEE01FORMA-R0",
+   "pagina_resumo": 1,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "003-SAA-0017-8820-PBES-DE-0000EEE01FORMA-R0",
+   "pagina_resumo": 1,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "004-SAA-0017-8820-PBES-DE-0000EEE01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_6_3": 12.0,
+   "ca50_8_0": 94.0,
+   "ca50_10_0": 1730.0,
+   "ca50_12_5": 97.0,
+   "aco_total_kg": 1933.0
+  },
+  {
+   "arquivo": "005-SAA-0017-8820-PBES-DE-0000EEE01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_8_0": 985.0,
+   "ca50_10_0": 728.0,
+   "ca50_16_0": 188.0,
+   "aco_total_kg": 1901.0
+  },
+  {
+   "arquivo": "006-SAA-0017-8820-PBES-DE-0000EEE01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_8_0": 61.0,
+   "ca50_10_0": 1971.0,
+   "ca50_16_0": 448.0,
+   "aco_total_kg": 2480.0
+  },
+  {
+   "arquivo": "001-SAA-0017-8820-IMPE-DE-0000EEE01FORMA-R0",
+   "pagina_resumo": 1,
+   "imperm_m2": 58.65
+  },
+  {
+   "arquivo": "001-SAA-0017-8820-PBES-DE-0000POR01FORMA-R0",
+   "pagina_resumo": 1,
+   "concreto_m3": 11.48,
+   "forma_m2": 89.06,
+   "lastro_m3": 0.79,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca60_5_0": 95.0,
+   "ca50_6_3": 446.0,
+   "ca50_10_0": 188.0,
+   "ca50_12_5": 29.0,
+   "aco_total_kg": 758.0
+  },
+  {
+   "arquivo": "001-SAA-0017-8820-PBES-DE-0000MOD01FORMA-R0",
+   "pagina_resumo": 1,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "002-SAA-0017-8820-PBES-DE-0000MOD01FORMA-R0",
+   "pagina_resumo": 1,
+   "concreto_m3": 735.0,
+   "forma_m2": 3470.2,
+   "enchimento_m3": 0.57,
+   "lastro_m3": 21.5,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "003-SAA-0017-8820-PBES-DE-0000MOD01FORMA-R0",
+   "pagina_resumo": 1,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "004-SAA-0017-8820-PBES-DE-0000MOD01FORMA-R0",
+   "pagina_resumo": 1,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "005-SAA-0017-8820-PBES-DE-0000MOD01FORMA-R0",
+   "pagina_resumo": 1,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "006-SAA-0017-8820-PBES-DE-0000MOD01FORMA-R0",
+   "pagina_resumo": 1,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "007-SAA-0017-8820-PBES-DE-0000MOD01FORMA-R0",
+   "pagina_resumo": 1,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_6_3": 275.0,
+   "ca50_8_0": 1447.0,
+   "ca50_12_5": 100.0,
+   "ca50_16_0": 5156.0,
+   "aco_total_kg": 6978.0
+  },
+  {
+   "arquivo": "009-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca60_5_0": 22.0,
+   "ca50_6_3": 48.0,
+   "ca50_8_0": 548.0,
+   "ca50_10_0": 17334.0,
+   "aco_total_kg": 17952.0
+  },
+  {
+   "arquivo": "010-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_6_3": 43.0,
+   "ca50_8_0": 2805.0,
+   "ca50_12_5": 211.0,
+   "aco_total_kg": 3059.0
+  },
+  {
+   "arquivo": "011-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca60_5_0": 22.0,
+   "ca50_8_0": 3135.0,
+   "ca50_16_0": 765.0,
+   "aco_total_kg": 3922.0
+  },
+  {
+   "arquivo": "012-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca60_5_0": 9.0,
+   "ca50_8_0": 2054.0,
+   "ca50_10_0": 27.0,
+   "ca50_16_0": 729.0,
+   "aco_total_kg": 2819.0
+  },
+  {
+   "arquivo": "013-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_8_0": 171.0,
+   "ca50_10_0": 6249.0,
+   "ca50_12_5": 17.0,
+   "ca50_20_0": 966.0,
+   "aco_total_kg": 7403.0
+  },
+  {
+   "arquivo": "014-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_8_0": 604.0,
+   "ca50_10_0": 5404.0,
+   "ca50_12_5": 98.0,
+   "ca50_20_0": 979.0,
+   "aco_total_kg": 7085.0
+  },
+  {
+   "arquivo": "015-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_10_0": 3321.0,
+   "ca50_20_0": 728.0,
+   "aco_total_kg": 4049.0
+  },
+  {
+   "arquivo": "016-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_10_0": 2931.0,
+   "ca50_20_0": 629.0,
+   "aco_total_kg": 3560.0
+  },
+  {
+   "arquivo": "017-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_8_0": 1990.0,
+   "ca50_10_0": 2438.0,
+   "ca50_12_5": 836.0,
+   "aco_total_kg": 5264.0
+  },
+  {
+   "arquivo": "018-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_8_0": 7991.0,
+   "ca50_12_5": 1314.0,
+   "aco_total_kg": 9305.0
+  },
+  {
+   "arquivo": "001-SAA-0017-8820-IMPE-DE-0000MOD01FORMA-R0",
+   "pagina_resumo": 1,
+   "imperm_m2": 582.35
+  },
+  {
+   "arquivo": "001-SAA-0017-8820-PBES-DE-0000CXA01FORMARMAD-R0",
+   "pagina_resumo": 1,
+   "concreto_m3": 31.2,
+   "forma_m2": 222.06,
+   "lastro_m3": 0.88,
+   "ca50_8_0": 31.0,
+   "ca50_10_0": 430.0,
+   "aco_total_kg": 461.0
+  },
+  {
+   "arquivo": "002-SAA-0017-8820-PBES-DE-0000CXA01ARMADURA-R0",
+   "pagina_resumo": 1,
+   "ca50_10_0": 3362.0,
+   "ca50_16_0": 557.0,
+   "aco_total_kg": 3919.0
+  },
+  {
+   "arquivo": "001-SAA-0017-8820-PBES-DE-0000CXA02FORMARMAD-R0",
+   "pagina_resumo": 1,
+   "concreto_m3": 19.68,
+   "forma_m2": 139.91,
+   "lastro_m3": 0.57,
+   "ca50_10_0": 2576.0,
+   "ca50_16_0": 399.0,
+   "aco_total_kg": 2975.0
+  },
+  {
+   "arquivo": "001-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0",
+   "pagina_resumo": 2,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0",
+   "pagina_resumo": 2,
+   "concreto_m3": 478.1,
+   "forma_m2": 2540.5,
+   "enchimento_m3": 23.25,
+   "lastro_m3": 19.5,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "003-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0",
+   "pagina_resumo": 2,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "004-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0",
+   "pagina_resumo": 2,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "005-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0",
+   "pagina_resumo": 2,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "006-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0",
+   "pagina_resumo": 2,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "007-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_6_3": 1157.0,
+   "ca50_8_0": 384.0,
+   "ca50_10_0": 34.0,
+   "ca50_12_5": 537.0,
+   "ca50_16_0": 113.0,
+   "aco_total_kg": 2225.0
+  },
+  {
+   "arquivo": "008-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_8_0": 387.0,
+   "ca50_10_0": 8066.0,
+   "aco_total_kg": 8453.0
+  },
+  {
+   "arquivo": "009-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_6_3": 33.0,
+   "ca50_8_0": 1110.0,
+   "ca50_10_0": 1545.0,
+   "ca50_12_5": 67.0,
+   "ca50_20_0": 322.0,
+   "aco_total_kg": 3077.0
+  },
+  {
+   "arquivo": "010-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_8_0": 2305.0,
+   "ca50_12_5": 162.0,
+   "aco_total_kg": 2467.0
+  },
+  {
+   "arquivo": "011-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_8_0": 407.0,
+   "ca50_10_0": 1565.0,
+   "ca50_12_5": 60.0,
+   "ca50_20_0": 316.0,
+   "aco_total_kg": 2348.0
+  },
+  {
+   "arquivo": "012-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_8_0": 131.0,
+   "ca50_10_0": 1668.0,
+   "ca50_12_5": 33.0,
+   "ca50_20_0": 250.0,
+   "aco_total_kg": 2082.0
+  },
+  {
+   "arquivo": "013-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_8_0": 131.0,
+   "ca50_10_0": 2381.0,
+   "ca50_12_5": 33.0,
+   "ca50_20_0": 287.0,
+   "aco_total_kg": 2832.0
+  },
+  {
+   "arquivo": "014-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_8_0": 495.0,
+   "ca50_10_0": 718.0,
+   "ca50_20_0": 238.0,
+   "aco_total_kg": 1451.0
+  },
+  {
+   "arquivo": "015-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_8_0": 471.0,
+   "ca50_10_0": 1563.0,
+   "ca50_20_0": 348.0,
+   "aco_total_kg": 2382.0
+  },
+  {
+   "arquivo": "016-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_8_0": 369.0,
+   "ca50_10_0": 1269.0,
+   "ca50_12_5": 44.0,
+   "ca50_16_0": 36.0,
+   "ca50_20_0": 322.0,
+   "aco_total_kg": 2040.0
+  },
+  {
+   "arquivo": "017-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_8_0": 1715.0,
+   "ca50_12_5": 8.0,
+   "ca50_16_0": 312.0,
+   "ca50_20_0": 183.0,
+   "aco_total_kg": 2218.0
+  },
+  {
+   "arquivo": "018-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_8_0": 1212.0,
+   "ca50_16_0": 107.0,
+   "ca50_20_0": 241.0,
+   "aco_total_kg": 1560.0
+  },
+  {
+   "arquivo": "019-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_8_0": 83.0,
+   "ca50_10_0": 4402.0,
+   "ca50_20_0": 673.0,
+   "aco_total_kg": 5158.0
+  },
+  {
+   "arquivo": "020-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_10_0": 2241.0,
+   "ca50_20_0": 480.0,
+   "aco_total_kg": 2721.0
+  },
+  {
+   "arquivo": "021-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_6_3": 9.0,
+   "ca50_8_0": 1575.0,
+   "ca50_10_0": 2535.0,
+   "ca50_12_5": 125.0,
+   "ca50_16_0": 208.0,
+   "ca50_20_0": 532.0,
+   "aco_total_kg": 4984.0
+  },
+  {
+   "arquivo": "001-SAA-0017-8820-PBES-DE-0000REC01FORMA-R0",
+   "pagina_resumo": 2,
+   "concreto_m3": 115.04,
+   "forma_m2": 454.24,
+   "enchimento_m3": 9.15,
+   "lastro_m3": 6.8,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "002-SAA-0017-8820-PBES-DE-0000REC01ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca60_5_0": 1.0,
+   "ca50_6_3": 26.0,
+   "ca50_8_0": 262.0,
+   "ca50_10_0": 4876.0,
+   "ca50_12_5": 159.0,
+   "aco_total_kg": 5324.0
+  },
+  {
+   "arquivo": "003-SAA-0017-8820-PBES-DE-0000REC01ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_8_0": 591.0,
+   "ca50_10_0": 1480.0,
+   "ca50_12_5": 59.0,
+   "ca50_16_0": 21.0,
+   "ca50_20_0": 339.0,
+   "aco_total_kg": 2490.0
+  },
+  {
+   "arquivo": "004-SAA-0017-8820-PBES-DE-0000REC01ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_8_0": 218.0,
+   "ca50_10_0": 1409.0,
+   "ca50_12_5": 16.0,
+   "ca50_16_0": 23.0,
+   "ca50_20_0": 436.0,
+   "aco_total_kg": 2102.0
+  },
+  {
+   "arquivo": "001-SAA-0017-8820-IMPE-DE-0000REC01FORMA-R0",
+   "pagina_resumo": 2,
+   "imperm_m2": 257.9
+  },
+  {
+   "arquivo": "001-SAA-0017-8820-PBES-DE-0000ACT02FORMA-R0",
+   "pagina_resumo": 2,
+   "concreto_m3": 202.2,
+   "forma_m2": 1067.7,
+   "enchimento_m3": 6.66,
+   "lastro_m3": 6.6,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "002-SAA-0017-8820-PBES-DE-0000ACT02FORMA-R0",
+   "pagina_resumo": 2,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "003-SAA-0017-8820-PBES-DE-0000ACT02FORMA-R0",
+   "pagina_resumo": 2,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "004-SAA-0017-8820-PBES-DE-0000ACT02ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_6_3": 289.0,
+   "ca50_8_0": 430.0,
+   "ca50_10_0": 545.0,
+   "ca50_12_5": 118.0,
+   "ca50_16_0": 510.0,
+   "ca50_20_0": 151.0,
+   "aco_total_kg": 2043.0
+  },
+  {
+   "arquivo": "005-SAA-0017-8820-PBES-DE-0000ACT02ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_6_3": 10.0,
+   "ca50_8_0": 506.0,
+   "ca50_10_0": 3755.0,
+   "ca50_12_5": 71.0,
+   "aco_total_kg": 4342.0
+  },
+  {
+   "arquivo": "006-SAA-0017-8820-PBES-DE-0000ACT02ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_8_0": 943.0,
+   "ca50_12_5": 85.0,
+   "aco_total_kg": 1028.0
+  },
+  {
+   "arquivo": "007-SAA-0017-8820-PBES-DE-0000ACT02ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_8_0": 359.0,
+   "ca50_10_0": 956.0,
+   "ca50_16_0": 142.0,
+   "ca50_20_0": 228.0,
+   "aco_total_kg": 1685.0
+  },
+  {
+   "arquivo": "008-SAA-0017-8820-PBES-DE-0000ACT02ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_6_3": 4.0,
+   "ca50_10_0": 2252.0,
+   "ca50_12_5": 18.0,
+   "ca50_20_0": 483.0,
+   "aco_total_kg": 2757.0
+  },
+  {
+   "arquivo": "009-SAA-0017-8820-PBES-DE-0000ACT02ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_8_0": 234.0,
+   "ca50_10_0": 1294.0,
+   "ca50_12_5": 62.0,
+   "ca50_20_0": 396.0,
+   "aco_total_kg": 1986.0
+  },
+  {
+   "arquivo": "010-SAA-0017-8820-PBES-DE-0000ACT02ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_8_0": 110.0,
+   "ca50_10_0": 1998.0,
+   "ca50_12_5": 36.0,
+   "ca50_20_0": 421.0,
+   "aco_total_kg": 2565.0
+  },
+  {
+   "arquivo": "011-SAA-0017-8820-PBES-DE-0000ACT02ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_8_0": 422.0,
+   "ca50_10_0": 1771.0,
+   "ca50_12_5": 39.0,
+   "ca50_16_0": 60.0,
+   "ca50_20_0": 384.0,
+   "aco_total_kg": 2676.0
+  },
+  {
+   "arquivo": "012-SAA-0017-8820-PBES-DE-0000ACT02ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca50_8_0": 567.0,
+   "ca50_10_0": 1165.0,
+   "ca50_12_5": 99.0,
+   "ca50_20_0": 253.0,
+   "aco_total_kg": 2084.0
+  },
+  {
+   "arquivo": "001-SAA-0017-8820-PBES-DE-0000ETL01FORMA-R0",
+   "pagina_resumo": 2,
+   "concreto_m3": 87.95,
+   "forma_m2": 576.3,
+   "lastro_m3": 4.34,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "002-SAA-0017-8820-PBES-DE-0000ETL01FORMA-R0",
+   "pagina_resumo": 2,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "003-SAA-0017-8820-PBES-DE-0000ETL01FORMARMAD-R0",
+   "pagina_resumo": 2,
+   "ca60_5_0": 1.0,
+   "ca50_6_3": 336.0,
+   "ca50_10_0": 2.0,
+   "ca50_12_5": 686.0,
+   "aco_total_kg": 1025.0
+  },
+  {
+   "arquivo": "004-SAA-0017-8820-PBES-DE-0000ETL01ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca60_5_0": 115.0,
+   "ca50_8_0": 2569.0,
+   "ca50_10_0": 130.0,
+   "ca50_12_5": 55.0,
+   "aco_total_kg": 2869.0
+  },
+  {
+   "arquivo": "005-SAA-0017-8820-PBES-DE-0000ETL01ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca60_5_0": 23.0,
+   "ca50_8_0": 1347.0,
+   "aco_total_kg": 1370.0
+  },
+  {
+   "arquivo": "006-SAA-0017-8820-PBES-DE-0000ETL01ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca60_5_0": 106.0,
+   "ca50_10_0": 2.0,
+   "ca50_12_5": 442.0,
+   "ca50_20_0": 233.0,
+   "aco_total_kg": 783.0
+  },
+  {
+   "arquivo": "007-SAA-0017-8820-PBES-DE-0000ETL01ARMADURA-R0",
+   "pagina_resumo": 2,
+   "ca60_5_0": 158.0,
+   "ca50_6_3": 5.0,
+   "ca50_10_0": 29.0,
+   "ca50_12_5": 422.0,
+   "ca50_16_0": 107.0,
+   "ca50_20_0": 367.0,
+   "aco_total_kg": 1088.0
+  },
+  {
+   "arquivo": "001-SAA-0017-8820-PBES-DE-0000BLO01FORMA-R0",
+   "pagina_resumo": 2,
+   "concreto_m3": 22.22,
+   "forma_m2": 107.15,
+   "lastro_m3": 0.65,
+   "aco_total_kg": 0.0
+  },
+  {
+   "arquivo": "002-SAA-0017-8820-PBES-DE-0000BLO01FORMARMAD-R0",
+   "pagina_resumo": 2,
+   "ca60_5_0": 23.0,
+   "ca50_6_3": 51.0,
+   "ca50_8_0": 251.0,
+   "ca50_10_0": 101.0,
+   "aco_total_kg": 426.0
+  },
+  {
+   "arquivo": "003-SAA-0017-8820-PBES-DE-0000BLO01FORMARMAD-R0",
+   "pagina_resumo": 2,
+   "ca50_8_0": 383.0,
+   "aco_total_kg": 383.0
+  },
+  {
+   "arquivo": "001-SAA-0017-8820-PBES-DE-0000CXA01FORMARMAD-R0",
+   "pagina_resumo": 2,
+   "concreto_m3": 10.85,
+   "forma_m2": 75.05,
+   "lastro_m3": 0.89,
+   "ca50_8_0": 923.0,
+   "ca50_12_5": 144.0,
+   "aco_total_kg": 1067.0
+  },
+  {
+   "arquivo": "001-SAA-0017-8820-PBES-DE-0000CXA02FORMARMAD-R0",
+   "pagina_resumo": 2,
+   "concreto_m3": 13.07,
+   "forma_m2": 87.98,
+   "lastro_m3": 1.09,
+   "ca50_8_0": 1042.0,
+   "ca50_12_5": 161.0,
+   "aco_total_kg": 1203.0
+  },
+  {
+   "arquivo": "001-SAA-0017-8820-PBES-DE-0000CXA03FORMARMAD-R0",
+   "pagina_resumo": 2,
+   "concreto_m3": 7.01,
+   "forma_m2": 51.89,
+   "lastro_m3": 0.51,
+   "ca50_8_0": 645.0,
+   "ca50_12_5": 110.0,
+   "aco_total_kg": 755.0
+  },
+  {
+   "arquivo": "001-SAA-0017-8820-PBES-DE-0000CXA04FORMARMAD-R0",
+   "pagina_resumo": 2,
+   "concreto_m3": 11.1,
+   "forma_m2": 75.05,
+   "lastro_m3": 0.99,
+   "ca50_8_0": 844.0,
+   "ca50_12_5": 150.0,
+   "aco_total_kg": 994.0
+  },
+  {
+   "arquivo": "001-SAA-0017-8820-PBES-DE-0000CXA05FORMARMAD-R0",
+   "pagina_resumo": 2,
+   "concreto_m3": 9.39,
+   "forma_m2": 64.77,
+   "lastro_m3": 0.76,
+   "ca50_8_0": 799.0,
+   "ca50_12_5": 135.0,
+   "aco_total_kg": 934.0
+  }
+ ],
+ "totais": {
+  "concreto_m3": 2336.84,
+  "forma_m2": 12304.84,
+  "enchimento_m3": 44.17,
+  "lastro_m3": 97.54,
+  "imperm_m2": 25066.4,
+  "ca60_4_2": 0.0,
+  "ca60_5_0": 1862.0,
+  "ca50_6_3": 2813.0,
+  "ca50_8_0": 63911.0,
+  "ca50_10_0": 126813.0,
+  "ca50_12_5": 6974.0,
+  "ca50_16_0": 12614.0,
+  "ca50_20_0": 14667.0,
+  "aco_total_kg": 229654.0
+ }
+}

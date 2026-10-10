@@ -1,0 +1,111 @@
+{
+ "estrutura": "MOD_TRATAM_FILTROS_NOVOS",
+ "codigo_arquivo": "001-SAA-0017-8820-PBES-DE-0000MOD01FORMA-R1",
+ "caixas": [
+  {
+   "n": 0,
+   "tipo": "outra",
+   "caixa_pt": [
+    449.3,
+    186.7,
+    2510.9,
+    1308.0
+   ]
+  },
+  {
+   "n": 1,
+   "tipo": "outra",
+   "caixa_pt": [
+    2838.2,
+    1426.6,
+    3334.1,
+    1534.1
+   ]
+  },
+  {
+   "n": 2,
+   "tipo": "outra",
+   "caixa_pt": [
+    3087.4,
+    1537.0,
+    3334.1,
+    1762.6
+   ]
+  },
+  {
+   "n": 3,
+   "tipo": "outra",
+   "caixa_pt": [
+    2838.2,
+    1655.0,
+    3085.0,
+    1762.6
+   ]
+  },
+  {
+   "n": 4,
+   "tipo": "outra",
+   "caixa_pt": [
+    2838.2,
+    1765.4,
+    3333.6,
+    1819.2
+   ]
+  },
+  {
+   "n": 5,
+   "tipo": "outra",
+   "caixa_pt": [
+    1274.4,
+    1769.3,
+    1665.6,
+    1902.2
+   ]
+  },
+  {
+   "n": 6,
+   "tipo": "outra",
+   "caixa_pt": [
+    2838.2,
+    1822.1,
+    3085.0,
+    2000.2
+   ]
+  },
+  {
+   "n": 7,
+   "tipo": "resumo_materiais",
+   "caixa_pt": [
+    3087.4,
+    1822.1,
+    3334.1,
+    2000.2
+   ]
+  },
+  {
+   "n": 8,
+   "tipo": "outra",
+   "caixa_pt": [
+    1274.4,
+    1988.6,
+    1665.6,
+    2121.6
+   ]
+  },
+  {
+   "n": 9,
+   "tipo": "outra",
+   "caixa_pt": [
+    2838.2,
+    2003.0,
+    3333.6,
+    2349.6
+   ]
+  }
+ ],
+ "erro": "",
+ "n_resumo_materiais": 6,
+ "n_resumo_aco": 0,
+ "n_armadura": 0,
+ "segundos": 72.8
+}

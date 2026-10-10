@@ -1,0 +1,1084 @@
+[
+ {
+  "arquivo": "MOD_TRATAM_MICRO_AREIA_600Ls/009-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0.PDF",
+  "caixas": [
+   {
+    "caixa_pt": [
+     2840.2,
+     33.1,
+     3336.5,
+     837.1
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 4
+   },
+   {
+    "caixa_pt": [
+     1203.8,
+     217.9,
+     1848.5,
+     571.2
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 0
+   },
+   {
+    "caixa_pt": [
+     2840.2,
+     839.5,
+     3087.4,
+     1065.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 0
+   },
+   {
+    "caixa_pt": [
+     3089.3,
+     839.5,
+     3336.5,
+     1065.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 8
+   },
+   {
+    "caixa_pt": [
+     2373.1,
+     946.1,
+     2687.5,
+     1310.4
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 4
+   },
+   {
+    "caixa_pt": [
+     3089.3,
+     1124.6,
+     3336.5,
+     1303.2
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 9
+   }
+  ],
+  "itens_total": 0,
+  "erro": "",
+  "leitor_a": "tesseract",
+  "leitor_b": "rapidocr",
+  "segundos": 30.2
+ },
+ {
+  "arquivo": "MOD_TRATAM_MICRO_AREIA_600Ls/020-SAA-0017-8820-PBES-DE-0000ACT01ARMADURA-R0.PDF",
+  "caixas": [
+   {
+    "caixa_pt": [
+     2840.2,
+     33.1,
+     3336.5,
+     837.1
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 4
+   },
+   {
+    "caixa_pt": [
+     358.6,
+     220.3,
+     1312.8,
+     619.2
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 59
+   },
+   {
+    "caixa_pt": [
+     2840.2,
+     839.5,
+     3087.4,
+     1065.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 0
+   },
+   {
+    "caixa_pt": [
+     3089.3,
+     839.5,
+     3336.5,
+     1065.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 8
+   },
+   {
+    "caixa_pt": [
+     2323.2,
+     1022.4,
+     2637.6,
+     1274.9
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 3
+   },
+   {
+    "caixa_pt": [
+     3089.3,
+     1124.6,
+     3336.5,
+     1303.2
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 9
+   },
+   {
+    "caixa_pt": [
+     2323.2,
+     1300.8,
+     2637.6,
+     1372.8
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 2
+   }
+  ],
+  "itens_total": 0,
+  "erro": "",
+  "leitor_a": "tesseract",
+  "leitor_b": "rapidocr",
+  "segundos": 42.9
+ },
+ {
+  "arquivo": "MOD_TRATAM_MICRO_AREIA_360Ls/001-SAA-0017-8820-PBES-DE-0000ACT02FORMA-R0.PDF",
+  "caixas": [
+   {
+    "caixa_pt": [
+     2840.2,
+     33.1,
+     3336.5,
+     837.1
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 4
+   },
+   {
+    "caixa_pt": [
+     1164.5,
+     801.6,
+     1556.2,
+     921.1
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 0
+   },
+   {
+    "caixa_pt": [
+     2840.2,
+     839.5,
+     3087.4,
+     1065.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 0
+   },
+   {
+    "caixa_pt": [
+     3089.3,
+     839.5,
+     3336.5,
+     1065.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 8
+   },
+   {
+    "caixa_pt": [
+     1164.5,
+     1086.7,
+     1556.2,
+     1205.8
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 0
+   },
+   {
+    "caixa_pt": [
+     3089.3,
+     1124.6,
+     3336.5,
+     1303.2
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 9
+   }
+  ],
+  "itens_total": 0,
+  "erro": "",
+  "leitor_a": "tesseract",
+  "leitor_b": "rapidocr",
+  "segundos": 17.3
+ },
+ {
+  "arquivo": "MOD_TRATAM_FILTROS_NOVOS/008-SAA-0017-8820-PBES-DE-0000MOD01ARMADURA-R1.pdf",
+  "caixas": [
+   {
+    "caixa_pt": [
+     2094.7,
+     772.3,
+     2417.3,
+     998.4
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 11
+   },
+   {
+    "caixa_pt": [
+     229.0,
+     799.2,
+     567.8,
+     1138.1
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 1
+   },
+   {
+    "caixa_pt": [
+     1236.5,
+     871.2,
+     1547.5,
+     1008.0
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 4
+   },
+   {
+    "caixa_pt": [
+     697.0,
+     916.3,
+     915.4,
+     1134.2
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 2
+   },
+   {
+    "caixa_pt": [
+     2839.7,
+     1426.6,
+     3335.0,
+     1534.1
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 4
+   },
+   {
+    "caixa_pt": [
+     2839.7,
+     1537.0,
+     3085.9,
+     1762.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 0
+   },
+   {
+    "caixa_pt": [
+     3088.8,
+     1537.0,
+     3335.0,
+     1762.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 8
+   },
+   {
+    "caixa_pt": [
+     2229.1,
+     2178.7,
+     2544.0,
+     2270.9
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 2
+   }
+  ],
+  "itens_total": 0,
+  "erro": "",
+  "leitor_a": "tesseract",
+  "leitor_b": "rapidocr",
+  "segundos": 17.5
+ },
+ {
+  "arquivo": "MOD_TRATAM_MICRO_AREIA_360Ls/004-SAA-0017-8820-PBES-DE-0000ACT02ARMADURA-R0.PDF",
+  "caixas": [
+   {
+    "caixa_pt": [
+     2840.2,
+     33.1,
+     3336.5,
+     837.1
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 4
+   },
+   {
+    "caixa_pt": [
+     1660.3,
+     441.1,
+     1935.4,
+     783.4
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 14
+   },
+   {
+    "caixa_pt": [
+     2456.2,
+     522.2,
+     2770.6,
+     903.8
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 7
+   },
+   {
+    "caixa_pt": [
+     2840.2,
+     839.5,
+     3087.4,
+     1065.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 0
+   },
+   {
+    "caixa_pt": [
+     3089.3,
+     839.5,
+     3336.5,
+     1065.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 8
+   },
+   {
+    "caixa_pt": [
+     2456.2,
+     929.8,
+     2770.6,
+     1041.1
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 2
+   },
+   {
+    "caixa_pt": [
+     3089.3,
+     1124.6,
+     3336.5,
+     1303.2
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 9
+   },
+   {
+    "caixa_pt": [
+     317.3,
+     1338.7,
+     703.7,
+     1390.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 0
+   },
+   {
+    "caixa_pt": [
+     1042.6,
+     1364.6,
+     1384.3,
+     1398.2
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 0
+   }
+  ],
+  "itens_total": 0,
+  "erro": "",
+  "leitor_a": "tesseract",
+  "leitor_b": "rapidocr",
+  "segundos": 23.0
+ },
+ {
+  "arquivo": "MOD_TRATAM_MICRO_AREIA_600Ls/002-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0.PDF",
+  "caixas": [
+   {
+    "caixa_pt": [
+     176.6,
+     140.6,
+     2137.9,
+     1459.7
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 7
+   },
+   {
+    "caixa_pt": [
+     2840.2,
+     839.5,
+     3087.4,
+     1065.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 0
+   },
+   {
+    "caixa_pt": [
+     3089.3,
+     839.5,
+     3336.5,
+     1065.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 8
+   },
+   {
+    "caixa_pt": [
+     3089.3,
+     1124.6,
+     3336.5,
+     1303.2
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 9
+   }
+  ],
+  "itens_total": 0,
+  "erro": "",
+  "leitor_a": "tesseract",
+  "leitor_b": "rapidocr",
+  "segundos": 75.1
+ },
+ {
+  "arquivo": "BLOCOS_DE_APOIO_E_ANCORAGEM/003-SAA-0017-8820-PBES-DE-0000BLO01FORMARMAD-R0.PDF",
+  "caixas": [
+   {
+    "caixa_pt": [
+     3366.7,
+     33.1,
+     3863.0,
+     837.1
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 4
+   },
+   {
+    "caixa_pt": [
+     2991.8,
+     122.9,
+     3306.2,
+     380.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 5
+   },
+   {
+    "caixa_pt": [
+     2991.8,
+     406.6,
+     3306.2,
+     468.5
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 2
+   },
+   {
+    "caixa_pt": [
+     680.6,
+     607.2,
+     845.3,
+     807.8
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 3
+   },
+   {
+    "caixa_pt": [
+     3366.7,
+     839.5,
+     3613.9,
+     1065.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 0
+   },
+   {
+    "caixa_pt": [
+     3615.8,
+     839.5,
+     3863.0,
+     1065.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 8
+   },
+   {
+    "caixa_pt": [
+     3615.8,
+     1124.6,
+     3863.0,
+     1303.2
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 9
+   }
+  ],
+  "itens_total": 0,
+  "erro": "",
+  "leitor_a": "tesseract",
+  "leitor_b": "rapidocr",
+  "segundos": 19.8
+ },
+ {
+  "arquivo": "GUARITA/001-SAA-0017-8820-PBES-DE-0000POR01FORMA-R0.PDF",
+  "caixas": [
+   {
+    "caixa_pt": [
+     2840.2,
+     33.1,
+     3336.5,
+     837.1
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 4
+   },
+   {
+    "caixa_pt": [
+     2029.9,
+     101.8,
+     2514.7,
+     628.3
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 10
+   },
+   {
+    "caixa_pt": [
+     3089.3,
+     839.5,
+     3336.5,
+     1065.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 8
+   },
+   {
+    "caixa_pt": [
+     2389.9,
+     1075.2,
+     2677.4,
+     1346.9
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 13
+   },
+   {
+    "caixa_pt": [
+     3089.3,
+     1124.6,
+     3336.5,
+     1303.2
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 9
+   }
+  ],
+  "itens_total": 0,
+  "erro": "",
+  "leitor_a": "tesseract",
+  "leitor_b": "rapidocr",
+  "segundos": 20.1
+ },
+ {
+  "arquivo": "GUARITA/002-SAA-0017-8820-PBES-DE-0000POR01ARMADURA-R0.PDF",
+  "caixas": [
+   {
+    "caixa_pt": [
+     2840.2,
+     33.1,
+     3336.5,
+     837.1
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 4
+   },
+   {
+    "caixa_pt": [
+     2840.2,
+     839.5,
+     3087.4,
+     1065.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 0
+   },
+   {
+    "caixa_pt": [
+     3089.3,
+     839.5,
+     3336.5,
+     1065.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 8
+   },
+   {
+    "caixa_pt": [
+     3089.3,
+     1124.6,
+     3336.5,
+     1303.2
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 9
+   },
+   {
+    "caixa_pt": [
+     2140.3,
+     1524.5,
+     2455.2,
+     1629.1
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 2
+   }
+  ],
+  "itens_total": 0,
+  "erro": "",
+  "leitor_a": "tesseract",
+  "leitor_b": "rapidocr",
+  "segundos": 18.7
+ },
+ {
+  "arquivo": "ABRIGO_BOMBAS_PRODS_QUIMICOS/001-SAA-0017-8820-PBES-DE-0000ABR0101FORMARMAD-R0.PDF",
+  "caixas": [
+   {
+    "caixa_pt": [
+     880.3,
+     216.0,
+     1485.6,
+     522.2
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 5
+   },
+   {
+    "caixa_pt": [
+     150.2,
+     244.3,
+     727.2,
+     464.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 3
+   },
+   {
+    "caixa_pt": [
+     1639.2,
+     244.3,
+     2187.8,
+     464.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 2
+   },
+   {
+    "caixa_pt": [
+     2840.2,
+     839.5,
+     3087.4,
+     1065.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 0
+   },
+   {
+    "caixa_pt": [
+     3089.3,
+     839.5,
+     3336.5,
+     1065.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 8
+   },
+   {
+    "caixa_pt": [
+     135.4,
+     949.4,
+     364.8,
+     1117.0
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 4
+   },
+   {
+    "caixa_pt": [
+     1420.8,
+     999.8,
+     1650.2,
+     1138.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 0
+   },
+   {
+    "caixa_pt": [
+     3089.3,
+     1124.6,
+     3336.5,
+     1303.2
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 9
+   }
+  ],
+  "itens_total": 0,
+  "erro": "",
+  "leitor_a": "tesseract",
+  "leitor_b": "rapidocr",
+  "segundos": 17.3
+ },
+ {
+  "arquivo": "INTERLIGAÇÕES/001-SAA-0017-8820-PBES-DE-0000CXA03FORMARMAD-R0.PDF",
+  "caixas": [
+   {
+    "caixa_pt": [
+     2840.2,
+     33.1,
+     3336.5,
+     837.1
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 4
+   },
+   {
+    "caixa_pt": [
+     265.9,
+     139.7,
+     792.0,
+     722.4
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 12
+   },
+   {
+    "caixa_pt": [
+     2284.3,
+     200.6,
+     2446.1,
+     370.1
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 0
+   },
+   {
+    "caixa_pt": [
+     3089.3,
+     839.5,
+     3336.5,
+     1065.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 8
+   },
+   {
+    "caixa_pt": [
+     1158.2,
+     1016.2,
+     1320.0,
+     1185.6
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 1
+   },
+   {
+    "caixa_pt": [
+     3089.3,
+     1124.6,
+     3336.5,
+     1303.2
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 9
+   }
+  ],
+  "itens_total": 0,
+  "erro": "",
+  "leitor_a": "tesseract",
+  "leitor_b": "rapidocr",
+  "segundos": 23.7
+ },
+ {
+  "arquivo": "REFORMA_EDIFIC_LODO/001-SAA-0017-8820-PBES-DE-0000ETL01FORMA-R0.PDF",
+  "caixas": [
+   {
+    "caixa_pt": [
+     281.3,
+     91.2,
+     1355.0,
+     744.5
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 5
+   },
+   {
+    "caixa_pt": [
+     1424.2,
+     138.2,
+     2777.8,
+     819.8
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 4
+   },
+   {
+    "caixa_pt": [
+     2883.4,
+     523.2,
+     3308.2,
+     942.7
+    ],
+    "e_tabela": true,
+    "itens": 0,
+    "cabecalho": null,
+    "titulo": [],
+    "linhas_fora": 23
+   }
+  ],
+  "itens_total": 0,
+  "erro": "",
+  "leitor_a": "tesseract",
+  "leitor_b": "rapidocr",
+  "segundos": 41.7
+ }
+]

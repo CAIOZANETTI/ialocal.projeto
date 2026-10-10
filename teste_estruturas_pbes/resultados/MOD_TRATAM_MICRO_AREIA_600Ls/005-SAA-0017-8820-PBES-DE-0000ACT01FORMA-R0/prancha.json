@@ -1,0 +1,91 @@
+{
+ "estrutura": "MOD_TRATAM_MICRO_AREIA_600Ls",
+ "codigo_arquivo": "005-SAA-0017-8820-PBES-DE-0000ACT01FORMA-R0",
+ "caixas": [
+  {
+   "n": 0,
+   "tipo": "outra",
+   "caixa_pt": [
+    3366.7,
+    33.1,
+    3863.0,
+    725.3
+   ]
+  },
+  {
+   "n": 1,
+   "tipo": "outra",
+   "caixa_pt": [
+    3366.7,
+    839.5,
+    3613.9,
+    1065.6
+   ]
+  },
+  {
+   "n": 2,
+   "tipo": "outra",
+   "caixa_pt": [
+    3615.8,
+    839.5,
+    3863.0,
+    1065.6
+   ]
+  },
+  {
+   "n": 3,
+   "tipo": "outra",
+   "caixa_pt": [
+    2238.7,
+    897.6,
+    3260.2,
+    1429.9
+   ]
+  },
+  {
+   "n": 4,
+   "tipo": "outra",
+   "caixa_pt": [
+    3366.7,
+    1068.0,
+    3863.0,
+    1122.2
+   ]
+  },
+  {
+   "n": 5,
+   "tipo": "outra",
+   "caixa_pt": [
+    3366.7,
+    1124.6,
+    3613.9,
+    1303.2
+   ]
+  },
+  {
+   "n": 6,
+   "tipo": "resumo_materiais",
+   "caixa_pt": [
+    3615.8,
+    1124.6,
+    3863.0,
+    1303.2
+   ]
+  },
+  {
+   "n": 7,
+   "tipo": "outra",
+   "caixa_pt": [
+    3366.7,
+    1305.6,
+    3863.0,
+    1653.1
+   ]
+  }
+ ],
+ "erro": "",
+ "n_resumo_materiais": 4,
+ "n_resumo_aco": 0,
+ "n_armadura": 0,
+ "segundos": 77.4
+}

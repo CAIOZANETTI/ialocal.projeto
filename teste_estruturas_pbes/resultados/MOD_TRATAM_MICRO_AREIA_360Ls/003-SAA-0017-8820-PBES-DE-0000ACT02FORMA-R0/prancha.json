@@ -1,0 +1,91 @@
+{
+ "estrutura": "MOD_TRATAM_MICRO_AREIA_360Ls",
+ "codigo_arquivo": "003-SAA-0017-8820-PBES-DE-0000ACT02FORMA-R0",
+ "caixas": [
+  {
+   "n": 0,
+   "tipo": "outra",
+   "caixa_pt": [
+    2840.2,
+    33.1,
+    3336.5,
+    837.1
+   ]
+  },
+  {
+   "n": 1,
+   "tipo": "outra",
+   "caixa_pt": [
+    3089.3,
+    839.5,
+    3336.5,
+    1065.6
+   ]
+  },
+  {
+   "n": 2,
+   "tipo": "outra",
+   "caixa_pt": [
+    2840.2,
+    957.1,
+    3086.9,
+    1065.6
+   ]
+  },
+  {
+   "n": 3,
+   "tipo": "outra",
+   "caixa_pt": [
+    2840.2,
+    1068.0,
+    3336.5,
+    1122.2
+   ]
+  },
+  {
+   "n": 4,
+   "tipo": "outra",
+   "caixa_pt": [
+    2840.2,
+    1124.6,
+    3087.4,
+    1303.2
+   ]
+  },
+  {
+   "n": 5,
+   "tipo": "resumo_materiais",
+   "caixa_pt": [
+    3089.3,
+    1124.6,
+    3336.5,
+    1303.2
+   ]
+  },
+  {
+   "n": 6,
+   "tipo": "outra",
+   "caixa_pt": [
+    2840.2,
+    1305.6,
+    3336.0,
+    1653.1
+   ]
+  },
+  {
+   "n": 7,
+   "tipo": "outra",
+   "caixa_pt": [
+    1829.3,
+    1399.7,
+    1971.4,
+    1417.4
+   ]
+  }
+ ],
+ "erro": "",
+ "n_resumo_materiais": 5,
+ "n_resumo_aco": 0,
+ "n_armadura": 0,
+ "segundos": 62.2
+}

@@ -1,0 +1,61 @@
+{
+ "estrutura": "REFORMA_EDIFIC_LODO",
+ "codigo_arquivo": "001-SAA-0017-8820-PBES-DE-0000ETL01FORMA-R0",
+ "caixas": [
+  {
+   "n": 0,
+   "tipo": "outra",
+   "caixa_pt": [
+    281.3,
+    91.2,
+    1355.0,
+    744.5
+   ]
+  },
+  {
+   "n": 1,
+   "tipo": "outra",
+   "caixa_pt": [
+    1424.2,
+    138.2,
+    2777.8,
+    819.8
+   ]
+  },
+  {
+   "n": 2,
+   "tipo": "resumo_metalico",
+   "caixa_pt": [
+    2883.4,
+    523.2,
+    3308.2,
+    942.7
+   ]
+  },
+  {
+   "n": 3,
+   "tipo": "outra",
+   "caixa_pt": [
+    97.4,
+    1047.8,
+    1370.9,
+    1548.5
+   ]
+  },
+  {
+   "n": 4,
+   "tipo": "outra",
+   "caixa_pt": [
+    2840.2,
+    1337.8,
+    3336.5,
+    1653.1
+   ]
+  }
+ ],
+ "erro": "",
+ "n_resumo_materiais": 0,
+ "n_resumo_aco": 0,
+ "n_armadura": 0,
+ "segundos": 46.4
+}
