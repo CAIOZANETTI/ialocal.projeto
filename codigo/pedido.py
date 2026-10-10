@@ -52,6 +52,7 @@ NOMES = {'carimbo': 'CARIMBO', 'tabelas': 'TABELAS', 'tracado': 'TRAÇADO (eixo)
          'sondagem': 'BOLETIM DE SONDAGEM'}
 FERRAMENTAS = {'ler_prancha': 'código: pypdfium2 + pdfminer (perfil, carimbo de texto real, família, eixo pela geometria)',
                'ler_prancha_ia': 'IA local: glm-ocr (Ollama) × Vision (macOS) nas fatias, nas tabelas coladas e no carimbo desenhado',
+               'ler_tabelas': 'código: a tabela de material pela grade (imagem colada e malha vetorial) × Vision e PP-OCR nas células (0v38)',
                'ler_sondagem': 'código: pdfplumber/pypdfium2 (boletim com texto real)',
                'ler_sondagem_ia': 'IA local: glm-ocr × Vision (boletim digitalizado)'}
 MOSTRAR = 15  # linhas de tabela e valores por documento no corpo do e-mail; o resto vai nos CSVs anexos
@@ -392,7 +393,8 @@ def itens(lista):
         saida_[i] = {
             'carimbo': [{k: l.get(k) for k in ('campo', 'valor', 'valor_vision', 'leitor', 'status')} for l in carimbo[i]],
             'tabelas': [{'imagem': l.get('imagem'), 'faixa': l.get('faixa'), 'linha': l.get('linha'), 'celulas': json.loads(l.get('celulas') or '[]'),
-                         'status': l.get('status'), 'nao_confirmados': l.get('nao_confirmados')} for l in tabela[i] if l.get('status') != 'vazia'],
+                         'status': l.get('status'), 'nao_confirmados': l.get('nao_confirmados'), 'extrator': l.get('extrator')}
+                        for l in tabela[i] if l.get('status') != 'vazia'],
             'texto': dict(Counter(f"{l.get('padrao')}|{l.get('status')}" for l in leitura[i] if l.get('valor'))),
             'texto_exemplos': [{k: l.get(k) for k in ('fatia', 'padrao', 'valor', 'status')} for l in leitura[i] if l.get('valor')][:200],
             'sondagem': [{k: l.get(k) for k in ('pagina', 'furo', 'campo', 'valor', 'valor_vision', 'leitor', 'status')} for l in campo[i]],
@@ -601,7 +603,8 @@ def imagens_em_texto(imagens):
     """0v33: as imagens coladas na folha, uma por linha: onde está, o tamanho, se foi lida (faixas, linhas) ou por que não."""
     if not imagens:
         return []
-    MOTIVOS = {'pequena': 'pequena demais para ser tabela', 'folha_escaneada': 'é a folha escaneada (lida pelas fatias)', 'tempo': 'o limite da prancha acabou antes'}
+    MOTIVOS = {'pequena': 'pequena demais para ser tabela', 'folha_escaneada': 'é a folha escaneada (lida pelas fatias)', 'tempo': 'o limite da prancha acabou antes',
+               'lida_pela_grade': 'lida pela grade (ler_tabelas), não precisou do glm-ocr'}
     return [f"   Imagens na folha: {len(imagens)} ({sum(i['lida'] for i in imagens)} lida(s) como tabela)"] + [
         f"     imagem {i['imagem']} ({i['onde']}, {i['px'][0]}×{i['px'][1]} px): "
         + (f"{i.get('faixas', 0)} faixa(s), {i.get('linhas', 0)} linha(s)" if i['lida'] else f"não lida — {MOTIVOS.get(i['motivo'], i['motivo'])}")
@@ -610,12 +613,13 @@ def imagens_em_texto(imagens):
 
 def tabelas_em_texto(tabelas, imagens=None):
     if not tabelas:
-        return ['   TABELAS — nenhuma tabela colada como imagem na folha (a tabela em texto/vetor ainda não é lida como tabela)'] + imagens_em_texto(imagens)
+        return ['   TABELAS — nenhuma tabela de material achada na folha (imagem colada ou malha vetorial)'] + imagens_em_texto(imagens)
     contagem = Counter(t['status'] for t in tabelas)
     quantas = len({t['imagem'] for t in tabelas})  # 0v35: era `imagens`, que apagava o inventário recebido e quebrava o texto
     corpo = [f"     {' | '.join(t['celulas'])}  [{t['status']}{': falta ' + t['nao_confirmados'] if t.get('nao_confirmados') else ''}]"
              for t in tabelas[:MOSTRAR]]
-    return [f"   TABELAS — glm-ocr (modo tabela) × Vision: {quantas} imagem(ns), {len(tabelas)} linha(s): "
+    leitores = 'grade × Vision e PP-OCR' if any(t.get('extrator') == 'tabelas' for t in tabelas) else 'glm-ocr (modo tabela) × Vision'
+    return [f"   TABELAS — {leitores}: {quantas} tabela(s), {len(tabelas)} linha(s): "
             f"{', '.join(f'{n} {s}' for s, n in contagem.items())}", *imagens_em_texto(imagens), *corpo] + \
         ([f'     … mais {len(tabelas) - MOSTRAR} linha(s) em tabelas.csv'] if len(tabelas) > MOSTRAR else [])
 

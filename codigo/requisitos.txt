@@ -1,0 +1,10 @@
+# O que o .venv do mini precisa. O mini.py atualizar instala de novo quando este arquivo muda (0v38).
+polars
+pdfplumber
+pypdfium2>=4.30
+pillow
+numpy
+# 0v38, a tabela pela grade (codigo/tabela.py): sem eles a tabela segue pelo caminho antigo (glm-ocr em faixas)
+opencv-python-headless>=4.9
+rapidocr_onnxruntime>=1.2.3,<1.3
+# só no macOS, instalados à mão na primeira vez (LEIA.md): apple-fm-sdk pyobjc-framework-Vision

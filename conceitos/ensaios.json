@@ -4,7 +4,7 @@
     "fonte": "pedido do Caio de 07/10/2026: 'pegar a pasta 211 Foz do Iguaçu do Drive, no máximo 10 pranchas, rodar e fazer acontecer, pedindo prioridade ao maestro'",
     "atualizado_em": "2026-10-07"
   },
-  "pedido": {"ensaio": "foz_pbhi", "id": "2026-10-09-a"},
+  "pedido": {"ensaio": "foz_pbhi", "id": "2026-10-10-a"},
   "_pedido": "a rodada (a cada 5 min no launchd) roda o ensaio pedido uma vez por id, antes do trabalho de sempre. Para rodar de novo — depois de um PR que muda o código, por exemplo — troca o id por PR: o mini puxa a main em até 5 min e a rodada seguinte executa. Sem pedido (null), nada roda sozinho; à mão: codigo/ensaio.py rodar <nome>",
   "ensaios": {
     "foz_10": {
@@ -47,6 +47,10 @@
         "008-SAA-0017-7471-PBHI-DE-0001ETAVILACLAYGERAGUAPO-R2.pdf"
       ],
       "_lista": "fixa: as que o protótipo mais errou (042A e 008 são tabela vetorial com texto em curva; 013 imagem pequena com fundo roxo; 019 50 linhas com valores empilhados; 004 onze tabelas pequenas). O nome é o do Drive, com o Ç de INTERLIGAÇOES",
+      "gabarito": "amostras/tabelas/211_foz_pbhi/gabarito.csv",
+      "reler_com_glm": true,
+      "_reler_com_glm": "só neste ensaio: o glm-ocr (caminho antigo) lê também as imagens que a grade leu, para o placar medir os dois na mesma execução, no mesmo mini; na rodada de sempre a imagem lida pela grade não vai ao glm-ocr",
+      "_gabarito": "0v38: com gabarito, o ensaio mede as tabelas lidas (codigo/placar_tabelas.py) por extrator — prancha_ia (glm-ocr em faixas, o caminho antigo) e tabelas (a grade) —, publica _sistema/projeto/placar_tabelas.csv e leva o resumo em ensaios_execucoes.csv",
       "prioridade": 4,
       "limite_s": 7200
     }

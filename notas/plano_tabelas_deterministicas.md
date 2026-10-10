@@ -1,6 +1,6 @@
 # Tabelas de material: grade primeiro, leitores depois — plano de melhoria
 
-**Estado: plano com protótipo medido** (09/10/2026). Pedido do Caio: a IA de fronteira lê as tabelas de material dos
+**Estado: P1–P5 implantados na 0v38** (10/10/2026; §9), P6–P7 a seguir. Plano escrito em 09/10 com o protótipo medido. Pedido do Caio: a IA de fronteira lê as tabelas de material dos
 projetos hidráulicos da Sanepar (ETA Vila C, Foz do Iguaçu: Drive `211 - SAA Foz do Iguaçu/01. RECEBIDOS/
 LC2112026EDITAL_ELEMENTOS/UNIDADE 01/ANEXO C/1. PBHI`), acha as pranchas mais difíceis, confere o que o código e a IA
 local do mini fazem e ensina o código a chegar perto — **com o máximo de determinismo e velocidade**. Nada aqui muda
@@ -145,3 +145,48 @@ hoje** nessas 10 pranchas (prioridade 4) e publica `prancha_tabelas.csv` no Driv
    convenções que ficaram em aberto: a faixa de título acima do cabeçalho conta como **seção**? `BARRAS` é unidade?
    `02 - 20,06` vira dois valores (`02 / 20,06`)? Asterisco do item faz parte do item?
 3. Dizer se a 2ª etapa (fundo roxo, coluna "2ª ETAPA") entra no quantitativo ou fica separada.
+
+## 9. Execução (0v38, 10/10/2026) e prazo
+
+**O que entrou no código** (PR da 0v38):
+
+| item do plano | onde | estado |
+|---|---|---|
+| P1 grade pelo raster | `codigo/tabela.py` (`grade`, `ler`, `montar`), regras em `conceitos/tabela.json` | feito |
+| P2 sem thumbnail, "é tabela?", sem confirmação vazia | `tabela.imagens` (pixels nativos), `tabela.e_tabela`; `prancha.ler_tabela` → `sem_numero` | feito |
+| P2 a imagem lida pela grade não vai ao glm-ocr; tabela antes das fatias | `prancha.ler_imagens`, `prancha.ler_prancha_ia` | feito |
+| P3 dois leitores | A = Vision no mini (Tesseract fora dele), B = PP-OCR por coluna, `juntar`/`status` | feito |
+| P4 regras de domínio | `decimal`, `empilhar`, `unidade`, `vocabulario` (PN/DN), `item_sem_numero`, papel da coluna pela ordem e pelo conteúdo | feito |
+| P5 tabela vetorial | `tabela.malhas` (folha a 150 dpi, blocos de grade, o cabeçalho separado por linha dupla unido) | feito |
+| tarefa de código | `ler_tabelas` no ciclo, no ensaio e no pedido, sem a vez da GPU e sem o Ollama | feito |
+| medida | `codigo/placar_tabelas.py`; `amostras/tabelas/211_foz_pbhi/` (gabarito e `medidas.jsonl`) | feito |
+| P6 catálogo SAM na decisão | `catalogo.py` | próximo PR |
+| P7 bancada com o gabarito de Foz | `bancada.py` | próximo PR |
+
+**Medida antes do PR** (o código da 0v38 nos 43 PDFs, fora do mini, leitores Tesseract + PP-OCR):
+**518 de 661 linhas inteiras certas (78 %)** e **código + quantidade + unidade certos em 556 (84 %)**, 4 faltaram e 3
+sobraram; quantidade 97,7 %, 1ª etapa 97,8 %, unidade 93,3 %; mediana de **16 s por prancha** em CPU. O protótipo v4
+tinha 493 e 533; o mini, no foz_10, gastou 368 s por prancha.
+No que o leitor A muda (Vision no lugar do Tesseract), só o mini diz: é o teste da seção seguinte.
+
+**Como o teste no mini acontece, sem ninguém digitar nada:**
+
+1. Merge do PR. Em até 5 min o `mini.py atualizar` puxa a main; na volta seguinte instala o `codigo/requisitos.txt`
+   (OpenCV, RapidOCR) — registro em `dados/atualizacao.jsonl`.
+2. A rodada vê o pedido `{foz_pbhi, 2026-10-10-a}`. O ensaio espera o OpenCV e então roda as 10 pranchas mais difíceis:
+   `ler_tabelas` (código) e, com `reler_com_glm`, o glm-ocr nas mesmas imagens (o caminho antigo), na vez da GPU com
+   prioridade 4.
+3. No fim, `placar_tabelas.do_ensaio` mede as duas saídas contra o gabarito e publica `_sistema/projeto/placar_tabelas.csv`
+   no Drive (e o ialocal.dados 0v9 leva ao GitHub). O resumo vai em `ensaios_execucoes.csv` (coluna `placar_tabelas`).
+4. Eu leio o placar no Drive, gravo a linha do mini em `medidas.jsonl` e abro o PR seguinte com o que ele mostrar.
+
+**Prazo:**
+
+| quando | o quê | quem |
+|---|---|---|
+| 10/10 | PRs da 0v38 (projeto), 0v9 (dados) e 0v95 (maestro) | Claude — feito |
+| 10/10, depois do merge | o mini instala e roda o ensaio: ~1 h (o glm-ocr nas 10 pranchas é o que demora; a grade, minutos) | o mini, sozinho |
+| merge + ~2 h | leitura do placar do mini, a linha em `medidas.jsonl`, o relatório antes × depois | Claude (check-in agendado) |
+| até 13/10 | PR seguinte: o que o placar do mini mostrar (Vision × Tesseract no leitor A), a 013 (imagem pequena com fundo roxo), o asterisco do item, P6 (catálogo SAM decide o código divergente) | Claude |
+| até 17/10 | P7 (bancada com o gabarito de Foz) e o segundo ensaio: meta ≥ 90 % no essencial, 0 linha inventada, ≤ 15 s por tabela no mini | Claude, com o merge do Caio |
+| 02/11 | fim da exceção da IA de fora (MASTER-PLAN §5.5/§5.6): daí em diante o ciclo segue só com o código e o gabarito | — |

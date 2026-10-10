@@ -22,6 +22,7 @@ from pathlib import Path
 
 import comum
 import ia
+import tabela
 
 MM_POR_PT = 25.4 / 72
 NUMERO = r'\d+(?:[.,]\d+)?'
@@ -573,8 +574,10 @@ def ler_tabela(imagem, com_vision, base):
     do_vision = {normalizar(n) for n in re.findall(NUMERO, vista['texto_vision'])}
     linhas = []
     for numero, celulas in enumerate(linhas_html(html), 1):
-        faltam = [normalizar(c) for c in celulas if re.fullmatch(NUMERO, c.strip()) and normalizar(c) not in do_vision]
-        status = 'um_leitor' if vista['erro_vision'] else 'pendente' if faltam else 'confirmada'
+        numeros = [c for c in celulas if re.fullmatch(NUMERO, c.strip())]
+        faltam = [normalizar(c) for c in numeros if normalizar(c) not in do_vision]
+        # 0v38: sem número nenhum a conferência era verdade vazia (Joinville 08/10: linhas [""] confirmadas)
+        status = 'um_leitor' if vista['erro_vision'] else 'sem_numero' if not numeros else 'pendente' if faltam else 'confirmada'
         linhas.append({**base, 'linha': numero, 'celulas': json.dumps(celulas, ensure_ascii=False), 'status': status,
                        'nao_confirmados': ','.join(faltam), 'erro': erro})
     return linhas or [{**base, 'linha': 0, 'celulas': '[]', 'status': 'vazia', 'nao_confirmados': '', 'erro': erro or vista['erro_vision']}]
@@ -598,6 +601,15 @@ def imagens_da_folha(pagina, FATIAS, LIMITE):
     return inventario
 
 
+def reler_no_ensaio(identificador):
+    """No ensaio com `reler_com_glm` (conceitos/ensaios.json), o glm-ocr lê também o que a grade leu: o antes e o
+    depois medidos na mesma execução (0v38). Fora dele, a imagem lida pela grade não vai ao glm-ocr."""
+    partes = identificador.split('/')
+    if len(partes) < 3 or partes[0] != '_ensaios':
+        return False
+    return bool(comum.configuracao('ensaios')['ensaios'].get(partes[1], {}).get('reler_com_glm'))
+
+
 def ler_imagens(caminho, pasta, com_vision, base, prazo):
     """Cada imagem colada na primeira página (não a folha escaneada inteira), solta ou dentro de formulário, lida como
     tabela, faixa a faixa. Devolve (linhas, inventário com as faixas e as linhas de cada imagem)."""
@@ -609,8 +621,10 @@ def ler_imagens(caminho, pasta, com_vision, base, prazo):
     folha_pt = pagina.get_size()
     inventario = imagens_da_folha(pagina, FATIAS, LIMITE)
     documento.close()
-    linhas = []
+    linhas, pela_grade = [], set() if reler_no_ensaio(base['id']) else tabela.lidas_pela_grade(base['id'])
     for item in inventario:
+        if item['lida'] and item['imagem'] in pela_grade:  # 0v38: o ler_tabelas já leu pela grade; o glm-ocr não relê
+            item.update(lida=False, motivo='lida_pela_grade')
         if not item['lida']:
             continue
         if time.monotonic() > prazo:
@@ -675,6 +689,12 @@ def desempatar(texto):
             'familia_origem': 'ia_concordante' if escolhida != 'indefinida' else 'ia_sem_acordo'}
 
 
+def grade_lida(identificador):
+    """As linhas que o ler_tabelas gravou (prancha_tabela, extrator tabelas) para este documento."""
+    feita = comum.ler('prancha_tabela', [identificador])
+    return [] if feita is None else [l for l in feita.to_dicts() if l['extrator'] == 'tabelas']
+
+
 def ler_prancha_ia(documento, rodada):
     """Tarefa de IA: só na prancha que o ler_prancha achou (o ciclo confere antes). Fatias e imagens coladas pelos dois
     leitores, a conferência e, sem família por regra, o desempate. O resumo vai para prancha (extrator prancha_ia)."""
@@ -688,10 +708,11 @@ def ler_prancha_ia(documento, rodada):
     if linha.get('carimbo_camada') == 'imagem':
         comum.gravar('carimbo', ler_carimbo_ocr(recorte_do_carimbo(caminho, pasta), documento['nome'], com_vision,
                                                 {**base_da_linha(documento, 'carimbo_ia', rodada), 'leitor': 'glm_ocr+vision'}))
+    tabelas, imagens = ler_imagens(caminho, pasta, com_vision, base, prazo)  # 0v38: a tabela antes das fatias (o prazo não a corta)
     leituras, planejadas = ler_fatias(caminho, pasta, com_vision, base, prazo)
-    tabelas, imagens = ler_imagens(caminho, pasta, com_vision, base, prazo)
+    da_grade = [l for l in grade_lida(documento['id']) if l['linha']]  # a conferência eixo × tubo vê a tabela da grade também
     contagem = {s: sum(l['status'] == s for l in leituras) for s in ('confirmado', 'so_glm', 'so_vision', 'um_leitor')}
-    resumo = {**linha, **base, **conferir(linha, leituras, tabelas), 'fatias_lidas': len({l['fatia'] for l in leituras}),
+    resumo = {**linha, **base, **conferir(linha, leituras, tabelas + da_grade), 'fatias_lidas': len({l['fatia'] for l in leituras}),
               'fatias_planejadas': planejadas, 'com_vision': com_vision, **{f'valores_{s}': n for s, n in contagem.items()},
               'imagens_na_folha': json.dumps(imagens, ensure_ascii=False), 'imagens_lidas': sum(i['lida'] for i in imagens),
               'linhas_tabela': len(tabelas), 'linhas_tabela_confirmadas': sum(t['status'] == 'confirmada' for t in tabelas),

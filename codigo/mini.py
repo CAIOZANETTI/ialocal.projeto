@@ -4,6 +4,7 @@ rodada e o atualizar no launchd com o python do .venv. Registros em dados/ (laun
     .venv/bin/python codigo/mini.py instalar     # só na primeira vez
     .venv/bin/python codigo/mini.py atualizar
 """
+import hashlib
 import json
 import os
 import plistlib
@@ -49,7 +50,31 @@ def atualizar():
         registrar({'ok': True, 'de': antes, 'para': depois, 'commits': git('log', '--format=%h %s', f'{antes}..{depois}').stdout.splitlines()})
     print(f'atualizar: {antes} → {depois}' if antes != depois else f'atualizar: {depois} já é a main')
     if Path(sys.executable).parent.parent == RAIZ / '.venv':
+        requisitos()
         subprocess.run([sys.executable, str(RAIZ / 'codigo' / 'mini.py'), 'instalar', 'mudados'], cwd=RAIZ, timeout=120)
+
+
+def requisitos():
+    """0v38: codigo/requisitos.txt mudou desde a última instalação → pip install no .venv (o OpenCV e o PP-OCR da
+    tabela pela grade chegam sem o Caio digitar nada). Falhou: registra e segue — o código diz o que faltou."""
+    arquivo, marca = RAIZ / 'codigo' / 'requisitos.txt', REGISTROS / 'requisitos.sha1'
+    if not arquivo.exists():
+        return
+    assinatura = hashlib.sha1(arquivo.read_bytes()).hexdigest()
+    if marca.exists() and marca.read_text().strip() == assinatura:
+        return
+    try:
+        feito = subprocess.run([sys.executable, '-m', 'pip', 'install', '--quiet', '-r', str(arquivo)],
+                               capture_output=True, text=True, cwd=RAIZ, timeout=1200)
+    except subprocess.TimeoutExpired:
+        registrar({'ok': False, 'requisitos': assinatura[:10], 'erro': 'pip passou de 20 min'})
+        return
+    if feito.returncode:
+        registrar({'ok': False, 'requisitos': assinatura[:10], 'erro': feito.stderr.strip()[-500:]})
+        return
+    REGISTROS.mkdir(parents=True, exist_ok=True)
+    marca.write_text(assinatura)
+    registrar({'ok': True, 'requisitos': assinatura[:10]})
 
 
 def plist(rotulo, argumentos, agenda):
